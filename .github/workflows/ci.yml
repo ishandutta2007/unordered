@@ -159,6 +159,9 @@ jobs:
             addrmd: 64
             os: windows-2019
 
+    env:
+      VS150COMNTOOLS: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\Common7\\Tools"
+
     runs-on: ${{matrix.os}}
 
     steps:
