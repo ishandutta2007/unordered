@@ -175,7 +175,10 @@ template <class UnorderedContainer> void rehash_tests()
     // count can exceed `prev_count + count`
     //
     BOOST_TEST_LT(s.bucket_count(), prev_count + count);
-    BOOST_TEST_LT(total_allocation, (prev_count + count) * sizeof(void*));
+    BOOST_TEST_LE(
+      total_allocation -
+        sizeof(boost::unordered::detail::node<std::allocator<int>, int>),
+      (prev_count + count) * sizeof(void*));
   }
 
   BOOST_TEST_GT(num_allocations, 0u);

@@ -203,10 +203,8 @@ namespace boost {
 
       template <typename Types> struct table;
       template <typename NodePointer> struct bucket;
-      struct ptr_bucket;
 
       template <typename A, typename T> struct node;
-      template <typename T> struct ptr_node;
 
       static const float minimum_max_load_factor = 1e-3f;
       static const std::size_t default_bucket_count = 11;
@@ -1948,22 +1946,6 @@ namespace boost {
         enum
         {
           extra_node = true
-        };
-      };
-
-      struct ptr_bucket
-      {
-        typedef ptr_bucket* link_pointer;
-        link_pointer next_;
-
-        ptr_bucket() : next_(0) {}
-        ptr_bucket(link_pointer n) : next_(n) {}
-
-        link_pointer first_from_start() { return this; }
-
-        enum
-        {
-          extra_node = false
         };
       };
 
@@ -4271,55 +4253,11 @@ namespace boost {
         node& operator=(node const&);
       };
 
-      template <typename T>
-      struct ptr_node : boost::unordered::detail::ptr_bucket
+      template <typename A, typename T> struct pick_node
       {
-        typedef T value_type;
-        typedef boost::unordered::detail::ptr_bucket bucket_base;
-        typedef ptr_node<T>* node_pointer;
-        typedef ptr_bucket* link_pointer;
-        typedef ptr_bucket* bucket_pointer;
+        typedef typename boost::remove_const<T>::type nonconst;
 
-        std::size_t bucket_info_;
-        boost::unordered::detail::value_base<T> value_base_;
-
-        ptr_node() : bucket_base(), bucket_info_(0) {}
-
-        void* address() { return value_base_.address(); }
-        value_type& value() { return value_base_.value(); }
-        value_type* value_ptr() { return value_base_.value_ptr(); }
-
-        std::size_t get_bucket() const
-        {
-          return bucket_info_ & ((std::size_t)-1 >> 1);
-        }
-
-        std::size_t is_first_in_group() const
-        {
-          return !(bucket_info_ & ~((std::size_t)-1 >> 1));
-        }
-
-        void set_first_in_group()
-        {
-          bucket_info_ = bucket_info_ & ((std::size_t)-1 >> 1);
-        }
-
-        void reset_first_in_group()
-        {
-          bucket_info_ = bucket_info_ | ~((std::size_t)-1 >> 1);
-        }
-
-      private:
-        ptr_node& operator=(ptr_node const&);
-      };
-
-      // If the allocator uses raw pointers use ptr_node
-      // Otherwise use node.
-
-      template <typename A, typename T, typename NodePtr, typename BucketPtr>
-      struct pick_node2
-      {
-        typedef boost::unordered::detail::node<A, T> node;
+        typedef boost::unordered::detail::node<A, nonconst> node;
 
         typedef typename boost::unordered::detail::allocator_traits<
           typename boost::unordered::detail::rebind_wrap<A,
@@ -4327,38 +4265,6 @@ namespace boost {
 
         typedef boost::unordered::detail::bucket<node_pointer> bucket;
         typedef node_pointer link_pointer;
-      };
-
-      template <typename A, typename T>
-      struct pick_node2<A, T, boost::unordered::detail::ptr_node<T>*,
-        boost::unordered::detail::ptr_bucket*>
-      {
-        typedef boost::unordered::detail::ptr_node<T> node;
-        typedef boost::unordered::detail::ptr_bucket bucket;
-        typedef bucket* link_pointer;
-      };
-
-      template <typename A, typename T> struct pick_node
-      {
-        typedef typename boost::remove_const<T>::type nonconst;
-
-        typedef boost::unordered::detail::allocator_traits<
-          typename boost::unordered::detail::rebind_wrap<A,
-            boost::unordered::detail::ptr_node<nonconst> >::type>
-          tentative_node_traits;
-
-        typedef boost::unordered::detail::allocator_traits<
-          typename boost::unordered::detail::rebind_wrap<A,
-            boost::unordered::detail::ptr_bucket>::type>
-          tentative_bucket_traits;
-
-        typedef pick_node2<A, nonconst, typename tentative_node_traits::pointer,
-          typename tentative_bucket_traits::pointer>
-          pick;
-
-        typedef typename pick::node node;
-        typedef typename pick::bucket bucket;
-        typedef typename pick::link_pointer link_pointer;
       };
 
       template <class Container, class Predicate>
