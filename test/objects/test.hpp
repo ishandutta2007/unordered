@@ -354,6 +354,12 @@ namespace test {
     int tag_;
 
     typedef T value_type;
+    typedef T* pointer;
+    typedef T const* const_pointer;
+    typedef T& reference;
+    typedef T const& const_reference;
+    typedef std::size_t size_type;
+    typedef std::ptrdiff_t difference_type;
 
     template <class U> struct rebind
     {
@@ -412,6 +418,7 @@ namespace test {
       ignore_variable(&p);
     }
 #else
+  // private:
     template <typename U, typename Args> void construct(U* p, Args const& args)
     {
       detail::tracker.track_construct((void*)p, sizeof(U), tag_);
@@ -517,8 +524,19 @@ namespace test {
     ptr(T* x) : ptr_(x) {}
 
   public:
+    typedef std::ptrdiff_t difference_type;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef std::random_access_iterator_tag iterator_category;
+
+
     ptr() : ptr_(0) {}
     explicit ptr(void_ptr const& x) : ptr_((T*)x.ptr_) {}
+
+    ~ptr() {
+      (void) ptr_;
+    }
 
     T& operator*() const { return *ptr_; }
     T* operator->() const { return ptr_; }
@@ -543,9 +561,9 @@ namespace test {
     T& operator[](std::ptrdiff_t s) const { return ptr_[s]; }
     bool operator!() const { return !ptr_; }
 
-      static ptr pointer_to(T& p) {
-        return ptr(&p);
-      }
+    static ptr pointer_to(T& p) {
+      return ptr(&p);
+    }
 
     // I'm not using the safe bool idiom because the containers should be
     // able to cope with bool conversions.

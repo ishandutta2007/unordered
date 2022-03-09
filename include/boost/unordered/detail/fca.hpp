@@ -138,6 +138,9 @@ namespace boost {
           typedef typename node<Allocator>::pointer node_pointer;
 
           node_pointer next;
+
+          bucket() {}
+          ~bucket() {}
         };
 
         template <class Bucket, class Allocator> struct bucket_group
@@ -161,6 +164,7 @@ namespace boost {
           bucket_group_pointer next, prev;
 
           bucket_group() { bitmask = 0; }
+          ~bucket_group() {}
         };
 
         template <class Bucket, class Allocator>
@@ -196,8 +200,8 @@ namespace boost {
           static const std::size_t N;
 
           grouped_bucket_iterator(
-            Bucket* p, bucket_group<Bucket, Allocator>* pbg)
-              : p(p), pbg(pbg)
+            Bucket* p_, bucket_group<Bucket, Allocator>* pbg_)
+              : p(p_), pbg(pbg_)
           {
           }
 
@@ -300,6 +304,8 @@ namespace boost {
             pbg->next = pbg->prev = pbg;
           }
 
+          ~grouped_bucket_array() {}
+
           grouped_bucket_array(BOOST_RV_REF(grouped_bucket_array)
               other) BOOST_NOEXCEPT : size_index_(other.size_index_),
                                       size_(other.size_),
@@ -382,8 +388,7 @@ namespace boost {
               unlink_bucket(itb);
           }
 
-          void extract_node_after(iterator itb, node_pointer* pp)
-          BOOST_NOEXCEPT
+          void extract_node_after(iterator itb, node_pointer* pp) BOOST_NOEXCEPT
           {
             *pp = (*pp)->next;
             if (!itb->next)
@@ -428,7 +433,8 @@ namespace boost {
           }
 
           std::size_t size_index_, size_;
-          boost::container::vector<value_type, bucket_allocator_type> buckets;
+          boost::container::vector<bucket<Allocator>, bucket_allocator_type>
+            buckets;
           boost::container::vector<group, group_allocator_type> groups;
         };
 

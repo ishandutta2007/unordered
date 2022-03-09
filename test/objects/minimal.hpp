@@ -292,8 +292,17 @@ namespace test {
       ptr(T* x) : ptr_(x) {}
 
     public:
+    typedef std::ptrdiff_t difference_type;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef T& reference;
+    typedef std::random_access_iterator_tag iterator_category;
+
       ptr() : ptr_(0) {}
       explicit ptr(void_ptr const& x) : ptr_((T*)x.ptr_) {}
+      ~ptr() {
+        (void) ptr_;
+      }
 
       T& operator*() const { return *ptr_; }
       T* operator->() const { return ptr_; }
@@ -309,10 +318,12 @@ namespace test {
         return tmp;
       }
       ptr operator+(std::ptrdiff_t s) const { return ptr<T>(ptr_ + s); }
-      friend ptr operator+(std::ptrdiff_t s, ptr p)
-      {
-        return ptr<T>(s + p.ptr_);
-      }
+    friend ptr operator+(std::ptrdiff_t s, ptr p) { return ptr<T>(s + p.ptr_); }
+    ptr operator+(std::size_t s) const { return ptr<T>(ptr_ + s); }
+    friend ptr operator+(std::size_t s, ptr p) { return ptr<T>(s + p.ptr_); }
+    std::ptrdiff_t operator-(ptr p) const { return ptr_ - p.ptr_; }
+    ptr operator-(std::ptrdiff_t s) const { return ptr(ptr_ - s); }
+    ptr operator-(std::size_t s) const { return ptr(ptr_ - s); }
       T& operator[](std::ptrdiff_t s) const { return ptr_[s]; }
       bool operator!() const { return !ptr_; }
 
