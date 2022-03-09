@@ -12,6 +12,7 @@
 #pragma once
 #endif
 
+#include <boost/unordered/detail/fca.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/allocator_traits.hpp>
 #include <boost/core/no_exceptions_support.hpp>
@@ -2306,7 +2307,12 @@ namespace boost {
         std::size_t size_;
         float mlf_;
         std::size_t max_load_;
+
+        // TODO: replace this data member with the proper bucket array type
         bucket_pointer buckets_;
+        boost::unordered::detail::v2::grouped_bucket_array<
+          v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
+          buckets_v2_;
 
       private:
         void init_bcount_log2()
@@ -2481,7 +2487,7 @@ namespace boost {
           node_allocator const& a)
             : functions(hf, eq), allocators_(a, a),
               bucket_count_(policy::new_bucket_count(num_buckets)), size_(0),
-              mlf_(1.0f), max_load_(0), buckets_()
+              mlf_(1.0f), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
         {
           init_bcount_log2();
           this->create_buckets(bucket_count_);
@@ -2490,7 +2496,7 @@ namespace boost {
         table(table const& x, node_allocator const& a)
             : functions(x), allocators_(a, a),
               bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
-              mlf_(x.mlf_), max_load_(0), buckets_()
+              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
         {
           init_bcount_log2();
         }
@@ -2498,7 +2504,7 @@ namespace boost {
         table(table& x, boost::unordered::detail::move_tag m)
             : functions(x, m), allocators_(x.allocators_, m),
               bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
-              max_load_(x.max_load_), buckets_(x.buckets_)
+              max_load_(x.max_load_), buckets_(x.buckets_), buckets_v2_(bucket_count_, allocators_.first())
         {
           init_bcount_log2();
           x.buckets_ = bucket_pointer();
@@ -2510,7 +2516,7 @@ namespace boost {
           boost::unordered::detail::move_tag m)
             : functions(x, m), allocators_(a, a),
               bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
-              max_load_(0), buckets_()
+              max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
         {
           init_bcount_log2();
         }

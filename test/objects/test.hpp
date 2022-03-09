@@ -412,18 +412,31 @@ namespace test {
       ignore_variable(&p);
     }
 #else
-  private:
+    template <typename U, typename Args> void construct(U* p, Args const& args)
+    {
+      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
+      new (p) U(args);
+    }
+
+    template <typename U> void destroy(U* p)
+    {
+      detail::tracker.track_destroy((void*)p, sizeof(U), tag_);
+      p->~U();
+
+      // Work around MSVC buggy unused parameter warning.
+      ignore_variable(&p);
+    }
     // I'm going to claim in the documentation that construct/destroy
     // is never used when C++11 support isn't available, so might as
     // well check that in the text.
     // TODO: Or maybe just disallow them for values?
-    template <typename U> void construct(U* p);
-    template <typename U, typename A0> void construct(U* p, A0 const&);
-    template <typename U, typename A0, typename A1>
-    void construct(U* p, A0 const&, A1 const&);
-    template <typename U, typename A0, typename A1, typename A2>
-    void construct(U* p, A0 const&, A1 const&, A2 const&);
-    template <typename U> void destroy(U* p);
+    // template <typename U> void construct(U* p);
+    // template <typename U, typename A0> void construct(U* p, A0 const&);
+    // template <typename U, typename A0, typename A1>
+    // void construct(U* p, A0 const&, A1 const&);
+    // template <typename U, typename A0, typename A1, typename A2>
+    // void construct(U* p, A0 const&, A1 const&, A2 const&);
+    // template <typename U> void destroy(U* p);
 
   public:
 #endif
@@ -522,8 +535,17 @@ namespace test {
     }
     ptr operator+(std::ptrdiff_t s) const { return ptr<T>(ptr_ + s); }
     friend ptr operator+(std::ptrdiff_t s, ptr p) { return ptr<T>(s + p.ptr_); }
+    ptr operator+(std::size_t s) const { return ptr<T>(ptr_ + s); }
+    friend ptr operator+(std::size_t s, ptr p) { return ptr<T>(s + p.ptr_); }
+    std::ptrdiff_t operator-(ptr p) const { return ptr_ - p.ptr_; }
+    ptr operator-(std::ptrdiff_t s) const { return ptr(ptr_ - s); }
+    ptr operator-(std::size_t s) const { return ptr(ptr_ - s); }
     T& operator[](std::ptrdiff_t s) const { return ptr_[s]; }
     bool operator!() const { return !ptr_; }
+
+      static ptr pointer_to(T& p) {
+        return ptr(&p);
+      }
 
     // I'm not using the safe bool idiom because the containers should be
     // able to cope with bool conversions.

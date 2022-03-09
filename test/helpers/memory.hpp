@@ -90,6 +90,8 @@ namespace test {
             bool no_constructions_left = (count_constructions == 0);
             bool allocated_memory_empty = allocated_memory.empty();
 
+            BOOST_TEST_EQ(count_constructions, 0);
+
             // Clearing the data before the checks terminate the
             // tests.
             count_allocations = 0;
