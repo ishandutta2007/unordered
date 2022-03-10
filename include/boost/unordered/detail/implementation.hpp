@@ -2297,6 +2297,21 @@ namespace boost {
 
         typedef std::pair<iterator, bool> emplace_return;
 
+        // v2
+        //
+        typedef boost::unordered::detail::v2::grouped_bucket_array<
+          v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
+          v2_bucket_array_type;
+
+        typedef typename v2_bucket_array_type::node_type v2_node_type;
+        typedef typename v2_bucket_array_type::node_allocator_type
+          v2_node_allocator_type;
+        typedef typename boost::allocator_pointer<v2_node_allocator_type>::type v2_node_pointer;
+
+        typedef typename v2_bucket_array_type::bucket_type v2_bucket_type;
+
+        typedef typename v2_bucket_array_type::iterator v2_bucket_iterator;
+
         ////////////////////////////////////////////////////////////////////////
         // Members
 
@@ -2310,9 +2325,7 @@ namespace boost {
 
         // TODO: replace this data member with the proper bucket array type
         bucket_pointer buckets_;
-        boost::unordered::detail::v2::grouped_bucket_array<
-          v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
-          buckets_v2_;
+        v2_bucket_array_type buckets_v2_;
 
       private:
         void init_bcount_log2()
@@ -2419,7 +2432,7 @@ namespace boost {
 
         std::size_t hash_to_bucket(std::size_t hash_value) const
         {
-          return policy::to_bucket(bucket_count_, hash_value, bcount_log2_);
+          return buckets_v2_.position(hash_value);
         }
 
 //         std::size_t bucket_size(std::size_t index) const
@@ -2437,8 +2450,8 @@ namespace boost {
 //           return count;
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Load methods
+        ////////////////////////////////////////////////////////////////////////
+        // Load methods
 
         void recalculate_max_load()
         {
@@ -2446,10 +2459,9 @@ namespace boost {
 
           // From 6.3.1/13:
           // Only resize when size >= mlf_ * count
-          max_load_ = buckets_ ? boost::unordered::detail::double_to_size(
-                                   ceil(static_cast<double>(mlf_) *
-                                        static_cast<double>(bucket_count_)))
-                               : 0;
+          max_load_ = boost::unordered::detail::double_to_size(
+            ceil(static_cast<double>(mlf_) *
+                 static_cast<double>(buckets_v2_.bucket_count())));
         }
 
         void max_load_factor(float z)
@@ -2489,37 +2501,31 @@ namespace boost {
               bucket_count_(policy::new_bucket_count(num_buckets)), size_(0),
               mlf_(1.0f), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
         {
-          init_bcount_log2();
-          this->create_buckets(bucket_count_);
         }
 
-//         table(table const& x, node_allocator const& a)
-//             : functions(x), allocators_(a, a),
-//               bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
-//               mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
-//         {
-//           init_bcount_log2();
-//         }
+        table(table const& x, node_allocator const& a)
+            : functions(x), allocators_(a, a),
+              bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
+              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
+        {
+        }
 
-//         table(table& x, boost::unordered::detail::move_tag m)
-//             : functions(x, m), allocators_(x.allocators_, m),
-//               bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
-//               max_load_(x.max_load_), buckets_(x.buckets_), buckets_v2_(bucket_count_, allocators_.first())
-//         {
-//           init_bcount_log2();
-//           x.buckets_ = bucket_pointer();
-//           x.size_ = 0;
-//           x.max_load_ = 0;
-//         }
+        table(table& x, boost::unordered::detail::move_tag m)
+            : functions(x, m), allocators_(x.allocators_, m),
+              bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
+              max_load_(x.max_load_), buckets_(), buckets_v2_(boost::move(x.buckets_v2_))
+        {
+          x.size_ = 0;
+          x.max_load_ = 0;
+        }
 
-//         table(table& x, node_allocator const& a,
-//           boost::unordered::detail::move_tag m)
-//             : functions(x, m), allocators_(a, a),
-//               bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
-//               max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
-//         {
-//           init_bcount_log2();
-//         }
+        table(table& x, node_allocator const& a,
+          boost::unordered::detail::move_tag m)
+            : functions(x, m), allocators_(a, a),
+              bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
+              max_load_(0), buckets_(), buckets_v2_(boost::move(x.buckets_v2_), a)
+        {
+        }
 
 //         ////////////////////////////////////////////////////////////////////////
 //         // Clear buckets and Create buckets
@@ -3050,7 +3056,7 @@ namespace boost {
         // Reserve and rehash
 
         void reserve_for_insert(std::size_t);
-//         void rehash(std::size_t);
+        void rehash(std::size_t);
 //         void reserve(std::size_t);
         void rehash_impl(std::size_t);
 
@@ -3342,63 +3348,103 @@ namespace boost {
         // if hash function throws, or inserting > 1 element, basic exception
         // safety strong otherwise
 
-        template <class InputIt>
-        void insert_range_unique(const_key_type& k, InputIt i, InputIt j)
-        {
-          insert_range_unique2(k, i, j);
+    //     template <class InputIt>
+    //     void insert_range_unique(const_key_type& k, InputIt i, InputIt j)
+    //     {
+    //       insert_range_unique2(k, i, j);
 
-          while (++i != j) {
-            // Note: can't use get_key as '*i' might not be value_type - it
-            // could be a pair with first_types as key_type without const or
-            // a different second_type.
-            insert_range_unique2(extractor::extract(*i), i, j);
-          }
-        }
+    //       while (++i != j) {
+    //         // Note: can't use get_key as '*i' might not be value_type - it
+    //         // could be a pair with first_types as key_type without const or
+    //         // a different second_type.
+    //         insert_range_unique2(extractor::extract(*i), i, j);
+    //       }
+    //     }
 
-        template <class InputIt>
-        void insert_range_unique2(const_key_type& k, InputIt i, InputIt j)
-        {
-          // No side effects in this initial code
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
+    //     template <class InputIt>
+    //     void insert_range_unique2(const_key_type& k, InputIt i, InputIt j)
+    //     {
+    //       // No side effects in this initial code
+    //       std::size_t key_hash = this->hash(k);
+    //       node_pointer pos = this->find_node(key_hash, k);
 
-          if (!pos) {
-            node_tmp b(boost::unordered::detail::func::construct_node(
-                         this->node_alloc(), *i),
-              this->node_alloc());
-            if (this->size_ + 1 > this->max_load_)
-              this->reserve_for_insert(
-                this->size_ + boost::unordered::detail::insert_size(i, j));
-            this->add_node_unique(b.release(), key_hash);
-          }
-        }
+    //       if (!pos) {
+    //         node_tmp b(boost::unordered::detail::func::construct_node(
+    //                      this->node_alloc(), *i),
+    //           this->node_alloc());
+    //         if (this->size_ + 1 > this->max_load_)
+    //           this->reserve_for_insert(
+    //             this->size_ + boost::unordered::detail::insert_size(i, j));
+    //         this->add_node_unique(b.release(), key_hash);
+    //       }
+    //     }
+
+
 
         template <class InputIt>
         void insert_range_unique(no_key, InputIt i, InputIt j)
         {
-          node_constructor a(this->node_alloc());
+          // auto hash=h(x);
+          // auto itb=buckets.at(buckets.position(hash));
+          // auto it=find(x,itb);
+          // if(it!=end())return {it,false};
 
-          do {
-            if (!a.node_) {
-              a.create_node();
-            }
-            BOOST_UNORDERED_CALL_CONSTRUCT1(
-              node_allocator_traits, a.alloc_, a.node_->value_ptr(), *i);
-            node_tmp b(a.release(), a.alloc_);
+          // if(size_+1>ml){
+          //   rehash(size_+1);
+          //   itb=buckets.at(buckets.position(hash));
+          // }
 
-            const_key_type& k = this->get_key(b.node_);
-            std::size_t key_hash = this->hash(k);
-            node_pointer pos = this->find_node(key_hash, k);
+          // auto p=new_node(std::forward<Value>(x),*itb);
+          // buckets.insert_node(itb,p);
+          // ++size_;
+          // return {{p,itb},true};
 
-            if (pos) {
-              a.reclaim(b.release());
-            } else {
-              // reserve has basic exception safety if the hash function
-              // throws, strong otherwise.
-              this->reserve_for_insert(this->size_ + 1);
-              this->add_node_unique(b.release(), key_hash);
-            }
-          } while (++i != j);
+          hasher h = this->hash_function();
+          v2_node_allocator_type node_allocator = buckets_v2_.get_node_allocator();
+
+          recalculate_max_load();
+
+          for (; i != j; ++i) {
+            v2_node_pointer nptr = boost::allocator_allocate(node_allocator, 1);
+            boost::allocator_construct(node_allocator, boost::to_address(nptr), *i);
+
+            value_type const& value = boost::to_address(nptr)->value;
+            const_key_type& key = extractor::extract(value);
+
+            std::size_t const hash = h(key);
+            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(hash));
+
+            (void) itb;
+
+            if (size_ + 1 > max_load_) { rehash(size_ + 1); }
+
+            boost::allocator_destroy(node_allocator, boost::to_address(nptr));
+            boost::allocator_deallocate(node_allocator, nptr, 1);
+          }
+
+          // node_constructor a(this->node_alloc());
+
+          // do {
+          //   if (!a.node_) {
+          //     a.create_node();
+          //   }
+          //   BOOST_UNORDERED_CALL_CONSTRUCT1(
+          //     node_allocator_traits, a.alloc_, a.node_->value_ptr(), *i);
+          //   node_tmp b(a.release(), a.alloc_);
+
+          //   const_key_type& k = this->get_key(b.node_);
+          //   std::size_t key_hash = this->hash(k);
+          //   node_pointer pos = this->find_node(key_hash, k);
+
+          //   if (pos) {
+          //     a.reclaim(b.release());
+          //   } else {
+          //     // reserve has basic exception safety if the hash function
+          //     // throws, strong otherwise.
+          //     this->reserve_for_insert(this->size_ + 1);
+          //     this->add_node_unique(b.release(), key_hash);
+          //   }
+          // } while (++i != j);
         }
 
 //         ////////////////////////////////////////////////////////////////////////
@@ -3960,26 +4006,72 @@ namespace boost {
 //       // if hash function throws, basic exception safety
 //       // strong otherwise.
 
-//       template <typename Types>
-//       inline void table<Types>::rehash(std::size_t min_buckets)
-//       {
-//         using namespace std;
+      template <typename Types>
+      inline void table<Types>::rehash(std::size_t min_buckets)
+      {
+        std::size_t bc = (std::numeric_limits<std::size_t>::max)();
+        float fbc = 1.0f + static_cast<float>(min_buckets) / mlf_;
+        if (bc > static_cast<std::size_t>(fbc)) {
+          bc = static_cast<std::size_t>(fbc);
+        }
+        v2_bucket_array_type new_buckets(bc, buckets_v2_.get_allocator());
+        BOOST_TRY
+        {
+          boost::unordered::detail::v2::span<v2_bucket_type> bspan =
+            buckets_v2_.raw();
 
-//         if (!size_) {
-//           min_buckets = policy::new_bucket_count(min_buckets);
-//           if (min_buckets != bucket_count_) {
-//             this->create_buckets(min_buckets);
-//           }
-//         } else {
-//           min_buckets = policy::new_bucket_count((std::max)(min_buckets,
-//             boost::unordered::detail::double_to_size(
-//               floor(static_cast<double>(size_) / static_cast<double>(mlf_))) +
-//               1));
+          v2_bucket_type* pos = bspan.data;
+          std::size_t size = bspan.size;
 
-//           if (min_buckets != bucket_count_)
-//             this->rehash_impl(min_buckets);
-//         }
-//       }
+          for (; pos < (pos + size); ++pos) {
+            v2_bucket_type& b = *pos;
+            v2_node_pointer p = b.next;
+            (void) p;
+          }
+
+          // for (auto& b : buckets.raw()) {
+          //   for (auto p = b.next; p;) {
+          //     auto next_p = p->next;
+          //     transfer_node(static_cast<node_type*>(p), b, new_buckets);
+          //     b.next = p = next_p;
+          //   }
+          // }
+        }
+        BOOST_CATCH(...)
+        {
+          // for (auto& b : new_buckets) {
+          //   for (auto p = b.next; p;) {
+          //     auto next_p = p->next;
+          //     delete_node(static_cast<node_type*>(p), b);
+          //     --size_;
+          //     p = next_p;
+          //   }
+          // }
+          // buckets.unlink_empty_buckets();
+          BOOST_RETHROW;
+        }
+        BOOST_CATCH_END
+
+        buckets_v2_ = boost::move(new_buckets);
+        recalculate_max_load();
+
+        // using namespace std;
+
+        // if (!size_) {
+        //   min_buckets = policy::new_bucket_count(min_buckets);
+        //   if (min_buckets != bucket_count_) {
+        //     this->create_buckets(min_buckets);
+        //   }
+        // } else {
+        //   min_buckets = policy::new_bucket_count((std::max)(min_buckets,
+        //     boost::unordered::detail::double_to_size(
+        //       floor(static_cast<double>(size_) / static_cast<double>(mlf_))) +
+        //       1));
+
+        //   if (min_buckets != bucket_count_)
+        //     this->rehash_impl(min_buckets);
+        // }
+      }
 
       template <typename Types>
       inline void table<Types>::rehash_impl(std::size_t num_buckets)
