@@ -5,18 +5,18 @@
 
 // clang-format off
 #include "../helpers/prefix.hpp"
-#include <boost/unordered_set.hpp>
+// #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include "../helpers/postfix.hpp"
 // clang-format on
 
-#include "../helpers/test.hpp"
-#include "../objects/test.hpp"
-#include "../helpers/random_values.hpp"
-#include "../helpers/tracker.hpp"
 #include "../helpers/equivalent.hpp"
 #include "../helpers/input_iterator.hpp"
 #include "../helpers/invariants.hpp"
+#include "../helpers/random_values.hpp"
+#include "../helpers/test.hpp"
+#include "../helpers/tracker.hpp"
+#include "../objects/test.hpp"
 
 namespace constructor_tests {
 
@@ -397,50 +397,62 @@ namespace constructor_tests {
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     std::allocator<test::object> >* test_map_std_alloc;
 
-  boost::unordered_set<test::object, test::hash, test::equal_to,
-    test::allocator1<test::object> >* test_set;
-  boost::unordered_multiset<test::object, test::hash, test::equal_to,
-    test::allocator2<test::object> >* test_multiset;
+  // boost::unordered_set<test::object, test::hash, test::equal_to,
+  //   test::allocator1<test::object> >* test_set;
+  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
+  //   test::allocator2<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::allocator2<test::object> >* test_map;
-  boost::unordered_multimap<test::object, test::object, test::hash,
-    test::equal_to, test::allocator1<test::object> >* test_multimap;
+  // boost::unordered_multimap<test::object, test::object, test::hash,
+  //   test::equal_to, test::allocator1<test::object> >* test_multimap;
 
   using test::default_generator;
   using test::generate_collisions;
   using test::limited_range;
 
   UNORDERED_TEST(constructor_tests1,
-    ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap))(
+    ((test_map_std_alloc)(test_map))(
       (default_generator)(generate_collisions)(limited_range)))
 
   UNORDERED_TEST(constructor_tests2,
-    ((test_set)(test_multiset)(test_map)(test_multimap))(
+    ((test_map))(
       (default_generator)(generate_collisions)(limited_range)))
 
   UNORDERED_TEST(map_constructor_test,
-    ((test_map_std_alloc)(test_map)(test_multimap))(
+    ((test_map_std_alloc)(test_map))(
       (default_generator)(generate_collisions)(limited_range)))
 
-#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+  // UNORDERED_TEST(constructor_tests1,
+  //   ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap))(
+  //     (default_generator)(generate_collisions)(limited_range)))
 
-  UNORDERED_AUTO_TEST (test_default_initializer_list) {
-    std::initializer_list<int> init;
-    boost::unordered_set<int> x1 = init;
-    BOOST_TEST(x1.empty());
-  }
+  // UNORDERED_TEST(constructor_tests2,
+  //   ((test_set)(test_multiset)(test_map)(test_multimap))(
+  //     (default_generator)(generate_collisions)(limited_range)))
 
-#endif
+  // UNORDERED_TEST(map_constructor_test,
+  //   ((test_map_std_alloc)(test_map)(test_multimap))(
+  //     (default_generator)(generate_collisions)(limited_range)))
 
-#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 
-  UNORDERED_AUTO_TEST (test_initializer_list) {
-    boost::unordered_set<int> x1 = {2, 10, 45, -5};
-    BOOST_TEST(x1.find(10) != x1.end());
-    BOOST_TEST(x1.find(46) == x1.end());
-  }
+//   UNORDERED_AUTO_TEST (test_default_initializer_list) {
+//     std::initializer_list<int> init;
+//     boost::unordered_set<int> x1 = init;
+//     BOOST_TEST(x1.empty());
+//   }
 
-#endif
-}
+// #endif
+
+// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+
+//   UNORDERED_AUTO_TEST (test_initializer_list) {
+//     boost::unordered_set<int> x1 = {2, 10, 45, -5};
+//     BOOST_TEST(x1.find(10) != x1.end());
+//     BOOST_TEST(x1.find(46) == x1.end());
+//   }
+
+// #endif
+} // namespace constructor_tests
 
 RUN_TESTS_QUIET()
