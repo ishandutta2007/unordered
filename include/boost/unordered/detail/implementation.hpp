@@ -2325,7 +2325,7 @@ namespace boost {
         ////////////////////////////////////////////////////////////////////////
         // Data access
 
-        static node_pointer get_node(c_iterator it) { return it.node_; }
+//         static node_pointer get_node(c_iterator it) { return it.node_; }
 
         static node_pointer next_node(link_pointer n)
         {
@@ -2341,26 +2341,26 @@ namespace boost {
           return n2;
         }
 
-        node_pointer next_group(node_pointer n) const
-        {
-          node_pointer n1 = n;
-          do {
-            n1 = next_node(n1);
-          } while (n1 && !n1->is_first_in_group());
-          return n1;
-        }
+//         node_pointer next_group(node_pointer n) const
+//         {
+//           node_pointer n1 = n;
+//           do {
+//             n1 = next_node(n1);
+//           } while (n1 && !n1->is_first_in_group());
+//           return n1;
+//         }
 
-        std::size_t group_count(node_pointer n) const
-        {
-          std::size_t x = 0;
-          node_pointer it = n;
-          do {
-            ++x;
-            it = next_node(it);
-          } while (it && !it->is_first_in_group());
+//         std::size_t group_count(node_pointer n) const
+//         {
+//           std::size_t x = 0;
+//           node_pointer it = n;
+//           do {
+//             ++x;
+//             it = next_node(it);
+//           } while (it && !it->is_first_in_group());
 
-          return x;
-        }
+//           return x;
+//         }
 
         std::size_t node_bucket(node_pointer n) const
         {
@@ -2381,12 +2381,12 @@ namespace boost {
 
         node_allocator& node_alloc() { return allocators_.second(); }
 
-        std::size_t max_bucket_count() const
-        {
-          // -1 to account for the start bucket.
-          return policy::prev_bucket_count(
-            bucket_allocator_traits::max_size(bucket_alloc()) - 1);
-        }
+//         std::size_t max_bucket_count() const
+//         {
+//           // -1 to account for the start bucket.
+//           return policy::prev_bucket_count(
+//             bucket_allocator_traits::max_size(bucket_alloc()) - 1);
+//         }
 
         bucket_pointer get_bucket_pointer(std::size_t bucket_index) const
         {
@@ -2422,23 +2422,23 @@ namespace boost {
           return policy::to_bucket(bucket_count_, hash_value, bcount_log2_);
         }
 
-        std::size_t bucket_size(std::size_t index) const
-        {
-          node_pointer n = begin(index);
-          if (!n)
-            return 0;
+//         std::size_t bucket_size(std::size_t index) const
+//         {
+//           node_pointer n = begin(index);
+//           if (!n)
+//             return 0;
 
-          std::size_t count = 0;
-          while (n && node_bucket(n) == index) {
-            ++count;
-            n = next_node(n);
-          }
+//           std::size_t count = 0;
+//           while (n && node_bucket(n) == index) {
+//             ++count;
+//             n = next_node(n);
+//           }
 
-          return count;
-        }
+//           return count;
+//         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Load methods
+//         ////////////////////////////////////////////////////////////////////////
+//         // Load methods
 
         void recalculate_max_load()
         {
@@ -2493,53 +2493,53 @@ namespace boost {
           this->create_buckets(bucket_count_);
         }
 
-        table(table const& x, node_allocator const& a)
-            : functions(x), allocators_(a, a),
-              bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
-              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
-        {
-          init_bcount_log2();
-        }
+//         table(table const& x, node_allocator const& a)
+//             : functions(x), allocators_(a, a),
+//               bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
+//               mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
+//         {
+//           init_bcount_log2();
+//         }
 
-        table(table& x, boost::unordered::detail::move_tag m)
-            : functions(x, m), allocators_(x.allocators_, m),
-              bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
-              max_load_(x.max_load_), buckets_(x.buckets_), buckets_v2_(bucket_count_, allocators_.first())
-        {
-          init_bcount_log2();
-          x.buckets_ = bucket_pointer();
-          x.size_ = 0;
-          x.max_load_ = 0;
-        }
+//         table(table& x, boost::unordered::detail::move_tag m)
+//             : functions(x, m), allocators_(x.allocators_, m),
+//               bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
+//               max_load_(x.max_load_), buckets_(x.buckets_), buckets_v2_(bucket_count_, allocators_.first())
+//         {
+//           init_bcount_log2();
+//           x.buckets_ = bucket_pointer();
+//           x.size_ = 0;
+//           x.max_load_ = 0;
+//         }
 
-        table(table& x, node_allocator const& a,
-          boost::unordered::detail::move_tag m)
-            : functions(x, m), allocators_(a, a),
-              bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
-              max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
-        {
-          init_bcount_log2();
-        }
+//         table(table& x, node_allocator const& a,
+//           boost::unordered::detail::move_tag m)
+//             : functions(x, m), allocators_(a, a),
+//               bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
+//               max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
+//         {
+//           init_bcount_log2();
+//         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Clear buckets and Create buckets
-        //
-        // IMPORTANT: If the container already contains any elements, the
-        //            buckets will not contain any links to them. This will
-        //            need to be dealt with, for example by:
-        //            - deleting them
-        //            - putting them in a 'node_holder' for future use
-        //              (as in assignment)
-        //            - placing them in buckets (see rehash_impl)
+//         ////////////////////////////////////////////////////////////////////////
+//         // Clear buckets and Create buckets
+//         //
+//         // IMPORTANT: If the container already contains any elements, the
+//         //            buckets will not contain any links to them. This will
+//         //            need to be dealt with, for example by:
+//         //            - deleting them
+//         //            - putting them in a 'node_holder' for future use
+//         //              (as in assignment)
+//         //            - placing them in buckets (see rehash_impl)
 
-        // Clear the bucket pointers.
-        void clear_buckets()
-        {
-          bucket_pointer end = get_bucket_pointer(bucket_count_);
-          for (bucket_pointer it = buckets_; it != end; ++it) {
-            it->next_ = node_pointer();
-          }
-        }
+//         // Clear the bucket pointers.
+//         void clear_buckets()
+//         {
+//           bucket_pointer end = get_bucket_pointer(bucket_count_);
+//           for (bucket_pointer it = buckets_; it != end; ++it) {
+//             it->next_ = node_pointer();
+//           }
+//         }
 
         // Create container buckets. If the container already contains any
         // buckets
@@ -2585,124 +2585,124 @@ namespace boost {
           new ((void*)boost::to_address(end)) bucket(dummy_node);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Swap and Move
+//         ////////////////////////////////////////////////////////////////////////
+//         // Swap and Move
 
-        void swap_allocators(table& other, false_type)
-        {
-          boost::unordered::detail::func::ignore_unused_variable_warning(other);
+//         void swap_allocators(table& other, false_type)
+//         {
+//           boost::unordered::detail::func::ignore_unused_variable_warning(other);
 
-          // According to 23.2.1.8, if propagate_on_container_swap is
-          // false the behaviour is undefined unless the allocators
-          // are equal.
-          BOOST_ASSERT(node_alloc() == other.node_alloc());
-        }
+//           // According to 23.2.1.8, if propagate_on_container_swap is
+//           // false the behaviour is undefined unless the allocators
+//           // are equal.
+//           BOOST_ASSERT(node_alloc() == other.node_alloc());
+//         }
 
-        void swap_allocators(table& other, true_type)
-        {
-          allocators_.swap(other.allocators_);
-        }
+//         void swap_allocators(table& other, true_type)
+//         {
+//           allocators_.swap(other.allocators_);
+//         }
 
-        // Not nothrow swappable
-        void swap(table& x, false_type)
-        {
-          if (this == &x) {
-            return;
-          }
+//         // Not nothrow swappable
+//         void swap(table& x, false_type)
+//         {
+//           if (this == &x) {
+//             return;
+//           }
 
-          this->construct_spare_functions(x.current_functions());
-          BOOST_TRY { x.construct_spare_functions(this->current_functions()); }
-          BOOST_CATCH(...)
-          {
-            this->cleanup_spare_functions();
-            BOOST_RETHROW
-          }
-          BOOST_CATCH_END
-          this->switch_functions();
-          x.switch_functions();
+//           this->construct_spare_functions(x.current_functions());
+//           BOOST_TRY { x.construct_spare_functions(this->current_functions()); }
+//           BOOST_CATCH(...)
+//           {
+//             this->cleanup_spare_functions();
+//             BOOST_RETHROW
+//           }
+//           BOOST_CATCH_END
+//           this->switch_functions();
+//           x.switch_functions();
 
-          swap_allocators(
-            x, boost::unordered::detail::integral_constant<bool,
-                 allocator_traits<
-                   node_allocator>::propagate_on_container_swap::value>());
+//           swap_allocators(
+//             x, boost::unordered::detail::integral_constant<bool,
+//                  allocator_traits<
+//                    node_allocator>::propagate_on_container_swap::value>());
 
-          boost::swap(buckets_, x.buckets_);
-          boost::swap(bucket_count_, x.bucket_count_);
-          boost::swap(bcount_log2_, x.bcount_log2_);
-          boost::swap(size_, x.size_);
-          std::swap(mlf_, x.mlf_);
-          std::swap(max_load_, x.max_load_);
-        }
+//           boost::swap(buckets_, x.buckets_);
+//           boost::swap(bucket_count_, x.bucket_count_);
+//           boost::swap(bcount_log2_, x.bcount_log2_);
+//           boost::swap(size_, x.size_);
+//           std::swap(mlf_, x.mlf_);
+//           std::swap(max_load_, x.max_load_);
+//         }
 
-        // Nothrow swappable
-        void swap(table& x, true_type)
-        {
-          swap_allocators(
-            x, boost::unordered::detail::integral_constant<bool,
-                 allocator_traits<
-                   node_allocator>::propagate_on_container_swap::value>());
+//         // Nothrow swappable
+//         void swap(table& x, true_type)
+//         {
+//           swap_allocators(
+//             x, boost::unordered::detail::integral_constant<bool,
+//                  allocator_traits<
+//                    node_allocator>::propagate_on_container_swap::value>());
 
-          boost::swap(buckets_, x.buckets_);
-          boost::swap(bucket_count_, x.bucket_count_);
-          boost::swap(bcount_log2_, x.bcount_log2_);
-          boost::swap(size_, x.size_);
-          std::swap(mlf_, x.mlf_);
-          std::swap(max_load_, x.max_load_);
-          this->current_functions().swap(x.current_functions());
-        }
+//           boost::swap(buckets_, x.buckets_);
+//           boost::swap(bucket_count_, x.bucket_count_);
+//           boost::swap(bcount_log2_, x.bcount_log2_);
+//           boost::swap(size_, x.size_);
+//           std::swap(mlf_, x.mlf_);
+//           std::swap(max_load_, x.max_load_);
+//           this->current_functions().swap(x.current_functions());
+//         }
 
-        // Only swaps the allocators if propagate_on_container_swap.
-        // If not propagate_on_container_swap and allocators aren't
-        // equal, behaviour is undefined.
-        void swap(table& x)
-        {
-          BOOST_ASSERT(allocator_traits<
-                         node_allocator>::propagate_on_container_swap::value ||
-                       node_alloc() == x.node_alloc());
-          swap(x, boost::unordered::detail::integral_constant<bool,
-                    functions::nothrow_swappable>());
-        }
+//         // Only swaps the allocators if propagate_on_container_swap.
+//         // If not propagate_on_container_swap and allocators aren't
+//         // equal, behaviour is undefined.
+//         void swap(table& x)
+//         {
+//           BOOST_ASSERT(allocator_traits<
+//                          node_allocator>::propagate_on_container_swap::value ||
+//                        node_alloc() == x.node_alloc());
+//           swap(x, boost::unordered::detail::integral_constant<bool,
+//                     functions::nothrow_swappable>());
+//         }
 
-        // Only call with nodes allocated with the currect allocator, or
-        // one that is equal to it. (Can't assert because other's
-        // allocators might have already been moved).
-        void move_buckets_from(table& other)
-        {
-          BOOST_ASSERT(!buckets_);
-          buckets_ = other.buckets_;
-          bucket_count_ = other.bucket_count_;
-          init_bcount_log2();
-          size_ = other.size_;
-          max_load_ = other.max_load_;
-          other.buckets_ = bucket_pointer();
-          other.size_ = 0;
-          other.max_load_ = 0;
-        }
+//         // Only call with nodes allocated with the currect allocator, or
+//         // one that is equal to it. (Can't assert because other's
+//         // allocators might have already been moved).
+//         void move_buckets_from(table& other)
+//         {
+//           BOOST_ASSERT(!buckets_);
+//           buckets_ = other.buckets_;
+//           bucket_count_ = other.bucket_count_;
+//           init_bcount_log2();
+//           size_ = other.size_;
+//           max_load_ = other.max_load_;
+//           other.buckets_ = bucket_pointer();
+//           other.size_ = 0;
+//           other.max_load_ = 0;
+//         }
 
-        // For use in the constructor when allocators might be different.
-        void move_construct_buckets(table& src)
-        {
-          if (this->node_alloc() == src.node_alloc()) {
-            move_buckets_from(src);
-          } else {
-            this->create_buckets(this->bucket_count_);
-            link_pointer prev = this->get_previous_start();
-            std::size_t last_bucket = this->bucket_count_;
-            for (node_pointer n = src.begin(); n; n = next_node(n)) {
-              std::size_t n_bucket = n->get_bucket();
-              if (n_bucket != last_bucket) {
-                this->get_bucket_pointer(n_bucket)->next_ = prev;
-              }
-              node_pointer n2 = boost::unordered::detail::func::construct_node(
-                this->node_alloc(), boost::move(n->value()));
-              n2->bucket_info_ = n->bucket_info_;
-              prev->next_ = n2;
-              ++size_;
-              prev = n2;
-              last_bucket = n_bucket;
-            }
-          }
-        }
+//         // For use in the constructor when allocators might be different.
+//         void move_construct_buckets(table& src)
+//         {
+//           if (this->node_alloc() == src.node_alloc()) {
+//             move_buckets_from(src);
+//           } else {
+//             this->create_buckets(this->bucket_count_);
+//             link_pointer prev = this->get_previous_start();
+//             std::size_t last_bucket = this->bucket_count_;
+//             for (node_pointer n = src.begin(); n; n = next_node(n)) {
+//               std::size_t n_bucket = n->get_bucket();
+//               if (n_bucket != last_bucket) {
+//                 this->get_bucket_pointer(n_bucket)->next_ = prev;
+//               }
+//               node_pointer n2 = boost::unordered::detail::func::construct_node(
+//                 this->node_alloc(), boost::move(n->value()));
+//               n2->bucket_info_ = n->bucket_info_;
+//               prev->next_ = n2;
+//               ++size_;
+//               prev = n2;
+//               last_bucket = n_bucket;
+//             }
+//           }
+//         }
 
         ////////////////////////////////////////////////////////////////////////
         // Delete/destruct
@@ -2754,186 +2754,186 @@ namespace boost {
             bucket_alloc(), buckets_, bucket_count_ + 1);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Fix buckets after delete/extract
-        //
-        // (prev,next) should mark an open range of nodes in a single bucket
-        // which
-        // have either been unlinked, or are about to be.
+//         ////////////////////////////////////////////////////////////////////////
+//         // Fix buckets after delete/extract
+//         //
+//         // (prev,next) should mark an open range of nodes in a single bucket
+//         // which
+//         // have either been unlinked, or are about to be.
 
-        std::size_t fix_bucket(
-          std::size_t bucket_index, link_pointer prev, node_pointer next)
-        {
-          std::size_t bucket_index2 = bucket_index;
+//         std::size_t fix_bucket(
+//           std::size_t bucket_index, link_pointer prev, node_pointer next)
+//         {
+//           std::size_t bucket_index2 = bucket_index;
 
-          if (next) {
-            bucket_index2 = node_bucket(next);
+//           if (next) {
+//             bucket_index2 = node_bucket(next);
 
-            // If next is in the same bucket, then there's nothing to do.
-            if (bucket_index == bucket_index2) {
-              return bucket_index2;
-            }
+//             // If next is in the same bucket, then there's nothing to do.
+//             if (bucket_index == bucket_index2) {
+//               return bucket_index2;
+//             }
 
-            // Update the bucket containing next.
-            get_bucket_pointer(bucket_index2)->next_ = prev;
-          }
+//             // Update the bucket containing next.
+//             get_bucket_pointer(bucket_index2)->next_ = prev;
+//           }
 
-          // Check if this bucket is now empty.
-          bucket_pointer this_bucket = get_bucket_pointer(bucket_index);
-          if (this_bucket->next_ == prev) {
-            this_bucket->next_ = link_pointer();
-          }
+//           // Check if this bucket is now empty.
+//           bucket_pointer this_bucket = get_bucket_pointer(bucket_index);
+//           if (this_bucket->next_ == prev) {
+//             this_bucket->next_ = link_pointer();
+//           }
 
-          return bucket_index2;
-        }
+//           return bucket_index2;
+//         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Clear
+//         ////////////////////////////////////////////////////////////////////////
+//         // Clear
 
-        void clear_impl();
+//         void clear_impl();
 
-        ////////////////////////////////////////////////////////////////////////
-        // Assignment
+//         ////////////////////////////////////////////////////////////////////////
+//         // Assignment
 
-        template <typename UniqueType>
-        void assign(table const& x, UniqueType is_unique)
-        {
-          if (this != &x) {
-            assign(x, is_unique,
-              boost::unordered::detail::integral_constant<bool,
-                allocator_traits<node_allocator>::
-                  propagate_on_container_copy_assignment::value>());
-          }
-        }
+//         template <typename UniqueType>
+//         void assign(table const& x, UniqueType is_unique)
+//         {
+//           if (this != &x) {
+//             assign(x, is_unique,
+//               boost::unordered::detail::integral_constant<bool,
+//                 allocator_traits<node_allocator>::
+//                   propagate_on_container_copy_assignment::value>());
+//           }
+//         }
 
-        template <typename UniqueType>
-        void assign(table const& x, UniqueType is_unique, false_type)
-        {
-          // Strong exception safety.
-          this->construct_spare_functions(x.current_functions());
-          BOOST_TRY
-          {
-            mlf_ = x.mlf_;
-            recalculate_max_load();
+//         template <typename UniqueType>
+//         void assign(table const& x, UniqueType is_unique, false_type)
+//         {
+//           // Strong exception safety.
+//           this->construct_spare_functions(x.current_functions());
+//           BOOST_TRY
+//           {
+//             mlf_ = x.mlf_;
+//             recalculate_max_load();
 
-            if (x.size_ > max_load_) {
-              create_buckets(min_buckets_for_size(x.size_));
-            } else if (size_) {
-              clear_buckets();
-            }
-          }
-          BOOST_CATCH(...)
-          {
-            this->cleanup_spare_functions();
-            BOOST_RETHROW
-          }
-          BOOST_CATCH_END
-          this->switch_functions();
-          assign_buckets(x, is_unique);
-        }
+//             if (x.size_ > max_load_) {
+//               create_buckets(min_buckets_for_size(x.size_));
+//             } else if (size_) {
+//               clear_buckets();
+//             }
+//           }
+//           BOOST_CATCH(...)
+//           {
+//             this->cleanup_spare_functions();
+//             BOOST_RETHROW
+//           }
+//           BOOST_CATCH_END
+//           this->switch_functions();
+//           assign_buckets(x, is_unique);
+//         }
 
-        template <typename UniqueType>
-        void assign(table const& x, UniqueType is_unique, true_type)
-        {
-          if (node_alloc() == x.node_alloc()) {
-            allocators_.assign(x.allocators_);
-            assign(x, is_unique, false_type());
-          } else {
-            this->construct_spare_functions(x.current_functions());
-            this->switch_functions();
+//         template <typename UniqueType>
+//         void assign(table const& x, UniqueType is_unique, true_type)
+//         {
+//           if (node_alloc() == x.node_alloc()) {
+//             allocators_.assign(x.allocators_);
+//             assign(x, is_unique, false_type());
+//           } else {
+//             this->construct_spare_functions(x.current_functions());
+//             this->switch_functions();
 
-            // Delete everything with current allocators before assigning
-            // the new ones.
-            delete_buckets();
-            allocators_.assign(x.allocators_);
+//             // Delete everything with current allocators before assigning
+//             // the new ones.
+//             delete_buckets();
+//             allocators_.assign(x.allocators_);
 
-            // Copy over other data, all no throw.
-            mlf_ = x.mlf_;
-            bucket_count_ = min_buckets_for_size(x.size_);
-            init_bcount_log2();
+//             // Copy over other data, all no throw.
+//             mlf_ = x.mlf_;
+//             bucket_count_ = min_buckets_for_size(x.size_);
+//             init_bcount_log2();
 
-            // Finally copy the elements.
-            if (x.size_) {
-              copy_buckets(x, is_unique);
-            }
-          }
-        }
+//             // Finally copy the elements.
+//             if (x.size_) {
+//               copy_buckets(x, is_unique);
+//             }
+//           }
+//         }
 
-        template <typename UniqueType>
-        void move_assign(table& x, UniqueType is_unique)
-        {
-          if (this != &x) {
-            move_assign(x, is_unique,
-              boost::unordered::detail::integral_constant<bool,
-                allocator_traits<node_allocator>::
-                  propagate_on_container_move_assignment::value>());
-          }
-        }
+//         template <typename UniqueType>
+//         void move_assign(table& x, UniqueType is_unique)
+//         {
+//           if (this != &x) {
+//             move_assign(x, is_unique,
+//               boost::unordered::detail::integral_constant<bool,
+//                 allocator_traits<node_allocator>::
+//                   propagate_on_container_move_assignment::value>());
+//           }
+//         }
 
-        // Propagate allocator
-        template <typename UniqueType>
-        void move_assign(table& x, UniqueType, true_type)
-        {
-          if (!functions::nothrow_move_assignable) {
-            this->construct_spare_functions(x.current_functions());
-            this->switch_functions();
-          } else {
-            this->current_functions().move_assign(x.current_functions());
-          }
-          delete_buckets();
-          allocators_.move_assign(x.allocators_);
-          mlf_ = x.mlf_;
-          move_buckets_from(x);
-        }
+//         // Propagate allocator
+//         template <typename UniqueType>
+//         void move_assign(table& x, UniqueType, true_type)
+//         {
+//           if (!functions::nothrow_move_assignable) {
+//             this->construct_spare_functions(x.current_functions());
+//             this->switch_functions();
+//           } else {
+//             this->current_functions().move_assign(x.current_functions());
+//           }
+//           delete_buckets();
+//           allocators_.move_assign(x.allocators_);
+//           mlf_ = x.mlf_;
+//           move_buckets_from(x);
+//         }
 
-        // Don't propagate allocator
-        template <typename UniqueType>
-        void move_assign(table& x, UniqueType is_unique, false_type)
-        {
-          if (node_alloc() == x.node_alloc()) {
-            move_assign_equal_alloc(x);
-          } else {
-            move_assign_realloc(x, is_unique);
-          }
-        }
+//         // Don't propagate allocator
+//         template <typename UniqueType>
+//         void move_assign(table& x, UniqueType is_unique, false_type)
+//         {
+//           if (node_alloc() == x.node_alloc()) {
+//             move_assign_equal_alloc(x);
+//           } else {
+//             move_assign_realloc(x, is_unique);
+//           }
+//         }
 
-        void move_assign_equal_alloc(table& x)
-        {
-          if (!functions::nothrow_move_assignable) {
-            this->construct_spare_functions(x.current_functions());
-            this->switch_functions();
-          } else {
-            this->current_functions().move_assign(x.current_functions());
-          }
-          delete_buckets();
-          mlf_ = x.mlf_;
-          move_buckets_from(x);
-        }
+//         void move_assign_equal_alloc(table& x)
+//         {
+//           if (!functions::nothrow_move_assignable) {
+//             this->construct_spare_functions(x.current_functions());
+//             this->switch_functions();
+//           } else {
+//             this->current_functions().move_assign(x.current_functions());
+//           }
+//           delete_buckets();
+//           mlf_ = x.mlf_;
+//           move_buckets_from(x);
+//         }
 
-        template <typename UniqueType>
-        void move_assign_realloc(table& x, UniqueType is_unique)
-        {
-          this->construct_spare_functions(x.current_functions());
-          BOOST_TRY
-          {
-            mlf_ = x.mlf_;
-            recalculate_max_load();
+//         template <typename UniqueType>
+//         void move_assign_realloc(table& x, UniqueType is_unique)
+//         {
+//           this->construct_spare_functions(x.current_functions());
+//           BOOST_TRY
+//           {
+//             mlf_ = x.mlf_;
+//             recalculate_max_load();
 
-            if (x.size_ > max_load_) {
-              create_buckets(min_buckets_for_size(x.size_));
-            } else if (size_) {
-              clear_buckets();
-            }
-          }
-          BOOST_CATCH(...)
-          {
-            this->cleanup_spare_functions();
-            BOOST_RETHROW
-          }
-          BOOST_CATCH_END
-          this->switch_functions();
-          move_assign_buckets(x, is_unique);
-        }
+//             if (x.size_ > max_load_) {
+//               create_buckets(min_buckets_for_size(x.size_));
+//             } else if (size_) {
+//               clear_buckets();
+//             }
+//           }
+//           BOOST_CATCH(...)
+//           {
+//             this->cleanup_spare_functions();
+//             BOOST_RETHROW
+//           }
+//           BOOST_CATCH_END
+//           this->switch_functions();
+//           move_assign_buckets(x, is_unique);
+//         }
 
         // Accessors
 
@@ -2980,99 +2980,99 @@ namespace boost {
           }
         }
 
-        template <class KeyEqual, class Key>
-        link_pointer find_previous_node_impl(
-          KeyEqual const& eq, Key const& k, std::size_t const bucket_index)
-        {
-          link_pointer prev = this->get_previous_start(bucket_index);
-          if (!prev) {
-            return prev;
-          }
+//         template <class KeyEqual, class Key>
+//         link_pointer find_previous_node_impl(
+//           KeyEqual const& eq, Key const& k, std::size_t const bucket_index)
+//         {
+//           link_pointer prev = this->get_previous_start(bucket_index);
+//           if (!prev) {
+//             return prev;
+//           }
 
-          for (;;) {
-            node_pointer n = next_node(prev);
-            if (!n) {
-              return link_pointer();
-            } 
-            // the `first_in_group()` checks are required for the multi-containers
-            // for the unique containers, this condition seems to be always true
-            //
-            else if (n->is_first_in_group()) {
-              if (node_bucket(n) != bucket_index) {
-                return link_pointer();
-              } else if (eq(k, this->get_key(n))) {
-                return prev;
-              }
-            }
-            prev = n;
-          }
-        }
+//           for (;;) {
+//             node_pointer n = next_node(prev);
+//             if (!n) {
+//               return link_pointer();
+//             } 
+//             // the `first_in_group()` checks are required for the multi-containers
+//             // for the unique containers, this condition seems to be always true
+//             //
+//             else if (n->is_first_in_group()) {
+//               if (node_bucket(n) != bucket_index) {
+//                 return link_pointer();
+//               } else if (eq(k, this->get_key(n))) {
+//                 return prev;
+//               }
+//             }
+//             prev = n;
+//           }
+//         }
 
-        // Find the node before the key, so that it can be erased.
-        link_pointer find_previous_node(
-          const_key_type& k, std::size_t bucket_index)
-        {
-          return find_previous_node_impl(this->key_eq(), k, bucket_index);
-        }
+//         // Find the node before the key, so that it can be erased.
+//         link_pointer find_previous_node(
+//           const_key_type& k, std::size_t bucket_index)
+//         {
+//           return find_previous_node_impl(this->key_eq(), k, bucket_index);
+//         }
 
-        // Extract and erase
+//         // Extract and erase
 
-        template <class Key> node_pointer extract_by_key_impl(Key const& k)
-        {
-          if (!this->size_) {
-            return node_pointer();
-          }
-          std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          link_pointer prev =
-            this->find_previous_node_impl(this->key_eq(), k, bucket_index);
-          if (!prev) {
-            return node_pointer();
-          }
-          node_pointer n = next_node(prev);
-          node_pointer n2 = next_node(n);
-          if (n2) {
-            n2->set_first_in_group();
-          }
-          prev->next_ = n2;
-          --this->size_;
-          this->fix_bucket(bucket_index, prev, n2);
-          n->next_ = link_pointer();
+//         template <class Key> node_pointer extract_by_key_impl(Key const& k)
+//         {
+//           if (!this->size_) {
+//             return node_pointer();
+//           }
+//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
+//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
+//           link_pointer prev =
+//             this->find_previous_node_impl(this->key_eq(), k, bucket_index);
+//           if (!prev) {
+//             return node_pointer();
+//           }
+//           node_pointer n = next_node(prev);
+//           node_pointer n2 = next_node(n);
+//           if (n2) {
+//             n2->set_first_in_group();
+//           }
+//           prev->next_ = n2;
+//           --this->size_;
+//           this->fix_bucket(bucket_index, prev, n2);
+//           n->next_ = link_pointer();
 
-          return n;
-        }
+//           return n;
+//         }
 
-        inline node_pointer extract_by_key(const_key_type& k)
-        {
-          return extract_by_key_impl(k);
-        }
+//         inline node_pointer extract_by_key(const_key_type& k)
+//         {
+//           return extract_by_key_impl(k);
+//         }
 
         // Reserve and rehash
 
         void reserve_for_insert(std::size_t);
-        void rehash(std::size_t);
-        void reserve(std::size_t);
+//         void rehash(std::size_t);
+//         void reserve(std::size_t);
         void rehash_impl(std::size_t);
 
-        ////////////////////////////////////////////////////////////////////////
-        // Unique keys
+//         ////////////////////////////////////////////////////////////////////////
+//         // Unique keys
 
-        // equals
+//         // equals
 
-        bool equals_unique(table const& other) const
-        {
-          if (this->size_ != other.size_)
-            return false;
+//         bool equals_unique(table const& other) const
+//         {
+//           if (this->size_ != other.size_)
+//             return false;
 
-          for (node_pointer n1 = this->begin(); n1; n1 = next_node(n1)) {
-            node_pointer n2 = other.find_node(other.get_key(n1));
+//           for (node_pointer n1 = this->begin(); n1; n1 = next_node(n1)) {
+//             node_pointer n2 = other.find_node(other.get_key(n1));
 
-            if (!n2 || n1->value() != n2->value())
-              return false;
-          }
+//             if (!n2 || n1->value() != n2->value())
+//               return false;
+//           }
 
-          return true;
-        }
+//           return true;
+//         }
 
         // Emplace/Insert
 
@@ -3105,236 +3105,236 @@ namespace boost {
           return n;
         }
 
-        inline node_pointer resize_and_add_node_unique(
-          node_pointer n, std::size_t key_hash)
-        {
-          node_tmp b(n, this->node_alloc());
-          this->reserve_for_insert(this->size_ + 1);
-          return this->add_node_unique(b.release(), key_hash);
-        }
+//         inline node_pointer resize_and_add_node_unique(
+//           node_pointer n, std::size_t key_hash)
+//         {
+//           node_tmp b(n, this->node_alloc());
+//           this->reserve_for_insert(this->size_ + 1);
+//           return this->add_node_unique(b.release(), key_hash);
+//         }
 
-        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        iterator emplace_hint_unique(
-          c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-            return iterator(hint.node_);
-          } else {
-            return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
-          }
-        }
+//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         iterator emplace_hint_unique(
+//           c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+//             return iterator(hint.node_);
+//           } else {
+//             return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
+//           }
+//         }
 
-        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        emplace_return emplace_unique(
-          const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (pos) {
-            return emplace_return(iterator(pos), false);
-          } else {
-            return emplace_return(
-              iterator(this->resize_and_add_node_unique(
-                boost::unordered::detail::func::construct_node_from_args(
-                  this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-                key_hash)),
-              true);
-          }
-        }
+//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         emplace_return emplace_unique(
+//           const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (pos) {
+//             return emplace_return(iterator(pos), false);
+//           } else {
+//             return emplace_return(
+//               iterator(this->resize_and_add_node_unique(
+//                 boost::unordered::detail::func::construct_node_from_args(
+//                   this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+//                 key_hash)),
+//               true);
+//           }
+//         }
 
-        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        iterator emplace_hint_unique(
-          c_iterator hint, no_key, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-                       this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-            this->node_alloc());
-          const_key_type& k = this->get_key(b.node_);
-          if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-            return iterator(hint.node_);
-          }
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (pos) {
-            return iterator(pos);
-          } else {
-            return iterator(
-              this->resize_and_add_node_unique(b.release(), key_hash));
-          }
-        }
+//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         iterator emplace_hint_unique(
+//           c_iterator hint, no_key, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+//                        this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+//             this->node_alloc());
+//           const_key_type& k = this->get_key(b.node_);
+//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+//             return iterator(hint.node_);
+//           }
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (pos) {
+//             return iterator(pos);
+//           } else {
+//             return iterator(
+//               this->resize_and_add_node_unique(b.release(), key_hash));
+//           }
+//         }
 
-        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-                       this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-            this->node_alloc());
-          const_key_type& k = this->get_key(b.node_);
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (pos) {
-            return emplace_return(iterator(pos), false);
-          } else {
-            return emplace_return(
-              iterator(this->resize_and_add_node_unique(b.release(), key_hash)),
-              true);
-          }
-        }
+//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+//                        this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+//             this->node_alloc());
+//           const_key_type& k = this->get_key(b.node_);
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (pos) {
+//             return emplace_return(iterator(pos), false);
+//           } else {
+//             return emplace_return(
+//               iterator(this->resize_and_add_node_unique(b.release(), key_hash)),
+//               true);
+//           }
+//         }
 
-        template <typename Key>
-        emplace_return try_emplace_unique(BOOST_FWD_REF(Key) k)
-        {
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (pos) {
-            return emplace_return(iterator(pos), false);
-          } else {
-            return emplace_return(
-              iterator(this->resize_and_add_node_unique(
-                boost::unordered::detail::func::construct_node_pair(
-                  this->node_alloc(), boost::forward<Key>(k)),
-                key_hash)),
-              true);
-          }
-        }
+//         template <typename Key>
+//         emplace_return try_emplace_unique(BOOST_FWD_REF(Key) k)
+//         {
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (pos) {
+//             return emplace_return(iterator(pos), false);
+//           } else {
+//             return emplace_return(
+//               iterator(this->resize_and_add_node_unique(
+//                 boost::unordered::detail::func::construct_node_pair(
+//                   this->node_alloc(), boost::forward<Key>(k)),
+//                 key_hash)),
+//               true);
+//           }
+//         }
 
-        template <typename Key>
-        iterator try_emplace_hint_unique(c_iterator hint, BOOST_FWD_REF(Key) k)
-        {
-          if (hint.node_ && this->key_eq()(hint->first, k)) {
-            return iterator(hint.node_);
-          } else {
-            return try_emplace_unique(k).first;
-          }
-        }
+//         template <typename Key>
+//         iterator try_emplace_hint_unique(c_iterator hint, BOOST_FWD_REF(Key) k)
+//         {
+//           if (hint.node_ && this->key_eq()(hint->first, k)) {
+//             return iterator(hint.node_);
+//           } else {
+//             return try_emplace_unique(k).first;
+//           }
+//         }
 
-        template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        emplace_return try_emplace_unique(
-          BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (pos) {
-            return emplace_return(iterator(pos), false);
-          } else {
-            return emplace_return(
-              iterator(this->resize_and_add_node_unique(
-                boost::unordered::detail::func::construct_node_pair_from_args(
-                  this->node_alloc(), boost::forward<Key>(k),
-                  BOOST_UNORDERED_EMPLACE_FORWARD),
-                key_hash)),
-              true);
-          }
-        }
+//         template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         emplace_return try_emplace_unique(
+//           BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (pos) {
+//             return emplace_return(iterator(pos), false);
+//           } else {
+//             return emplace_return(
+//               iterator(this->resize_and_add_node_unique(
+//                 boost::unordered::detail::func::construct_node_pair_from_args(
+//                   this->node_alloc(), boost::forward<Key>(k),
+//                   BOOST_UNORDERED_EMPLACE_FORWARD),
+//                 key_hash)),
+//               true);
+//           }
+//         }
 
-        template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        iterator try_emplace_hint_unique(
-          c_iterator hint, BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
-        {
-          if (hint.node_ && this->key_eq()(hint->first, k)) {
-            return iterator(hint.node_);
-          } else {
-            return try_emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
-          }
-        }
+//         template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
+//         iterator try_emplace_hint_unique(
+//           c_iterator hint, BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
+//         {
+//           if (hint.node_ && this->key_eq()(hint->first, k)) {
+//             return iterator(hint.node_);
+//           } else {
+//             return try_emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
+//           }
+//         }
 
-        template <typename Key, typename M>
-        emplace_return insert_or_assign_unique(
-          BOOST_FWD_REF(Key) k, BOOST_FWD_REF(M) obj)
-        {
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
+//         template <typename Key, typename M>
+//         emplace_return insert_or_assign_unique(
+//           BOOST_FWD_REF(Key) k, BOOST_FWD_REF(M) obj)
+//         {
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
 
-          if (pos) {
-            pos->value().second = boost::forward<M>(obj);
-            return emplace_return(iterator(pos), false);
-          } else {
-            return emplace_return(
-              iterator(this->resize_and_add_node_unique(
-                boost::unordered::detail::func::construct_node_pair(
-                  this->node_alloc(), boost::forward<Key>(k),
-                  boost::forward<M>(obj)),
-                key_hash)),
-              true);
-          }
-        }
+//           if (pos) {
+//             pos->value().second = boost::forward<M>(obj);
+//             return emplace_return(iterator(pos), false);
+//           } else {
+//             return emplace_return(
+//               iterator(this->resize_and_add_node_unique(
+//                 boost::unordered::detail::func::construct_node_pair(
+//                   this->node_alloc(), boost::forward<Key>(k),
+//                   boost::forward<M>(obj)),
+//                 key_hash)),
+//               true);
+//           }
+//         }
 
-        template <typename NodeType, typename InsertReturnType>
-        void move_insert_node_type_unique(
-          NodeType& np, InsertReturnType& result)
-        {
-          if (np) {
-            const_key_type& k = this->get_key(np.ptr_);
-            std::size_t key_hash = this->hash(k);
-            node_pointer pos = this->find_node(key_hash, k);
+//         template <typename NodeType, typename InsertReturnType>
+//         void move_insert_node_type_unique(
+//           NodeType& np, InsertReturnType& result)
+//         {
+//           if (np) {
+//             const_key_type& k = this->get_key(np.ptr_);
+//             std::size_t key_hash = this->hash(k);
+//             node_pointer pos = this->find_node(key_hash, k);
 
-            if (pos) {
-              result.node = boost::move(np);
-              result.position = iterator(pos);
-            } else {
-              this->reserve_for_insert(this->size_ + 1);
-              result.position =
-                iterator(this->add_node_unique(np.ptr_, key_hash));
-              result.inserted = true;
-              np.ptr_ = node_pointer();
-            }
-          }
-        }
+//             if (pos) {
+//               result.node = boost::move(np);
+//               result.position = iterator(pos);
+//             } else {
+//               this->reserve_for_insert(this->size_ + 1);
+//               result.position =
+//                 iterator(this->add_node_unique(np.ptr_, key_hash));
+//               result.inserted = true;
+//               np.ptr_ = node_pointer();
+//             }
+//           }
+//         }
 
-        template <typename NodeType>
-        iterator move_insert_node_type_with_hint_unique(
-          c_iterator hint, NodeType& np)
-        {
-          if (!np) {
-            return iterator();
-          }
-          const_key_type& k = this->get_key(np.ptr_);
-          if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-            return iterator(hint.node_);
-          }
-          std::size_t key_hash = this->hash(k);
-          node_pointer pos = this->find_node(key_hash, k);
-          if (!pos) {
-            this->reserve_for_insert(this->size_ + 1);
-            pos = this->add_node_unique(np.ptr_, key_hash);
-            np.ptr_ = node_pointer();
-          }
-          return iterator(pos);
-        }
+//         template <typename NodeType>
+//         iterator move_insert_node_type_with_hint_unique(
+//           c_iterator hint, NodeType& np)
+//         {
+//           if (!np) {
+//             return iterator();
+//           }
+//           const_key_type& k = this->get_key(np.ptr_);
+//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+//             return iterator(hint.node_);
+//           }
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer pos = this->find_node(key_hash, k);
+//           if (!pos) {
+//             this->reserve_for_insert(this->size_ + 1);
+//             pos = this->add_node_unique(np.ptr_, key_hash);
+//             np.ptr_ = node_pointer();
+//           }
+//           return iterator(pos);
+//         }
 
-        template <typename Types2>
-        void merge_unique(boost::unordered::detail::table<Types2>& other)
-        {
-          typedef boost::unordered::detail::table<Types2> other_table;
-          BOOST_STATIC_ASSERT(
-            (boost::is_same<node, typename other_table::node>::value));
-          BOOST_ASSERT(this->node_alloc() == other.node_alloc());
+//         template <typename Types2>
+//         void merge_unique(boost::unordered::detail::table<Types2>& other)
+//         {
+//           typedef boost::unordered::detail::table<Types2> other_table;
+//           BOOST_STATIC_ASSERT(
+//             (boost::is_same<node, typename other_table::node>::value));
+//           BOOST_ASSERT(this->node_alloc() == other.node_alloc());
 
-          if (other.size_) {
-            link_pointer prev = other.get_previous_start();
+//           if (other.size_) {
+//             link_pointer prev = other.get_previous_start();
 
-            while (prev->next_) {
-              node_pointer n = other_table::next_node(prev);
-              const_key_type& k = this->get_key(n);
-              std::size_t key_hash = this->hash(k);
-              node_pointer pos = this->find_node(key_hash, k);
+//             while (prev->next_) {
+//               node_pointer n = other_table::next_node(prev);
+//               const_key_type& k = this->get_key(n);
+//               std::size_t key_hash = this->hash(k);
+//               node_pointer pos = this->find_node(key_hash, k);
 
-              if (pos) {
-                prev = n;
-              } else {
-                this->reserve_for_insert(this->size_ + 1);
-                node_pointer n2 = next_node(n);
-                prev->next_ = n2;
-                if (n2 && n->is_first_in_group()) {
-                  n2->set_first_in_group();
-                }
-                --other.size_;
-                other.fix_bucket(other.node_bucket(n), prev, n2);
-                this->add_node_unique(n, key_hash);
-              }
-            }
-          }
-        }
+//               if (pos) {
+//                 prev = n;
+//               } else {
+//                 this->reserve_for_insert(this->size_ + 1);
+//                 node_pointer n2 = next_node(n);
+//                 prev->next_ = n2;
+//                 if (n2 && n->is_first_in_group()) {
+//                   n2->set_first_in_group();
+//                 }
+//                 --other.size_;
+//                 other.fix_bucket(other.node_bucket(n), prev, n2);
+//                 this->add_node_unique(n, key_hash);
+//               }
+//             }
+//           }
+//         }
 
         ////////////////////////////////////////////////////////////////////////
         // Insert range methods
@@ -3401,543 +3401,543 @@ namespace boost {
           } while (++i != j);
         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Extract
+//         ////////////////////////////////////////////////////////////////////////
+//         // Extract
 
-        inline node_pointer extract_by_iterator_unique(c_iterator i)
-        {
-          node_pointer n = i.node_;
-          BOOST_ASSERT(n);
-          std::size_t bucket_index = this->node_bucket(n);
-          link_pointer prev = this->get_previous_start(bucket_index);
-          while (prev->next_ != n) {
-            prev = prev->next_;
-          }
-          node_pointer n2 = next_node(n);
-          prev->next_ = n2;
-          --this->size_;
-          this->fix_bucket(bucket_index, prev, n2);
-          n->next_ = link_pointer();
-          return n;
-        }
+//         inline node_pointer extract_by_iterator_unique(c_iterator i)
+//         {
+//           node_pointer n = i.node_;
+//           BOOST_ASSERT(n);
+//           std::size_t bucket_index = this->node_bucket(n);
+//           link_pointer prev = this->get_previous_start(bucket_index);
+//           while (prev->next_ != n) {
+//             prev = prev->next_;
+//           }
+//           node_pointer n2 = next_node(n);
+//           prev->next_ = n2;
+//           --this->size_;
+//           this->fix_bucket(bucket_index, prev, n2);
+//           n->next_ = link_pointer();
+//           return n;
+//         }
 
-        ////////////////////////////////////////////////////////////////////////
-        // Erase
-        //
-        // no throw
+//         ////////////////////////////////////////////////////////////////////////
+//         // Erase
+//         //
+//         // no throw
 
-        template <class KeyEqual, class Key>
-        std::size_t erase_key_unique_impl(KeyEqual const& eq, Key const& k)
-        {
-          if (!this->size_)
-            return 0;
+//         template <class KeyEqual, class Key>
+//         std::size_t erase_key_unique_impl(KeyEqual const& eq, Key const& k)
+//         {
+//           if (!this->size_)
+//             return 0;
 
-          std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
+//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
+//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
 
-          link_pointer prev =
-            this->find_previous_node_impl(eq, k, bucket_index);
+//           link_pointer prev =
+//             this->find_previous_node_impl(eq, k, bucket_index);
 
-          if (!prev)
-            return 0;
+//           if (!prev)
+//             return 0;
 
-          node_pointer n = next_node(prev);
-          node_pointer n2 = next_node(n);
-          prev->next_ = n2;
-          --size_;
-          this->fix_bucket(bucket_index, prev, n2);
-          this->destroy_node(n);
+//           node_pointer n = next_node(prev);
+//           node_pointer n2 = next_node(n);
+//           prev->next_ = n2;
+//           --size_;
+//           this->fix_bucket(bucket_index, prev, n2);
+//           this->destroy_node(n);
           
-          return 1;
-        }
-
-        void erase_nodes_unique(node_pointer i, node_pointer j)
-        {
-          std::size_t bucket_index = this->node_bucket(i);
-
-          // Find the node before i.
-          link_pointer prev = this->get_previous_start(bucket_index);
-          while (prev->next_ != i)
-            prev = prev->next_;
-
-          // Delete the nodes.
-          prev->next_ = j;
-          do {
-            node_pointer next = next_node(i);
-            destroy_node(i);
-            --size_;
-            bucket_index = this->fix_bucket(bucket_index, prev, next);
-            i = next;
-          } while (i != j);
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // fill_buckets_unique
-
-        void copy_buckets(table const& src, true_type)
-        {
-          this->create_buckets(this->bucket_count_);
-
-          for (node_pointer n = src.begin(); n; n = next_node(n)) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            this->add_node_unique(
-              boost::unordered::detail::func::construct_node(
-                this->node_alloc(), n->value()),
-              key_hash);
-          }
-        }
-
-        void assign_buckets(table const& src, true_type)
-        {
-          node_holder<node_allocator> holder(*this);
-          for (node_pointer n = src.begin(); n; n = next_node(n)) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            this->add_node_unique(holder.copy_of(n->value()), key_hash);
-          }
-        }
-
-        void move_assign_buckets(table& src, true_type)
-        {
-          node_holder<node_allocator> holder(*this);
-          for (node_pointer n = src.begin(); n; n = next_node(n)) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            this->add_node_unique(holder.move_copy_of(n->value()), key_hash);
-          }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Equivalent keys
-
-        // Equality
-
-        bool equals_equiv(table const& other) const
-        {
-          if (this->size_ != other.size_)
-            return false;
-
-          for (node_pointer n1 = this->begin(); n1;) {
-            node_pointer n2 = other.find_node(other.get_key(n1));
-            if (!n2)
-              return false;
-            node_pointer end1 = next_group(n1);
-            node_pointer end2 = next_group(n2);
-            if (!group_equals_equiv(n1, end1, n2, end2))
-              return false;
-            n1 = end1;
-          }
-
-          return true;
-        }
-
-        static bool group_equals_equiv(node_pointer n1, node_pointer end1,
-          node_pointer n2, node_pointer end2)
-        {
-          for (;;) {
-            if (n1->value() != n2->value())
-              break;
-
-            n1 = next_node(n1);
-            n2 = next_node(n2);
-
-            if (n1 == end1)
-              return n2 == end2;
-            if (n2 == end2)
-              return false;
-          }
-
-          for (node_pointer n1a = n1, n2a = n2;;) {
-            n1a = next_node(n1a);
-            n2a = next_node(n2a);
-
-            if (n1a == end1) {
-              if (n2a == end2)
-                break;
-              else
-                return false;
-            }
-
-            if (n2a == end2)
-              return false;
-          }
-
-          node_pointer start = n1;
-          for (; n1 != end1; n1 = next_node(n1)) {
-            value_type const& v = n1->value();
-            if (!find_equiv(start, n1, v)) {
-              std::size_t matches = count_equal_equiv(n2, end2, v);
-              if (!matches)
-                return false;
-              if (matches != 1 + count_equal_equiv(next_node(n1), end1, v))
-                return false;
-            }
-          }
-
-          return true;
-        }
-
-        static bool find_equiv(
-          node_pointer n, node_pointer end, value_type const& v)
-        {
-          for (; n != end; n = next_node(n))
-            if (n->value() == v)
-              return true;
-          return false;
-        }
-
-        static std::size_t count_equal_equiv(
-          node_pointer n, node_pointer end, value_type const& v)
-        {
-          std::size_t count = 0;
-          for (; n != end; n = next_node(n))
-            if (n->value() == v)
-              ++count;
-          return count;
-        }
-
-        // Emplace/Insert
-
-        inline node_pointer add_node_equiv(
-          node_pointer n, std::size_t key_hash, node_pointer pos)
-        {
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          n->bucket_info_ = bucket_index;
-
-          if (pos) {
-            n->reset_first_in_group();
-            n->next_ = pos->next_;
-            pos->next_ = n;
-            if (n->next_) {
-              std::size_t next_bucket = this->node_bucket(next_node(n));
-              if (next_bucket != bucket_index) {
-                this->get_bucket_pointer(next_bucket)->next_ = n;
-              }
-            }
-          } else {
-            n->set_first_in_group();
-            bucket_pointer b = this->get_bucket_pointer(bucket_index);
-
-            if (!b->next_) {
-              link_pointer start_node = this->get_previous_start();
-
-              if (start_node->next_) {
-                this
-                  ->get_bucket_pointer(this->node_bucket(next_node(start_node)))
-                  ->next_ = n;
-              }
-
-              b->next_ = start_node;
-              n->next_ = start_node->next_;
-              start_node->next_ = n;
-            } else {
-              n->next_ = b->next_->next_;
-              b->next_->next_ = n;
-            }
-          }
-          ++this->size_;
-          return n;
-        }
-
-        inline node_pointer add_using_hint_equiv(
-          node_pointer n, node_pointer hint)
-        {
-          n->bucket_info_ = hint->bucket_info_;
-          n->reset_first_in_group();
-          n->next_ = hint->next_;
-          hint->next_ = n;
-          if (n->next_) {
-            std::size_t next_bucket = this->node_bucket(next_node(n));
-            if (next_bucket != this->node_bucket(n)) {
-              this->get_bucket_pointer(next_bucket)->next_ = n;
-            }
-          }
-          ++this->size_;
-          return n;
-        }
-
-        iterator emplace_equiv(node_pointer n)
-        {
-          node_tmp a(n, this->node_alloc());
-          const_key_type& k = this->get_key(a.node_);
-          std::size_t key_hash = this->hash(k);
-          node_pointer position = this->find_node(key_hash, k);
-          this->reserve_for_insert(this->size_ + 1);
-          return iterator(
-            this->add_node_equiv(a.release(), key_hash, position));
-        }
-
-        iterator emplace_hint_equiv(c_iterator hint, node_pointer n)
-        {
-          node_tmp a(n, this->node_alloc());
-          const_key_type& k = this->get_key(a.node_);
-          if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-            this->reserve_for_insert(this->size_ + 1);
-            return iterator(
-              this->add_using_hint_equiv(a.release(), hint.node_));
-          } else {
-            std::size_t key_hash = this->hash(k);
-            node_pointer position = this->find_node(key_hash, k);
-            this->reserve_for_insert(this->size_ + 1);
-            return iterator(
-              this->add_node_equiv(a.release(), key_hash, position));
-          }
-        }
-
-        void emplace_no_rehash_equiv(node_pointer n)
-        {
-          node_tmp a(n, this->node_alloc());
-          const_key_type& k = this->get_key(a.node_);
-          std::size_t key_hash = this->hash(k);
-          node_pointer position = this->find_node(key_hash, k);
-          this->add_node_equiv(a.release(), key_hash, position);
-        }
-
-        template <typename NodeType>
-        iterator move_insert_node_type_equiv(NodeType& np)
-        {
-          iterator result;
-
-          if (np) {
-            const_key_type& k = this->get_key(np.ptr_);
-            std::size_t key_hash = this->hash(k);
-            node_pointer pos = this->find_node(key_hash, k);
-            this->reserve_for_insert(this->size_ + 1);
-            result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
-            np.ptr_ = node_pointer();
-          }
-
-          return result;
-        }
-
-        template <typename NodeType>
-        iterator move_insert_node_type_with_hint_equiv(
-          c_iterator hint, NodeType& np)
-        {
-          iterator result;
-
-          if (np) {
-            const_key_type& k = this->get_key(np.ptr_);
-
-            if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-              this->reserve_for_insert(this->size_ + 1);
-              result =
-                iterator(this->add_using_hint_equiv(np.ptr_, hint.node_));
-            } else {
-              std::size_t key_hash = this->hash(k);
-              node_pointer pos = this->find_node(key_hash, k);
-              this->reserve_for_insert(this->size_ + 1);
-              result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
-            }
-            np.ptr_ = node_pointer();
-          }
-
-          return result;
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Insert range methods
-
-        // if hash function throws, or inserting > 1 element, basic exception
-        // safety. Strong otherwise
-        template <class I>
-        typename boost::unordered::detail::enable_if_forward<I, void>::type
-        insert_range_equiv(I i, I j)
-        {
-          if (i == j)
-            return;
-
-          std::size_t distance = static_cast<std::size_t>(std::distance(i, j));
-          if (distance == 1) {
-            emplace_equiv(boost::unordered::detail::func::construct_node(
-              this->node_alloc(), *i));
-          } else {
-            // Only require basic exception safety here
-            this->reserve_for_insert(this->size_ + distance);
-
-            for (; i != j; ++i) {
-              emplace_no_rehash_equiv(
-                boost::unordered::detail::func::construct_node(
-                  this->node_alloc(), *i));
-            }
-          }
-        }
-
-        template <class I>
-        typename boost::unordered::detail::disable_if_forward<I, void>::type
-        insert_range_equiv(I i, I j)
-        {
-          for (; i != j; ++i) {
-            emplace_equiv(boost::unordered::detail::func::construct_node(
-              this->node_alloc(), *i));
-          }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Extract
-
-        inline node_pointer extract_by_iterator_equiv(c_iterator n)
-        {
-          node_pointer i = n.node_;
-          BOOST_ASSERT(i);
-          node_pointer j(next_node(i));
-          std::size_t bucket_index = this->node_bucket(i);
-
-          link_pointer prev = this->get_previous_start(bucket_index);
-          while (prev->next_ != i) {
-            prev = next_node(prev);
-          }
-
-          prev->next_ = j;
-          if (j && i->is_first_in_group()) {
-            j->set_first_in_group();
-          }
-          --this->size_;
-          this->fix_bucket(bucket_index, prev, j);
-          i->next_ = link_pointer();
-
-          return i;
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // Erase
-        //
-        // no throw
-
-        template <class KeyEqual, class Key>
-        std::size_t erase_key_equiv_impl(KeyEqual const& eq, Key const& k)
-        {
-          if (!this->size_)
-            return 0;
-
-          std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          link_pointer prev =
-            this->find_previous_node_impl(eq, k, bucket_index);
-          if (!prev)
-            return 0;
-
-          std::size_t deleted_count = 0;
-          node_pointer n = next_node(prev);
-          do {
-            node_pointer n2 = next_node(n);
-            destroy_node(n);
-            ++deleted_count;
-            n = n2;
-          } while (n && !n->is_first_in_group());
-          size_ -= deleted_count;
-          prev->next_ = n;
-          this->fix_bucket(bucket_index, prev, n);
-          return deleted_count;
-        }
-
-        std::size_t erase_key_equiv(const_key_type& k)
-        {
-          return this->erase_key_equiv_impl(this->key_eq(), k);
-        }
-
-        link_pointer erase_nodes_equiv(node_pointer i, node_pointer j)
-        {
-          std::size_t bucket_index = this->node_bucket(i);
-
-          link_pointer prev = this->get_previous_start(bucket_index);
-          while (prev->next_ != i) {
-            prev = next_node(prev);
-          }
-
-          // Delete the nodes.
-          // Is it inefficient to call fix_bucket for every node?
-          bool includes_first = false;
-          prev->next_ = j;
-          do {
-            includes_first = includes_first || i->is_first_in_group();
-            node_pointer next = next_node(i);
-            destroy_node(i);
-            --size_;
-            bucket_index = this->fix_bucket(bucket_index, prev, next);
-            i = next;
-          } while (i != j);
-          if (j && includes_first) {
-            j->set_first_in_group();
-          }
-
-          return prev;
-        }
-
-        ////////////////////////////////////////////////////////////////////////
-        // fill_buckets
-
-        void copy_buckets(table const& src, false_type)
-        {
-          this->create_buckets(this->bucket_count_);
-
-          for (node_pointer n = src.begin(); n;) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            node_pointer group_end(next_group(n));
-            node_pointer pos = this->add_node_equiv(
-              boost::unordered::detail::func::construct_node(
-                this->node_alloc(), n->value()),
-              key_hash, node_pointer());
-            for (n = next_node(n); n != group_end; n = next_node(n)) {
-              this->add_node_equiv(
-                boost::unordered::detail::func::construct_node(
-                  this->node_alloc(), n->value()),
-                key_hash, pos);
-            }
-          }
-        }
-
-        void assign_buckets(table const& src, false_type)
-        {
-          node_holder<node_allocator> holder(*this);
-          for (node_pointer n = src.begin(); n;) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            node_pointer group_end(next_group(n));
-            node_pointer pos = this->add_node_equiv(
-              holder.copy_of(n->value()), key_hash, node_pointer());
-            for (n = next_node(n); n != group_end; n = next_node(n)) {
-              this->add_node_equiv(holder.copy_of(n->value()), key_hash, pos);
-            }
-          }
-        }
-
-        void move_assign_buckets(table& src, false_type)
-        {
-          node_holder<node_allocator> holder(*this);
-          for (node_pointer n = src.begin(); n;) {
-            std::size_t key_hash = this->hash(this->get_key(n));
-            node_pointer group_end(next_group(n));
-            node_pointer pos = this->add_node_equiv(
-              holder.move_copy_of(n->value()), key_hash, node_pointer());
-            for (n = next_node(n); n != group_end; n = next_node(n)) {
-              this->add_node_equiv(
-                holder.move_copy_of(n->value()), key_hash, pos);
-            }
-          }
-        }
+//           return 1;
+//         }
+
+//         void erase_nodes_unique(node_pointer i, node_pointer j)
+//         {
+//           std::size_t bucket_index = this->node_bucket(i);
+
+//           // Find the node before i.
+//           link_pointer prev = this->get_previous_start(bucket_index);
+//           while (prev->next_ != i)
+//             prev = prev->next_;
+
+//           // Delete the nodes.
+//           prev->next_ = j;
+//           do {
+//             node_pointer next = next_node(i);
+//             destroy_node(i);
+//             --size_;
+//             bucket_index = this->fix_bucket(bucket_index, prev, next);
+//             i = next;
+//           } while (i != j);
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // fill_buckets_unique
+
+//         void copy_buckets(table const& src, true_type)
+//         {
+//           this->create_buckets(this->bucket_count_);
+
+//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             this->add_node_unique(
+//               boost::unordered::detail::func::construct_node(
+//                 this->node_alloc(), n->value()),
+//               key_hash);
+//           }
+//         }
+
+//         void assign_buckets(table const& src, true_type)
+//         {
+//           node_holder<node_allocator> holder(*this);
+//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             this->add_node_unique(holder.copy_of(n->value()), key_hash);
+//           }
+//         }
+
+//         void move_assign_buckets(table& src, true_type)
+//         {
+//           node_holder<node_allocator> holder(*this);
+//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             this->add_node_unique(holder.move_copy_of(n->value()), key_hash);
+//           }
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // Equivalent keys
+
+//         // Equality
+
+//         bool equals_equiv(table const& other) const
+//         {
+//           if (this->size_ != other.size_)
+//             return false;
+
+//           for (node_pointer n1 = this->begin(); n1;) {
+//             node_pointer n2 = other.find_node(other.get_key(n1));
+//             if (!n2)
+//               return false;
+//             node_pointer end1 = next_group(n1);
+//             node_pointer end2 = next_group(n2);
+//             if (!group_equals_equiv(n1, end1, n2, end2))
+//               return false;
+//             n1 = end1;
+//           }
+
+//           return true;
+//         }
+
+//         static bool group_equals_equiv(node_pointer n1, node_pointer end1,
+//           node_pointer n2, node_pointer end2)
+//         {
+//           for (;;) {
+//             if (n1->value() != n2->value())
+//               break;
+
+//             n1 = next_node(n1);
+//             n2 = next_node(n2);
+
+//             if (n1 == end1)
+//               return n2 == end2;
+//             if (n2 == end2)
+//               return false;
+//           }
+
+//           for (node_pointer n1a = n1, n2a = n2;;) {
+//             n1a = next_node(n1a);
+//             n2a = next_node(n2a);
+
+//             if (n1a == end1) {
+//               if (n2a == end2)
+//                 break;
+//               else
+//                 return false;
+//             }
+
+//             if (n2a == end2)
+//               return false;
+//           }
+
+//           node_pointer start = n1;
+//           for (; n1 != end1; n1 = next_node(n1)) {
+//             value_type const& v = n1->value();
+//             if (!find_equiv(start, n1, v)) {
+//               std::size_t matches = count_equal_equiv(n2, end2, v);
+//               if (!matches)
+//                 return false;
+//               if (matches != 1 + count_equal_equiv(next_node(n1), end1, v))
+//                 return false;
+//             }
+//           }
+
+//           return true;
+//         }
+
+//         static bool find_equiv(
+//           node_pointer n, node_pointer end, value_type const& v)
+//         {
+//           for (; n != end; n = next_node(n))
+//             if (n->value() == v)
+//               return true;
+//           return false;
+//         }
+
+//         static std::size_t count_equal_equiv(
+//           node_pointer n, node_pointer end, value_type const& v)
+//         {
+//           std::size_t count = 0;
+//           for (; n != end; n = next_node(n))
+//             if (n->value() == v)
+//               ++count;
+//           return count;
+//         }
+
+//         // Emplace/Insert
+
+//         inline node_pointer add_node_equiv(
+//           node_pointer n, std::size_t key_hash, node_pointer pos)
+//         {
+//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
+//           n->bucket_info_ = bucket_index;
+
+//           if (pos) {
+//             n->reset_first_in_group();
+//             n->next_ = pos->next_;
+//             pos->next_ = n;
+//             if (n->next_) {
+//               std::size_t next_bucket = this->node_bucket(next_node(n));
+//               if (next_bucket != bucket_index) {
+//                 this->get_bucket_pointer(next_bucket)->next_ = n;
+//               }
+//             }
+//           } else {
+//             n->set_first_in_group();
+//             bucket_pointer b = this->get_bucket_pointer(bucket_index);
+
+//             if (!b->next_) {
+//               link_pointer start_node = this->get_previous_start();
+
+//               if (start_node->next_) {
+//                 this
+//                   ->get_bucket_pointer(this->node_bucket(next_node(start_node)))
+//                   ->next_ = n;
+//               }
+
+//               b->next_ = start_node;
+//               n->next_ = start_node->next_;
+//               start_node->next_ = n;
+//             } else {
+//               n->next_ = b->next_->next_;
+//               b->next_->next_ = n;
+//             }
+//           }
+//           ++this->size_;
+//           return n;
+//         }
+
+//         inline node_pointer add_using_hint_equiv(
+//           node_pointer n, node_pointer hint)
+//         {
+//           n->bucket_info_ = hint->bucket_info_;
+//           n->reset_first_in_group();
+//           n->next_ = hint->next_;
+//           hint->next_ = n;
+//           if (n->next_) {
+//             std::size_t next_bucket = this->node_bucket(next_node(n));
+//             if (next_bucket != this->node_bucket(n)) {
+//               this->get_bucket_pointer(next_bucket)->next_ = n;
+//             }
+//           }
+//           ++this->size_;
+//           return n;
+//         }
+
+//         iterator emplace_equiv(node_pointer n)
+//         {
+//           node_tmp a(n, this->node_alloc());
+//           const_key_type& k = this->get_key(a.node_);
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer position = this->find_node(key_hash, k);
+//           this->reserve_for_insert(this->size_ + 1);
+//           return iterator(
+//             this->add_node_equiv(a.release(), key_hash, position));
+//         }
+
+//         iterator emplace_hint_equiv(c_iterator hint, node_pointer n)
+//         {
+//           node_tmp a(n, this->node_alloc());
+//           const_key_type& k = this->get_key(a.node_);
+//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+//             this->reserve_for_insert(this->size_ + 1);
+//             return iterator(
+//               this->add_using_hint_equiv(a.release(), hint.node_));
+//           } else {
+//             std::size_t key_hash = this->hash(k);
+//             node_pointer position = this->find_node(key_hash, k);
+//             this->reserve_for_insert(this->size_ + 1);
+//             return iterator(
+//               this->add_node_equiv(a.release(), key_hash, position));
+//           }
+//         }
+
+//         void emplace_no_rehash_equiv(node_pointer n)
+//         {
+//           node_tmp a(n, this->node_alloc());
+//           const_key_type& k = this->get_key(a.node_);
+//           std::size_t key_hash = this->hash(k);
+//           node_pointer position = this->find_node(key_hash, k);
+//           this->add_node_equiv(a.release(), key_hash, position);
+//         }
+
+//         template <typename NodeType>
+//         iterator move_insert_node_type_equiv(NodeType& np)
+//         {
+//           iterator result;
+
+//           if (np) {
+//             const_key_type& k = this->get_key(np.ptr_);
+//             std::size_t key_hash = this->hash(k);
+//             node_pointer pos = this->find_node(key_hash, k);
+//             this->reserve_for_insert(this->size_ + 1);
+//             result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
+//             np.ptr_ = node_pointer();
+//           }
+
+//           return result;
+//         }
+
+//         template <typename NodeType>
+//         iterator move_insert_node_type_with_hint_equiv(
+//           c_iterator hint, NodeType& np)
+//         {
+//           iterator result;
+
+//           if (np) {
+//             const_key_type& k = this->get_key(np.ptr_);
+
+//             if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+//               this->reserve_for_insert(this->size_ + 1);
+//               result =
+//                 iterator(this->add_using_hint_equiv(np.ptr_, hint.node_));
+//             } else {
+//               std::size_t key_hash = this->hash(k);
+//               node_pointer pos = this->find_node(key_hash, k);
+//               this->reserve_for_insert(this->size_ + 1);
+//               result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
+//             }
+//             np.ptr_ = node_pointer();
+//           }
+
+//           return result;
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // Insert range methods
+
+//         // if hash function throws, or inserting > 1 element, basic exception
+//         // safety. Strong otherwise
+//         template <class I>
+//         typename boost::unordered::detail::enable_if_forward<I, void>::type
+//         insert_range_equiv(I i, I j)
+//         {
+//           if (i == j)
+//             return;
+
+//           std::size_t distance = static_cast<std::size_t>(std::distance(i, j));
+//           if (distance == 1) {
+//             emplace_equiv(boost::unordered::detail::func::construct_node(
+//               this->node_alloc(), *i));
+//           } else {
+//             // Only require basic exception safety here
+//             this->reserve_for_insert(this->size_ + distance);
+
+//             for (; i != j; ++i) {
+//               emplace_no_rehash_equiv(
+//                 boost::unordered::detail::func::construct_node(
+//                   this->node_alloc(), *i));
+//             }
+//           }
+//         }
+
+//         template <class I>
+//         typename boost::unordered::detail::disable_if_forward<I, void>::type
+//         insert_range_equiv(I i, I j)
+//         {
+//           for (; i != j; ++i) {
+//             emplace_equiv(boost::unordered::detail::func::construct_node(
+//               this->node_alloc(), *i));
+//           }
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // Extract
+
+//         inline node_pointer extract_by_iterator_equiv(c_iterator n)
+//         {
+//           node_pointer i = n.node_;
+//           BOOST_ASSERT(i);
+//           node_pointer j(next_node(i));
+//           std::size_t bucket_index = this->node_bucket(i);
+
+//           link_pointer prev = this->get_previous_start(bucket_index);
+//           while (prev->next_ != i) {
+//             prev = next_node(prev);
+//           }
+
+//           prev->next_ = j;
+//           if (j && i->is_first_in_group()) {
+//             j->set_first_in_group();
+//           }
+//           --this->size_;
+//           this->fix_bucket(bucket_index, prev, j);
+//           i->next_ = link_pointer();
+
+//           return i;
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // Erase
+//         //
+//         // no throw
+
+//         template <class KeyEqual, class Key>
+//         std::size_t erase_key_equiv_impl(KeyEqual const& eq, Key const& k)
+//         {
+//           if (!this->size_)
+//             return 0;
+
+//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
+//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
+//           link_pointer prev =
+//             this->find_previous_node_impl(eq, k, bucket_index);
+//           if (!prev)
+//             return 0;
+
+//           std::size_t deleted_count = 0;
+//           node_pointer n = next_node(prev);
+//           do {
+//             node_pointer n2 = next_node(n);
+//             destroy_node(n);
+//             ++deleted_count;
+//             n = n2;
+//           } while (n && !n->is_first_in_group());
+//           size_ -= deleted_count;
+//           prev->next_ = n;
+//           this->fix_bucket(bucket_index, prev, n);
+//           return deleted_count;
+//         }
+
+//         std::size_t erase_key_equiv(const_key_type& k)
+//         {
+//           return this->erase_key_equiv_impl(this->key_eq(), k);
+//         }
+
+//         link_pointer erase_nodes_equiv(node_pointer i, node_pointer j)
+//         {
+//           std::size_t bucket_index = this->node_bucket(i);
+
+//           link_pointer prev = this->get_previous_start(bucket_index);
+//           while (prev->next_ != i) {
+//             prev = next_node(prev);
+//           }
+
+//           // Delete the nodes.
+//           // Is it inefficient to call fix_bucket for every node?
+//           bool includes_first = false;
+//           prev->next_ = j;
+//           do {
+//             includes_first = includes_first || i->is_first_in_group();
+//             node_pointer next = next_node(i);
+//             destroy_node(i);
+//             --size_;
+//             bucket_index = this->fix_bucket(bucket_index, prev, next);
+//             i = next;
+//           } while (i != j);
+//           if (j && includes_first) {
+//             j->set_first_in_group();
+//           }
+
+//           return prev;
+//         }
+
+//         ////////////////////////////////////////////////////////////////////////
+//         // fill_buckets
+
+//         void copy_buckets(table const& src, false_type)
+//         {
+//           this->create_buckets(this->bucket_count_);
+
+//           for (node_pointer n = src.begin(); n;) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             node_pointer group_end(next_group(n));
+//             node_pointer pos = this->add_node_equiv(
+//               boost::unordered::detail::func::construct_node(
+//                 this->node_alloc(), n->value()),
+//               key_hash, node_pointer());
+//             for (n = next_node(n); n != group_end; n = next_node(n)) {
+//               this->add_node_equiv(
+//                 boost::unordered::detail::func::construct_node(
+//                   this->node_alloc(), n->value()),
+//                 key_hash, pos);
+//             }
+//           }
+//         }
+
+//         void assign_buckets(table const& src, false_type)
+//         {
+//           node_holder<node_allocator> holder(*this);
+//           for (node_pointer n = src.begin(); n;) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             node_pointer group_end(next_group(n));
+//             node_pointer pos = this->add_node_equiv(
+//               holder.copy_of(n->value()), key_hash, node_pointer());
+//             for (n = next_node(n); n != group_end; n = next_node(n)) {
+//               this->add_node_equiv(holder.copy_of(n->value()), key_hash, pos);
+//             }
+//           }
+//         }
+
+//         void move_assign_buckets(table& src, false_type)
+//         {
+//           node_holder<node_allocator> holder(*this);
+//           for (node_pointer n = src.begin(); n;) {
+//             std::size_t key_hash = this->hash(this->get_key(n));
+//             node_pointer group_end(next_group(n));
+//             node_pointer pos = this->add_node_equiv(
+//               holder.move_copy_of(n->value()), key_hash, node_pointer());
+//             for (n = next_node(n); n != group_end; n = next_node(n)) {
+//               this->add_node_equiv(
+//                 holder.move_copy_of(n->value()), key_hash, pos);
+//             }
+//           }
+//         }
       };
 
-      //////////////////////////////////////////////////////////////////////////
-      // Clear
+//       //////////////////////////////////////////////////////////////////////////
+//       // Clear
 
-      template <typename Types> inline void table<Types>::clear_impl()
-      {
-        if (size_) {
-          bucket_pointer end = get_bucket_pointer(bucket_count_);
-          for (bucket_pointer it = buckets_; it != end; ++it) {
-            it->next_ = node_pointer();
-          }
+//       template <typename Types> inline void table<Types>::clear_impl()
+//       {
+//         if (size_) {
+//           bucket_pointer end = get_bucket_pointer(bucket_count_);
+//           for (bucket_pointer it = buckets_; it != end; ++it) {
+//             it->next_ = node_pointer();
+//           }
 
-          link_pointer prev = end->first_from_start();
-          node_pointer n = next_node(prev);
-          prev->next_ = node_pointer();
-          size_ = 0;
+//           link_pointer prev = end->first_from_start();
+//           node_pointer n = next_node(prev);
+//           prev->next_ = node_pointer();
+//           size_ = 0;
 
-          while (n) {
-            node_pointer next = next_node(n);
-            destroy_node(n);
-            n = next;
-          }
-        }
-      }
+//           while (n) {
+//             node_pointer next = next_node(n);
+//             destroy_node(n);
+//             n = next;
+//           }
+//         }
+//       }
 
       //////////////////////////////////////////////////////////////////////////
       // Reserve & Rehash
@@ -3957,29 +3957,29 @@ namespace boost {
         }
       }
 
-      // if hash function throws, basic exception safety
-      // strong otherwise.
+//       // if hash function throws, basic exception safety
+//       // strong otherwise.
 
-      template <typename Types>
-      inline void table<Types>::rehash(std::size_t min_buckets)
-      {
-        using namespace std;
+//       template <typename Types>
+//       inline void table<Types>::rehash(std::size_t min_buckets)
+//       {
+//         using namespace std;
 
-        if (!size_) {
-          min_buckets = policy::new_bucket_count(min_buckets);
-          if (min_buckets != bucket_count_) {
-            this->create_buckets(min_buckets);
-          }
-        } else {
-          min_buckets = policy::new_bucket_count((std::max)(min_buckets,
-            boost::unordered::detail::double_to_size(
-              floor(static_cast<double>(size_) / static_cast<double>(mlf_))) +
-              1));
+//         if (!size_) {
+//           min_buckets = policy::new_bucket_count(min_buckets);
+//           if (min_buckets != bucket_count_) {
+//             this->create_buckets(min_buckets);
+//           }
+//         } else {
+//           min_buckets = policy::new_bucket_count((std::max)(min_buckets,
+//             boost::unordered::detail::double_to_size(
+//               floor(static_cast<double>(size_) / static_cast<double>(mlf_))) +
+//               1));
 
-          if (min_buckets != bucket_count_)
-            this->rehash_impl(min_buckets);
-        }
-      }
+//           if (min_buckets != bucket_count_)
+//             this->rehash_impl(min_buckets);
+//         }
+//       }
 
       template <typename Types>
       inline void table<Types>::rehash_impl(std::size_t num_buckets)
@@ -4038,9 +4038,9 @@ namespace boost {
         BOOST_CATCH_END
       }
 
-#if defined(BOOST_MSVC)
-#pragma warning(pop)
-#endif
+// #if defined(BOOST_MSVC)
+// #pragma warning(pop)
+// #endif
 
       ////////////////////////////////////////////////////////////////////////
       // key extractors
