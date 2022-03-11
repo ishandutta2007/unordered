@@ -190,7 +190,7 @@ namespace boost {
 
 //       // iterators
 
-      iterator begin() BOOST_NOEXCEPT { return iterator(table_.begin()); }
+      iterator begin() BOOST_NOEXCEPT { return table_.begin(); }
 
       const_iterator begin() const BOOST_NOEXCEPT
       {
@@ -872,7 +872,7 @@ namespace boost {
 
       size_type bucket_count() const BOOST_NOEXCEPT
       {
-        return table_.bucket_count_;
+        return table_.bucket_count();
       }
 
 //       size_type max_bucket_count() const BOOST_NOEXCEPT
@@ -889,16 +889,15 @@ namespace boost {
 
       local_iterator begin(size_type n)
       {
-        return local_iterator(table_.begin(n), n, table_.bucket_count_);
+        return table_.begin(n);
       }
 
       const_local_iterator begin(size_type n) const
       {
-        return const_local_iterator(table_.begin(n), n, table_.bucket_count_);
+        return const_local_iterator(table_.begin(n));
       }
 
       local_iterator end(size_type) { return local_iterator(); }
-
       const_local_iterator end(size_type) const
       {
         return const_local_iterator();
@@ -2110,9 +2109,9 @@ namespace boost {
     template <class K, class T, class H, class P, class A>
     float unordered_map<K, T, H, P, A>::load_factor() const BOOST_NOEXCEPT
     {
-      BOOST_ASSERT(table_.bucket_count_ != 0);
+      BOOST_ASSERT(table_.bucket_count() != 0);
       return static_cast<float>(table_.size_) /
-             static_cast<float>(table_.bucket_count_);
+             static_cast<float>(table_.bucket_count());
     }
 
     template <class K, class T, class H, class P, class A>

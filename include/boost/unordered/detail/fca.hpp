@@ -147,7 +147,7 @@ namespace boost {
 
           node_pointer next;
 
-          bucket() {}
+          bucket() : next() {}
           ~bucket() {}
         };
 
@@ -178,6 +178,21 @@ namespace boost {
         template <class Bucket, class Allocator>
         const std::size_t
           bucket_group<Bucket, Allocator>::N = sizeof(std::size_t) * 8;
+
+        inline std::size_t set_bit(std::size_t n)
+        {
+          return std::size_t(1) << n;
+        }
+
+        inline std::size_t reset_bit(std::size_t n)
+        {
+          return ~(std::size_t(1) << n);
+        }
+
+        inline std::size_t reset_first_bits(std::size_t n) // n>0
+        {
+          return ~(~(std::size_t(0)) >> (sizeof(std::size_t) * 8 - n));
+        }
 
         template <class Bucket, class Allocator>
         struct grouped_bucket_iterator
@@ -221,14 +236,18 @@ namespace boost {
 
           void increment() BOOST_NOEXCEPT
           {
+            std::size_t const offset =
+              static_cast<std::size_t>(p - pbg->buckets);
+
             std::size_t n = std::size_t(boost::core::countr_zero(
-              pbg->bitmask & reset_first_bits((p - pbg->buckets) + 1)));
+              pbg->bitmask & reset_first_bits(offset + 1)));
 
             if (n < N) {
               p = pbg->buckets + n;
             } else {
               pbg = pbg->next;
-              p = pbg->buckets + boost::core::countr_zero(pbg->bitmask);
+              p = pbg->buckets + static_cast<std::ptrdiff_t>(
+                                   boost::core::countr_zero(pbg->bitmask));
             }
           }
 
@@ -240,20 +259,82 @@ namespace boost {
         const std::size_t grouped_bucket_iterator<Bucket, Allocator>::N =
           bucket_group<Bucket, Allocator>::N;
 
-        inline std::size_t set_bit(std::size_t n)
-        {
-          return std::size_t(1) << n;
-        }
+        template <class Allocator> struct const_grouped_local_bucket_iterator;
 
-        inline std::size_t reset_bit(std::size_t n)
+        template <class Allocator>
+        struct grouped_local_bucket_iterator
+            : public boost::iterator_facade<
+                grouped_local_bucket_iterator<Allocator>,
+                typename boost::allocator_value_type<Allocator>::type,
+                boost::forward_traversal_tag>
         {
-          return ~(std::size_t(1) << n);
-        }
+          typedef typename node<Allocator>::pointer node_pointer;
+          typedef typename node<Allocator>::value_type value_type;
 
-        inline std::size_t reset_first_bits(std::size_t n) // n>0
+        public:
+          grouped_local_bucket_iterator() : p() {}
+
+        private:
+          friend class boost::iterator_core_access;
+
+          template <typename, typename, typename>
+          friend class grouped_bucket_array;
+
+          template <class> friend struct const_grouped_local_bucket_iterator;
+
+          grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
+
+          value_type& dereference() const BOOST_NOEXCEPT { return p->value; }
+
+          bool equal(
+            const grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
+          {
+            return p == x.p;
+          }
+
+          void increment() BOOST_NOEXCEPT { p = p->next; }
+
+          node_pointer p;
+        };
+
+        template <class Allocator>
+        struct const_grouped_local_bucket_iterator
+            : public boost::iterator_facade<
+                const_grouped_local_bucket_iterator<Allocator>,
+                typename boost::allocator_value_type<Allocator>::type const,
+                boost::forward_traversal_tag>
         {
-          return ~(~(std::size_t(0)) >> (sizeof(std::size_t) * 8 - n));
-        }
+          typedef typename node<Allocator>::pointer node_pointer;
+          typedef typename node<Allocator>::value_type const value_type;
+
+        public:
+          const_grouped_local_bucket_iterator() : p() {}
+          const_grouped_local_bucket_iterator(
+            grouped_local_bucket_iterator<Allocator> it)
+              : p(it.p)
+          {
+          }
+
+        private:
+          friend class boost::iterator_core_access;
+
+          template <typename, typename, typename>
+          friend class grouped_bucket_array;
+
+          const_grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
+
+          value_type& dereference() const BOOST_NOEXCEPT { return p->value; }
+
+          bool equal(
+            const const_grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
+          {
+            return p == x.p;
+          }
+
+          void increment() BOOST_NOEXCEPT { p = p->next; }
+
+          node_pointer p;
+        };
 
         template <class T> struct span
         {
@@ -263,10 +344,7 @@ namespace boost {
           T* data;
           std::size_t size;
 
-          span(T* data_, std::size_t size_)
-          : data(data_)
-          , size(size_)
-          {}
+          span(T* data_, std::size_t size_) : data(data_), size(size_) {}
         };
 
         template <class Bucket, class Allocator, class SizePolicy>
@@ -303,6 +381,9 @@ namespace boost {
           typedef std::size_t size_type;
           typedef Allocator allocator_type;
           typedef grouped_bucket_iterator<Bucket, Allocator> iterator;
+          typedef grouped_local_bucket_iterator<Allocator> local_iterator;
+          typedef const_grouped_local_bucket_iterator<Allocator>
+            const_local_iterator;
 
           grouped_bucket_array(size_type n, const Allocator& al)
               : size_index_(size_policy::size_index(n)),
@@ -339,8 +420,12 @@ namespace boost {
           {
             size_index_ = other.size_index_;
             size_ = other.size_;
+
             buckets = boost::move(other.buckets);
             groups = boost::move(other.groups);
+
+            other.size_index_ = 0;
+            other.size_ = 0;
             return *this;
           };
 
@@ -351,19 +436,26 @@ namespace boost {
             return node_allocator;
           }
 
-          size_type bucket_count() const { return buckets.size(); }
+          size_type bucket_count() const { return size_; }
 
           iterator begin() const { return ++at(size_); }
-
           iterator end() const
           {
             // micro optimization: no need to return the bucket group
             // as end() is not incrementable
             iterator pbg;
-            pbg.p = const_cast<Bucket*>(&buckets.back());
+            pbg.p = bucket_pointer_traits::pointer_to(
+              const_cast<Bucket&>(buckets.back()));
 
             return pbg;
           }
+
+          local_iterator begin(size_type n) const
+          {
+            return local_iterator(buckets[n].next);
+          }
+
+          local_iterator end(size_type) const { return local_iterator(); }
 
           size_type capacity() const BOOST_NOEXCEPT { return size_; }
 
@@ -377,7 +469,11 @@ namespace boost {
             return pbg;
           }
 
-          span<Bucket> raw() { return span<Bucket>(buckets.data(), size_); }
+          span<Bucket> raw()
+          {
+            BOOST_ASSERT(size_ < buckets.size());
+            return span<Bucket>(buckets.data(), size_);
+          }
 
           size_type position(std::size_t hash) const
           {
@@ -390,12 +486,14 @@ namespace boost {
               typename iterator::bucket_pointer pb = itb.p;
               typename iterator::bucket_group_pointer pbg = itb.pbg;
 
-              std::size_t n = pb - &buckets[0];
+              std::size_t n =
+                static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
               if (!pbg->bitmask) { // empty group
-                pbg->buckets = &buckets[N * (n / N)];
+                pbg->buckets =
+                  bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
                 pbg->next = groups.back().next;
                 pbg->next->prev = pbg;
-                pbg->prev = &groups.back();
+                pbg->prev = group_pointer_traits::pointer_to(groups.back());
                 pbg->prev->next = pbg;
               }
               pbg->bitmask |= set_bit(n % N);
@@ -423,11 +521,14 @@ namespace boost {
 
           void unlink_empty_buckets() BOOST_NOEXCEPT
           {
-            bucket_group<Bucket, Allocator>*pbg = &groups.front(),
-                                 last = &groups.back();
+            group_pointer pbg =
+                            group_pointer_traits::pointer_to(groups.front()),
+                          last =
+                            group_pointer_traits::pointer_to(groups.back());
+
             for (; pbg != last; ++pbg) {
               for (std::size_t n = 0; n < N; ++n) {
-                if (!pbg->buckets[n].next)
+                if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
                   pbg->bitmask &= reset_bit(n);
               }
               if (!pbg->bitmask && pbg->next)
@@ -435,7 +536,7 @@ namespace boost {
             }
             for (std::size_t n = 0; n < size_ % N;
                  ++n) { // do not check end bucket
-              if (!pbg->buckets[n].next)
+              if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
                 pbg->bitmask &= reset_bit(n);
             }
           }
@@ -447,7 +548,8 @@ namespace boost {
           {
             typename iterator::bucket_pointer p = itb.p;
             typename iterator::bucket_group_pointer pbg = itb.pbg;
-            if (!(pbg->bitmask &= reset_bit(p - pbg->buckets)))
+            if (!(pbg->bitmask &=
+                  reset_bit(static_cast<std::size_t>(p - pbg->buckets))))
               unlink_group(pbg);
           }
 
