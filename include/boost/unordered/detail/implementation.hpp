@@ -3160,9 +3160,8 @@ namespace boost {
           v2_node_pointer p, v2_bucket_type&, v2_bucket_array_type& new_buckets)
         {
           const_key_type& key = extractor::extract(p->value);
-          std::size_t const hash = this->hash_function()(key);
-          v2_bucket_iterator itnewb =
-            new_buckets.at(new_buckets.position(hash));
+          std::size_t const h = this->hash_function()(key);
+          v2_bucket_iterator itnewb = new_buckets.at(new_buckets.position(h));
           new_buckets.insert_node(itnewb, p);
         }
 
@@ -3493,50 +3492,28 @@ namespace boost {
         template <class InputIt>
         void insert_range_unique(no_key, InputIt i, InputIt j)
         {
-          // auto hash=h(x);
-          // auto itb=buckets.at(buckets.position(hash));
-          // auto it=find(x,itb);
-          // if(it!=end())return {it,false};
-
-          // if(size_+1>ml){
-          //   rehash(size_+1);
-          //   itb=buckets.at(buckets.position(hash));
-          // }
-
-          // auto p=new_node(std::forward<Value>(x),*itb);
-          // buckets.insert_node(itb,p);
-          // ++size_;
-          // return {{p,itb},true};
-
-          hasher const& h = this->hash_function();
-          v2_node_allocator_type node_allocator =
-            buckets_v2_.get_node_allocator();
-
-          // this `recalculate_max_load()` call is probably superfluous;
-          // double-check this
-          //
-          // recalculate_max_load();
+          hasher const& hf = this->hash_function();
+          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
 
           for (; i != j; ++i) {
-            v2_node_pointer nptr = boost::allocator_allocate(node_allocator, 1);
-            boost::allocator_construct(
-              node_allocator, boost::to_address(nptr), *i);
+            v2_node_pointer nptr = boost::allocator_allocate(node_alloc, 1);
+            boost::allocator_construct(node_alloc, boost::to_address(nptr), *i);
 
             value_type const& value = boost::to_address(nptr)->value;
             const_key_type& key = extractor::extract(value);
 
-            std::size_t const hash = h(key);
-            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(hash));
+            std::size_t const h = hf(key);
+            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(h));
             v2_node_pointer it = v2_find_node_impl(key, itb);
             if (it) {
-              boost::allocator_destroy(node_allocator, boost::to_address(nptr));
-              boost::allocator_deallocate(node_allocator, nptr, 1);
+              boost::allocator_destroy(node_alloc, boost::to_address(nptr));
+              boost::allocator_deallocate(node_alloc, nptr, 1);
               continue;
             }
 
             if (size_ + 1 > max_load_) {
               rehash(size_ + 1);
-              itb = buckets_v2_.at(buckets_v2_.position(hash));
+              itb = buckets_v2_.at(buckets_v2_.position(h));
             }
 
             buckets_v2_.insert_node(itb, nptr);

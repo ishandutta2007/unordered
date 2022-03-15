@@ -670,6 +670,12 @@ namespace test {
 
     ~allocator2() { detail::tracker.allocator_unref(); }
 
+    allocator2& operator=(allocator2 const& other)
+    {
+      tag_ = other.tag_;
+      return *this;
+    }
+
     pointer address(reference r) { return pointer(&r); }
 
     const_pointer address(const_reference r) { return const_pointer(&r); }

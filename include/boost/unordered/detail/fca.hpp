@@ -215,7 +215,7 @@ namespace boost {
           static inline boost::uint64_t mul128_u32(
             boost::uint64_t lowbits, boost::uint32_t d)
           {
-            return ((__uint128_t)lowbits * d) >> 64;
+            return static_cast<boost::uint64_t>(((__uint128_t)lowbits * d) >> 64);
           }
 #endif
 
@@ -287,6 +287,13 @@ namespace boost {
           pointer next;
           value_type value;
 
+          // TODO: make this constructor optional in C++11 mode and up, depending on whether
+          // or not the SFINAE checks in Core's Allocator Access can handle `node` not having
+          // a default constructor or not
+          // tl dr; this doesn't need to be here but it is because of C++03 SFINAE
+          //
+          node() : next(), value() {}
+
           template <class Arg>
           node(BOOST_FWD_REF(Arg) arg) : next(), value(boost::forward<Arg>(arg))
           {
@@ -300,7 +307,6 @@ namespace boost {
           node_pointer next;
 
           bucket() : next() {}
-          ~bucket() {}
         };
 
         template <class Bucket, class Allocator> struct bucket_group
