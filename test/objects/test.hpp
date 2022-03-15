@@ -418,8 +418,14 @@ namespace test {
       ignore_variable(&p);
     }
 #else
-  // private:
-    template <typename U, typename Args> void construct(U* p, Args const& args)
+    template <typename U>
+    void construct(U* p) const
+    {
+      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
+      new (p) U();
+    }
+
+    template <typename U, typename Args> void construct(U* p, Args const& args) const
     {
       detail::tracker.track_construct((void*)p, sizeof(U), tag_);
       new (p) U(args);
@@ -688,14 +694,21 @@ namespace test {
       ::operator delete((void*)p.ptr_);
     }
 
-    void construct(T* p, T const& t)
+    void construct(T* p) const
     {
       detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      new (p) T(t);
+      new (p) T();
+    }
+
+    template <class U>
+    void construct(T* p, U const& u) const
+    {
+      detail::tracker.track_construct((void*)p, sizeof(T), tag_);
+      new (p) T(u);
     }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
+    template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args) const
     {
       detail::tracker.track_construct((void*)p, sizeof(T), tag_);
       new (p) T(boost::forward<Args>(args)...);
