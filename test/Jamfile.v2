@@ -97,7 +97,7 @@ test-suite unordered
 
 test-suite unordered-exception
     :
-        # [ run exception/constructor_exception_tests.cpp framework ]
+        [ run exception/constructor_exception_tests.cpp framework ]
         # [ run exception/copy_exception_tests.cpp framework ]
         # [ run exception/assign_exception_tests.cpp framework ]
         # [ run exception/move_assign_exception_tests.cpp framework ]
