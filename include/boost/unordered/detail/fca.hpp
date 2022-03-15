@@ -9,11 +9,11 @@
 #pragma once
 #endif
 
-#include <boost/container/vector.hpp>
 #include <boost/core/addressof.hpp>
-#include <boost/core/alloc_construct.hpp>
 #include <boost/core/allocator_access.hpp>
 #include <boost/core/bit.hpp>
+#include <boost/core/default_allocator.hpp>
+#include <boost/core/empty_value.hpp>
 #include <boost/cstdint.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/move/core.hpp>
@@ -25,6 +25,158 @@ namespace boost {
   namespace unordered {
     namespace detail {
       namespace v2 {
+
+        template <class T, class Allocator = boost::default_allocator<T> >
+        struct dynamic_array
+            : boost::empty_value<
+                typename boost::allocator_rebind<Allocator, T>::type>
+        {
+        private:
+          BOOST_COPYABLE_AND_MOVABLE(dynamic_array)
+
+        public:
+          typedef
+            typename boost::allocator_rebind<Allocator, T>::type allocator_type;
+          typedef
+            typename boost::allocator_size_type<allocator_type>::type size_type;
+          typedef T value_type;
+
+        private:
+          typedef
+            typename boost::allocator_pointer<allocator_type>::type pointer;
+
+          pointer p_;
+          size_type len_;
+
+        public:
+          dynamic_array(size_type n, allocator_type a = allocator_type())
+              : empty_value<allocator_type>(boost::empty_init_t(), a), p_(),
+                len_(n)
+          {
+            p_ = boost::allocator_allocate(a, len_);
+            boost::allocator_construct_n(a, boost::to_address(p_), len_);
+          }
+
+          dynamic_array(dynamic_array const& other)
+              : empty_value<allocator_type>(boost::empty_init_t(),
+                  other.get_allocator()), p_(), len_(0)
+          {
+            size_type len = other.size();
+            allocator_type a = get_allocator();
+            p_ = boost::allocator_allocate(a, len);
+            boost::allocator_construct_n(a, data(), len, other.data());
+            len_ = len;
+          }
+
+          dynamic_array(BOOST_RV_REF(dynamic_array) other) BOOST_NOEXCEPT
+              : boost::empty_value<allocator_type>(boost::empty_init_t(),
+                  boost::move(
+                    static_cast<boost::empty_value<allocator_type> >(other)
+                      .get()))
+          {
+            p_ = other.p_;
+            len_ = other.len_;
+
+            other.p_ = pointer();
+            other.len_ = 0;
+          }
+
+          ~dynamic_array() { deallocate(); }
+
+          dynamic_array& operator=(BOOST_RV_REF(dynamic_array) other)
+          {
+            typedef
+              typename boost::allocator_propagate_on_container_move_assignment<
+                allocator_type>::type propagate;
+
+            if ((get_allocator() == other.get_allocator()) ||
+                propagate::value) {
+
+              deallocate();
+              boost::empty_value<allocator_type>::get() = other.get_allocator();
+
+              p_ = other.p_;
+              len_ = other.len_;
+
+              other.p_ = pointer();
+              other.len_ = 0;
+            } else {
+              allocator_type a = get_allocator();
+              pointer p = boost::allocator_allocate(a, other.len_);
+
+              BOOST_TRY
+              {
+                boost::allocator_construct_n(
+                  a, boost::to_address(p), other.len_, other.data());
+
+                p_ = p;
+                len_ = other.len_;
+              }
+              BOOST_CATCH(...)
+              {
+                boost::allocator_deallocate(a, p, other.len_);
+                BOOST_RETHROW;
+              }
+              BOOST_CATCH_END
+            }
+
+            return *this;
+          }
+
+          size_type size() const BOOST_NOEXCEPT { return len_; }
+
+          allocator_type get_allocator() const BOOST_NOEXCEPT
+          {
+            return boost::empty_value<allocator_type>::get();
+          }
+
+          value_type& operator[](size_type idx) BOOST_NOEXCEPT
+          {
+            BOOST_ASSERT(idx < len_);
+            return data()[idx];
+          }
+
+          value_type const& operator[](size_type idx) const BOOST_NOEXCEPT
+          {
+            BOOST_ASSERT(idx < len_);
+            return data()[idx];
+          }
+
+          value_type& front() BOOST_NOEXCEPT { return this->operator[](0); }
+
+          value_type& back() BOOST_NOEXCEPT
+          {
+            return this->operator[](len_ - 1);
+          }
+
+          value_type const& front() const BOOST_NOEXCEPT
+          {
+            return this->operator[](0);
+          }
+
+          value_type const& back() const BOOST_NOEXCEPT
+          {
+            return this->operator[](len_ - 1);
+          }
+
+          value_type* data() const BOOST_NOEXCEPT
+          {
+            return boost::to_address(p_);
+          }
+
+        private:
+          void deallocate() BOOST_NOEXCEPT
+          {
+            if (!p_) {
+              BOOST_ASSERT(len_ == 0);
+              return;
+            }
+
+            allocator_type a = get_allocator();
+            boost::allocator_destroy_n(a, data(), len_);
+            boost::allocator_deallocate(a, p_, len_);
+          }
+        };
 
         template <class = void> struct prime_fmod_size
         {
@@ -386,9 +538,10 @@ namespace boost {
             const_local_iterator;
 
           grouped_bucket_array(size_type n, const Allocator& al)
-              : size_index_(size_policy::size_index(n)),
+              : allocator(al), node_allocator(al),
+                size_index_(size_policy::size_index(n)),
                 size_(size_policy::size(size_index_)), buckets(size_ + 1, al),
-                groups(size_ / N + 1, al), allocator(al), node_allocator(al)
+                groups(size_ / N + 1, al)
           {
             group& grp = groups.back();
             group_pointer pbg =
@@ -404,12 +557,12 @@ namespace boost {
 
           grouped_bucket_array(
             BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
-              : size_index_(other.size_index_),
+              : allocator(boost::move(other.allocator)),
+                node_allocator(boost::move(other.node_allocator)),
+                size_index_(other.size_index_),
                 size_(other.size_),
                 buckets(boost::move(other.buckets)),
-                groups(boost::move(other.groups)),
-                allocator(boost::move(other.allocator)),
-                node_allocator(boost::move(other.node_allocator))
+                groups(boost::move(other.groups))
           {
             other.size_ = 0;
             other.size_index_ = 0;
@@ -560,12 +713,12 @@ namespace boost {
             pbg->prev = pbg->next = group_pointer();
           }
 
-          std::size_t size_index_, size_;
-          boost::container::vector<Bucket, bucket_allocator_type> buckets;
-          boost::container::vector<group, group_allocator_type> groups;
-
           Allocator allocator;
           node_allocator_type node_allocator;
+
+          std::size_t size_index_, size_;
+          dynamic_array<Bucket, bucket_allocator_type> buckets;
+          dynamic_array<group, group_allocator_type> groups;
         };
 
         // struct grouped_buckets
