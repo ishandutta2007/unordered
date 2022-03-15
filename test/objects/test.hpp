@@ -376,6 +376,12 @@ namespace test {
 
     ~allocator1() { detail::tracker.allocator_unref(); }
 
+    allocator1& operator=(allocator1 const& other)
+    {
+      tag_ = other.tag_;
+      return *this;
+    }
+
     T* allocate(std::size_t n)
     {
       T* ptr(static_cast<T*>(::operator new(n * sizeof(T))));

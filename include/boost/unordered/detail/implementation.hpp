@@ -2652,8 +2652,9 @@ namespace boost {
         table(table const& x, node_allocator const& a)
             : functions(x), allocators_(a, a),
               bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
-              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(bucket_count_, a)
+              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(x.size_, a)
         {
+          recalculate_max_load();
         }
 
         table(table& x, boost::unordered::detail::move_tag m)
@@ -3669,21 +3670,44 @@ namespace boost {
 //           } while (i != j);
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // fill_buckets_unique
+        ////////////////////////////////////////////////////////////////////////
+        // fill_buckets_unique
 
-//         void copy_buckets(table const& src, true_type)
-//         {
-//           this->create_buckets(this->bucket_count_);
+        void copy_buckets(table const& src, true_type)
+        {
+          for (iterator pos = src.begin(); pos != src.end(); ++pos) {
+            if (size_ + 1 > max_load_) {
+              rehash(size_ + 1);
+            }
 
-//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
-//             std::size_t key_hash = this->hash(this->get_key(n));
-//             this->add_node_unique(
-//               boost::unordered::detail::func::construct_node(
-//                 this->node_alloc(), n->value()),
-//               key_hash);
-//           }
-//         }
+            value_type const& value = *pos;
+
+            v2_node_allocator_type node_alloc =
+              buckets_v2_.get_node_allocator();
+
+            detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
+              node_alloc, value);
+
+            const_key_type& key = extractor::extract(value);
+            std::size_t const key_hash = this->hash(key);
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+            buckets_v2_.insert_node(itb, tmp_node.release());
+            ++size_;
+          }
+
+          recalculate_max_load();
+
+          // this->create_buckets(this->bucket_count_);
+
+          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
+          //   std::size_t key_hash = this->hash(this->get_key(n));
+          //   this->add_node_unique(
+          //     boost::unordered::detail::func::construct_node(
+          //       this->node_alloc(), n->value()),
+          //     key_hash);
+          // }
+        }
 
 //         void assign_buckets(table const& src, true_type)
 //         {
