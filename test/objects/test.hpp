@@ -354,12 +354,6 @@ namespace test {
     int tag_;
 
     typedef T value_type;
-    typedef T* pointer;
-    typedef T const* const_pointer;
-    typedef T& reference;
-    typedef T const& const_reference;
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
 
     template <class U> struct rebind
     {
@@ -418,38 +412,18 @@ namespace test {
       ignore_variable(&p);
     }
 #else
-    template <typename U>
-    void construct(U* p) const
-    {
-      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
-      new (p) U();
-    }
-
-    template <typename U, typename Args> void construct(U* p, Args const& args) const
-    {
-      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
-      new (p) U(args);
-    }
-
-    template <typename U> void destroy(U* p)
-    {
-      detail::tracker.track_destroy((void*)p, sizeof(U), tag_);
-      p->~U();
-
-      // Work around MSVC buggy unused parameter warning.
-      ignore_variable(&p);
-    }
+  private:
     // I'm going to claim in the documentation that construct/destroy
     // is never used when C++11 support isn't available, so might as
     // well check that in the text.
     // TODO: Or maybe just disallow them for values?
-    // template <typename U> void construct(U* p);
-    // template <typename U, typename A0> void construct(U* p, A0 const&);
-    // template <typename U, typename A0, typename A1>
-    // void construct(U* p, A0 const&, A1 const&);
-    // template <typename U, typename A0, typename A1, typename A2>
-    // void construct(U* p, A0 const&, A1 const&, A2 const&);
-    // template <typename U> void destroy(U* p);
+    template <typename U> void construct(U* p);
+    template <typename U, typename A0> void construct(U* p, A0 const&);
+    template <typename U, typename A0, typename A1>
+    void construct(U* p, A0 const&, A1 const&);
+    template <typename U, typename A0, typename A1, typename A2>
+    void construct(U* p, A0 const&, A1 const&, A2 const&);
+    template <typename U> void destroy(U* p);
 
   public:
 #endif
@@ -700,21 +674,14 @@ namespace test {
       ::operator delete((void*)p.ptr_);
     }
 
-    void construct(T* p) const
+    void construct(T* p, T const& t)
     {
       detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      new (p) T();
-    }
-
-    template <class U>
-    void construct(T* p, U const& u) const
-    {
-      detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      new (p) T(u);
+      new (p) T(t);
     }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args) const
+    template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
     {
       detail::tracker.track_construct((void*)p, sizeof(T), tag_);
       new (p) T(boost::forward<Args>(args)...);

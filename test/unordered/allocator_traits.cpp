@@ -134,14 +134,7 @@ void test_empty_allocator()
 
 template <typename T> struct allocator1
 {
-    typedef T value_type;
-    typedef T* pointer;
-    typedef T const* const_pointer;
-    typedef T& reference;
-    typedef T const& const_reference;
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
-
+  typedef T value_type;
   ALLOCATOR_METHODS(allocator1)
 
   typedef yes_type propagate_on_container_copy_assignment;
