@@ -58,11 +58,12 @@ namespace boost {
           }
 
           dynamic_array(dynamic_array const& other)
-              : empty_value<allocator_type>(boost::empty_init_t(),
-                  other.get_allocator()), p_(), len_(0)
+              : empty_value<allocator_type>(
+                  boost::empty_init_t(), other.allocator()),
+                p_(), len_(0)
           {
             size_type len = other.size();
-            allocator_type a = get_allocator();
+            allocator_type a = allocator();
             p_ = boost::allocator_allocate(a, len);
             boost::allocator_construct_n(a, data(), len, other.data());
             len_ = len;
@@ -89,11 +90,11 @@ namespace boost {
               typename boost::allocator_propagate_on_container_move_assignment<
                 allocator_type>::type propagate;
 
-            if ((get_allocator() == other.get_allocator()) ||
+            if ((allocator() == other.allocator()) ||
                 propagate::value) {
 
               deallocate();
-              boost::empty_value<allocator_type>::get() = other.get_allocator();
+              this->allocator() = other.allocator();
 
               p_ = other.p_;
               len_ = other.len_;
@@ -101,7 +102,7 @@ namespace boost {
               other.p_ = pointer();
               other.len_ = 0;
             } else {
-              allocator_type a = get_allocator();
+              allocator_type a = allocator();
               pointer p = boost::allocator_allocate(a, other.len_);
 
               BOOST_TRY
@@ -125,7 +126,12 @@ namespace boost {
 
           size_type size() const BOOST_NOEXCEPT { return len_; }
 
-          allocator_type get_allocator() const BOOST_NOEXCEPT
+          allocator_type& allocator() BOOST_NOEXCEPT
+          {
+            return boost::empty_value<allocator_type>::get();
+          }
+
+          allocator_type const& allocator() const BOOST_NOEXCEPT
           {
             return boost::empty_value<allocator_type>::get();
           }
@@ -164,6 +170,8 @@ namespace boost {
             return boost::to_address(p_);
           }
 
+          void clear() BOOST_NOEXCEPT { deallocate(); }
+
         private:
           void deallocate() BOOST_NOEXCEPT
           {
@@ -172,9 +180,12 @@ namespace boost {
               return;
             }
 
-            allocator_type a = get_allocator();
+            allocator_type a = allocator();
             boost::allocator_destroy_n(a, data(), len_);
             boost::allocator_deallocate(a, p_, len_);
+
+            len_ = 0;
+            p_ = pointer();
           }
         };
 
@@ -215,7 +226,8 @@ namespace boost {
           static inline boost::uint64_t mul128_u32(
             boost::uint64_t lowbits, boost::uint32_t d)
           {
-            return static_cast<boost::uint64_t>(((__uint128_t)lowbits * d) >> 64);
+            return static_cast<boost::uint64_t>(
+              ((__uint128_t)lowbits * d) >> 64);
           }
 #endif
 
@@ -287,10 +299,10 @@ namespace boost {
           pointer next;
           value_type value;
 
-          // TODO: make this constructor optional in C++11 mode and up, depending on whether
-          // or not the SFINAE checks in Core's Allocator Access can handle `node` not having
-          // a default constructor or not
-          // tl dr; this doesn't need to be here but it is because of C++03 SFINAE
+          // TODO: make this constructor optional in C++11 mode and up,
+          // depending on whether or not the SFINAE checks in Core's Allocator
+          // Access can handle `node` not having a default constructor or not tl
+          // dr; this doesn't need to be here but it is because of C++03 SFINAE
           //
           node() : next(), value() {}
 
@@ -358,6 +370,7 @@ namespace boost {
                 grouped_bucket_iterator<Bucket, Allocator>, Bucket,
                 boost::forward_traversal_tag>
         {
+        public:
           typedef typename boost::allocator_rebind<Allocator, Bucket>::type
             bucket_allocator_type;
           typedef typename boost::allocator_pointer<bucket_allocator_type>::type
@@ -368,6 +381,10 @@ namespace boost {
           typedef
             typename boost::allocator_pointer<bucket_group_allocator_type>::type
               bucket_group_pointer;
+
+        private:
+          bucket_pointer p;
+          bucket_group_pointer pbg;
 
         public:
           grouped_bucket_iterator() : p(), pbg() {}
@@ -408,9 +425,6 @@ namespace boost {
                                    boost::core::countr_zero(pbg->bitmask));
             }
           }
-
-          bucket_pointer p;
-          bucket_group_pointer pbg;
         };
 
         template <class Bucket, class Allocator>
@@ -509,6 +523,7 @@ namespace boost {
         class grouped_bucket_array
         {
           BOOST_MOVABLE_BUT_NOT_COPYABLE(grouped_bucket_array)
+
         public:
           typedef node<Allocator> node_type;
           typedef typename boost::allocator_rebind<Allocator, node_type>::type
@@ -543,6 +558,17 @@ namespace boost {
           typedef const_grouped_local_bucket_iterator<Allocator>
             const_local_iterator;
 
+        private:
+          static const std::size_t N = group::N;
+
+          Allocator allocator;
+          node_allocator_type node_allocator;
+
+          std::size_t size_index_, size_;
+          dynamic_array<Bucket, bucket_allocator_type> buckets;
+          dynamic_array<group, group_allocator_type> groups;
+
+        public:
           grouped_bucket_array(size_type n, const Allocator& al)
               : allocator(al), node_allocator(al),
                 size_index_(size_policy::size_index(n)),
@@ -590,21 +616,42 @@ namespace boost {
 
           Allocator get_allocator() const { return allocator; }
 
-          node_allocator_type get_node_allocator() const
+          node_allocator_type const& get_node_allocator() const
           {
             return node_allocator;
           }
 
+          node_allocator_type& get_node_allocator() { return node_allocator; }
+
+          void reset_allocator(Allocator const& allocator_)
+          {
+            allocator = allocator_;
+            node_allocator = node_allocator_type(allocator);
+
+            groups.allocator() = group_allocator_type(allocator);
+            buckets.allocator() = bucket_allocator_type(allocator);
+          }
+
           size_type bucket_count() const { return size_; }
 
-          iterator begin() const { return ++at(size_); }
+          iterator begin() const
+          {
+            if (size_ == 0) {
+              return end();
+            }
+
+            return ++at(size_);
+          }
+
           iterator end() const
           {
             // micro optimization: no need to return the bucket group
             // as end() is not incrementable
             iterator pbg;
-            pbg.p = bucket_pointer_traits::pointer_to(
-              const_cast<Bucket&>(buckets.back()));
+            if (size_) {
+              pbg.p = bucket_pointer_traits::pointer_to(
+                const_cast<Bucket&>(buckets.back()));
+            }
 
             return pbg;
           }
@@ -630,13 +677,22 @@ namespace boost {
 
           span<Bucket> raw()
           {
-            BOOST_ASSERT(size_ < buckets.size());
+            BOOST_ASSERT(size_ == 0 || size_ < buckets.size());
             return span<Bucket>(buckets.data(), size_);
           }
 
           size_type position(std::size_t hash) const
           {
             return size_policy::position(hash, size_index_);
+          }
+
+          void clear()
+          {
+            size_index_ = 0;
+            size_ = 0;
+
+            buckets.clear();
+            groups.clear();
           }
 
           void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
@@ -693,16 +749,15 @@ namespace boost {
               if (!pbg->bitmask && pbg->next)
                 unlink_group(pbg);
             }
-            for (std::size_t n = 0; n < size_ % N;
-                 ++n) { // do not check end bucket
+
+            // do not check end bucket
+            for (std::size_t n = 0; n < size_ % N; ++n) {
               if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
                 pbg->bitmask &= reset_bit(n);
             }
           }
 
         private:
-          static const std::size_t N = group::N;
-
           void unlink_bucket(iterator itb)
           {
             typename iterator::bucket_pointer p = itb.p;
@@ -718,13 +773,6 @@ namespace boost {
             pbg->prev->next = pbg->next;
             pbg->prev = pbg->next = group_pointer();
           }
-
-          Allocator allocator;
-          node_allocator_type node_allocator;
-
-          std::size_t size_index_, size_;
-          dynamic_array<Bucket, bucket_allocator_type> buckets;
-          dynamic_array<group, group_allocator_type> groups;
         };
 
         // struct grouped_buckets

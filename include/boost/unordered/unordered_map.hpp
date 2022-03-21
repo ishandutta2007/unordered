@@ -741,7 +741,7 @@ namespace boost {
 //         BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
 //             boost::is_nothrow_swappable<H>::value&&
 //               boost::is_nothrow_swappable<P>::value);
-//       void clear() BOOST_NOEXCEPT { table_.clear_impl(); }
+      void clear() BOOST_NOEXCEPT { table_.clear_impl(); }
 
 //       template <typename H2, typename P2>
 //       void merge(boost::unordered_map<K, T, H2, P2, A>& source);
@@ -863,8 +863,8 @@ namespace boost {
 //           const_iterator(p), const_iterator(p ? table::next_node(p) : p));
 //       }
 
-//       mapped_type& operator[](const key_type&);
-//       mapped_type& operator[](BOOST_RV_REF(key_type));
+      mapped_type& operator[](const key_type&);
+      mapped_type& operator[](BOOST_RV_REF(key_type));
 //       mapped_type& at(const key_type&);
 //       mapped_type const& at(const key_type&) const;
 
@@ -1841,18 +1841,18 @@ namespace boost {
     {
     }
 
-// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 
-//     template <class K, class T, class H, class P, class A>
-//     unordered_map<K, T, H, P, A>& unordered_map<K, T, H, P, A>::operator=(
-//       std::initializer_list<value_type> list)
-//     {
-//       this->clear();
-//       this->insert(list.begin(), list.end());
-//       return *this;
-//     }
+    template <class K, class T, class H, class P, class A>
+    unordered_map<K, T, H, P, A>& unordered_map<K, T, H, P, A>::operator=(
+      std::initializer_list<value_type> list)
+    {
+      this->clear();
+      this->insert(list.begin(), list.end());
+      return *this;
+    }
 
-// #endif
+#endif
 
 //     // size and capacity
 
@@ -2055,19 +2055,19 @@ namespace boost {
 //         const_iterator(n), const_iterator(n ? table::next_node(n) : n));
 //     }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::mapped_type&
-//       unordered_map<K, T, H, P, A>::operator[](const key_type& k)
-//     {
-//       return table_.try_emplace_unique(k).first->second;
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::mapped_type&
+      unordered_map<K, T, H, P, A>::operator[](const key_type& k)
+    {
+      return table_.try_emplace_unique(k).first->second;
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::mapped_type&
-//       unordered_map<K, T, H, P, A>::operator[](BOOST_RV_REF(key_type) k)
-//     {
-//       return table_.try_emplace_unique(boost::move(k)).first->second;
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::mapped_type&
+      unordered_map<K, T, H, P, A>::operator[](BOOST_RV_REF(key_type) k)
+    {
+      return table_.try_emplace_unique(boost::move(k)).first->second;
+    }
 
 //     template <class K, class T, class H, class P, class A>
 //     typename unordered_map<K, T, H, P, A>::mapped_type&

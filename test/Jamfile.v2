@@ -46,8 +46,8 @@ test-suite unordered
         # [ run unordered/equivalent_keys_tests.cpp ]
         [ run unordered/constructor_tests.cpp ]
         [ run unordered/copy_tests.cpp ]
-        # [ run unordered/move_tests.cpp ]
-        # [ run unordered/assign_tests.cpp ]
+        [ run unordered/move_tests.cpp ]
+        [ run unordered/assign_tests.cpp ]
         # [ run unordered/insert_tests.cpp ]
         # [ run unordered/insert_stable_tests.cpp ]
         # [ run unordered/insert_hint_tests.cpp ]
@@ -84,12 +84,12 @@ test-suite unordered
         # [ run unordered/compile_map.cpp : :
         #     : <define>BOOST_UNORDERED_USE_MOVE
         #     : bmove_compile_map ]
-        # [ run unordered/copy_tests.cpp : :
-        #     : <define>BOOST_UNORDERED_USE_MOVE
-        #     : bmove_copy ]
-        # [ run unordered/move_tests.cpp : :
-        #     : <define>BOOST_UNORDERED_USE_MOVE
-        #     : bmove_move ]
+        [ run unordered/copy_tests.cpp : :
+            : <define>BOOST_UNORDERED_USE_MOVE
+            : bmove_copy ]
+        [ run unordered/move_tests.cpp : :
+            : <define>BOOST_UNORDERED_USE_MOVE
+            : bmove_move ]
         # [ run unordered/assign_tests.cpp : :
         #     : <define>BOOST_UNORDERED_USE_MOVE
         #     : bmove_assign ]

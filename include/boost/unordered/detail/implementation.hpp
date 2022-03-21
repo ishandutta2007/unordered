@@ -2351,7 +2351,7 @@ namespace boost {
           node_constructor;
         typedef boost::unordered::detail::node_tmp<node_allocator> node_tmp;
 
-        // typedef std::pair<iterator, bool> emplace_return;
+        
 
         // v2
         //
@@ -2443,6 +2443,8 @@ namespace boost {
           v2_bucket_iterator itb;
         };
 
+        typedef std::pair<iterator, bool> emplace_return;
+
         ////////////////////////////////////////////////////////////////////////
         // Members
 
@@ -2521,14 +2523,17 @@ namespace boost {
           return allocators_.first();
         }
 
-        node_allocator const& node_alloc() const
+        v2_node_allocator_type const& node_alloc() const
         {
-          return allocators_.second();
+          return buckets_v2_.get_node_allocator();
+        }
+
+        v2_node_allocator_type& node_alloc()
+        {
+          return buckets_v2_.get_node_allocator();
         }
 
         bucket_allocator& bucket_alloc() { return allocators_.first(); }
-
-        node_allocator& node_alloc() { return allocators_.second(); }
 
 //         std::size_t max_bucket_count() const
 //         {
@@ -2555,6 +2560,10 @@ namespace boost {
 
         iterator begin() const
         {
+          if (size_ == 0) {
+            return end();
+          }
+
           v2_bucket_iterator itb = buckets_v2_.begin();
           return iterator(itb->next, itb);
         }
@@ -2816,21 +2825,19 @@ namespace boost {
 //                     functions::nothrow_swappable>());
 //         }
 
-//         // Only call with nodes allocated with the currect allocator, or
-//         // one that is equal to it. (Can't assert because other's
-//         // allocators might have already been moved).
-//         void move_buckets_from(table& other)
-//         {
-//           BOOST_ASSERT(!buckets_);
-//           buckets_ = other.buckets_;
-//           bucket_count_ = other.bucket_count_;
-//           init_bcount_log2();
-//           size_ = other.size_;
-//           max_load_ = other.max_load_;
-//           other.buckets_ = bucket_pointer();
-//           other.size_ = 0;
-//           other.max_load_ = 0;
-//         }
+        // Only call with nodes allocated with the currect allocator, or
+        // one that is equal to it. (Can't assert because other's
+        // allocators might have already been moved).
+        void move_buckets_from(table& other)
+        {
+          buckets_v2_ = boost::move(other.buckets_v2_);
+
+          size_ = other.size_;
+          max_load_ = other.max_load_;
+
+          other.size_ = 0;
+          other.max_load_ = 0;
+        }
 
 //         // For use in the constructor when allocators might be different.
 //         void move_construct_buckets(table& src)
@@ -2891,6 +2898,8 @@ namespace boost {
 
             --size_;
           }
+
+          buckets_v2_.clear();
         }
 
         void destroy_buckets()
@@ -2937,153 +2946,164 @@ namespace boost {
 //           return bucket_index2;
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Clear
+        ////////////////////////////////////////////////////////////////////////
+        // Clear
 
-//         void clear_impl();
+        void clear_impl();
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Assignment
+        ////////////////////////////////////////////////////////////////////////
+        // Assignment
 
-//         template <typename UniqueType>
-//         void assign(table const& x, UniqueType is_unique)
-//         {
-//           if (this != &x) {
-//             assign(x, is_unique,
-//               boost::unordered::detail::integral_constant<bool,
-//                 allocator_traits<node_allocator>::
-//                   propagate_on_container_copy_assignment::value>());
-//           }
-//         }
+        template <typename UniqueType>
+        void assign(table const& x, UniqueType is_unique)
+        {
+          typedef typename boost::allocator_propagate_on_container_copy_assignment<v2_node_allocator_type>::type pocca;
 
-//         template <typename UniqueType>
-//         void assign(table const& x, UniqueType is_unique, false_type)
-//         {
-//           // Strong exception safety.
-//           this->construct_spare_functions(x.current_functions());
-//           BOOST_TRY
-//           {
-//             mlf_ = x.mlf_;
-//             recalculate_max_load();
+          if (this != &x) {
+            assign(x, is_unique,
+              boost::unordered::detail::integral_constant<bool,
+                pocca::value>());
+          }
+        }
 
-//             if (x.size_ > max_load_) {
-//               create_buckets(min_buckets_for_size(x.size_));
-//             } else if (size_) {
-//               clear_buckets();
-//             }
-//           }
-//           BOOST_CATCH(...)
-//           {
-//             this->cleanup_spare_functions();
-//             BOOST_RETHROW
-//           }
-//           BOOST_CATCH_END
-//           this->switch_functions();
-//           assign_buckets(x, is_unique);
-//         }
+        template <typename UniqueType>
+        void assign(table const &x, UniqueType is_unique, false_type)
+        {
+          // Strong exception safety.
+          this->construct_spare_functions(x.current_functions());
+          BOOST_TRY
+          {
+            mlf_ = x.mlf_;
+            recalculate_max_load();
 
-//         template <typename UniqueType>
-//         void assign(table const& x, UniqueType is_unique, true_type)
-//         {
-//           if (node_alloc() == x.node_alloc()) {
-//             allocators_.assign(x.allocators_);
-//             assign(x, is_unique, false_type());
-//           } else {
-//             this->construct_spare_functions(x.current_functions());
-//             this->switch_functions();
+            delete_buckets();
+            rehash(0);
 
-//             // Delete everything with current allocators before assigning
-//             // the new ones.
-//             delete_buckets();
-//             allocators_.assign(x.allocators_);
+            if (x.size_ > max_load_)
+            {
+              rehash(x.size_);
+            }
+          }
+          BOOST_CATCH(...)
+          {
+            this->cleanup_spare_functions();
+            BOOST_RETHROW
+          }
+          BOOST_CATCH_END
+          this->switch_functions();
+          assign_buckets(x, is_unique);
+        }
 
-//             // Copy over other data, all no throw.
-//             mlf_ = x.mlf_;
-//             bucket_count_ = min_buckets_for_size(x.size_);
-//             init_bcount_log2();
+        template <typename UniqueType>
+        void assign(table const &x, UniqueType is_unique, true_type)
+        {
+          if (node_alloc() == x.node_alloc())
+          {
+            buckets_v2_.reset_allocator(x.node_alloc());
+            assign(x, is_unique, false_type());
+          }
+          else
+          {
+            this->construct_spare_functions(x.current_functions());
+            this->switch_functions();
 
-//             // Finally copy the elements.
-//             if (x.size_) {
-//               copy_buckets(x, is_unique);
-//             }
-//           }
-//         }
+            // Delete everything with current allocators before assigning
+            // the new ones.
+            delete_buckets();
+            buckets_v2_.reset_allocator(x.node_alloc());
+            rehash(0);
 
-//         template <typename UniqueType>
-//         void move_assign(table& x, UniqueType is_unique)
-//         {
-//           if (this != &x) {
-//             move_assign(x, is_unique,
-//               boost::unordered::detail::integral_constant<bool,
-//                 allocator_traits<node_allocator>::
-//                   propagate_on_container_move_assignment::value>());
-//           }
-//         }
+            // Copy over other data, all no throw.
+            mlf_ = x.mlf_;
+            // bucket_count_ = min_buckets_for_size(x.size_);
 
-//         // Propagate allocator
-//         template <typename UniqueType>
-//         void move_assign(table& x, UniqueType, true_type)
-//         {
-//           if (!functions::nothrow_move_assignable) {
-//             this->construct_spare_functions(x.current_functions());
-//             this->switch_functions();
-//           } else {
-//             this->current_functions().move_assign(x.current_functions());
-//           }
-//           delete_buckets();
-//           allocators_.move_assign(x.allocators_);
-//           mlf_ = x.mlf_;
-//           move_buckets_from(x);
-//         }
+            // Finally copy the elements.
+            if (x.size_)
+            {
+              copy_buckets(x, is_unique);
+            }
+          }
+        }
 
-//         // Don't propagate allocator
-//         template <typename UniqueType>
-//         void move_assign(table& x, UniqueType is_unique, false_type)
-//         {
-//           if (node_alloc() == x.node_alloc()) {
-//             move_assign_equal_alloc(x);
-//           } else {
-//             move_assign_realloc(x, is_unique);
-//           }
-//         }
+        template <typename UniqueType>
+        void move_assign(table& x, UniqueType is_unique)
+        {
+          typedef
+            typename boost::allocator_propagate_on_container_move_assignment<
+              v2_node_allocator_type>::type pocma;
 
-//         void move_assign_equal_alloc(table& x)
-//         {
-//           if (!functions::nothrow_move_assignable) {
-//             this->construct_spare_functions(x.current_functions());
-//             this->switch_functions();
-//           } else {
-//             this->current_functions().move_assign(x.current_functions());
-//           }
-//           delete_buckets();
-//           mlf_ = x.mlf_;
-//           move_buckets_from(x);
-//         }
+          if (this != &x) {
+            move_assign(x, is_unique,
+              boost::unordered::detail::integral_constant<bool,
+                pocma::value>());
+          }
+        }
 
-//         template <typename UniqueType>
-//         void move_assign_realloc(table& x, UniqueType is_unique)
-//         {
-//           this->construct_spare_functions(x.current_functions());
-//           BOOST_TRY
-//           {
-//             mlf_ = x.mlf_;
-//             recalculate_max_load();
+        // Propagate allocator
+        template <typename UniqueType>
+        void move_assign(table& x, UniqueType, true_type)
+        {
+          if (!functions::nothrow_move_assignable) {
+            this->construct_spare_functions(x.current_functions());
+            this->switch_functions();
+          } else {
+            this->current_functions().move_assign(x.current_functions());
+          }
+          delete_buckets();
+          allocators_.move_assign(x.allocators_);
+          mlf_ = x.mlf_;
+          move_buckets_from(x);
+        }
 
-//             if (x.size_ > max_load_) {
-//               create_buckets(min_buckets_for_size(x.size_));
-//             } else if (size_) {
-//               clear_buckets();
-//             }
-//           }
-//           BOOST_CATCH(...)
-//           {
-//             this->cleanup_spare_functions();
-//             BOOST_RETHROW
-//           }
-//           BOOST_CATCH_END
-//           this->switch_functions();
-//           move_assign_buckets(x, is_unique);
-//         }
+        // Don't propagate allocator
+        template <typename UniqueType>
+        void move_assign(table& x, UniqueType is_unique, false_type)
+        {
+          rehash(x.size_);
+          if (node_alloc() == x.node_alloc()) {
+            move_assign_equal_alloc(x);
+          } else {
+            move_assign_realloc(x, is_unique);
+          }
+        }
+
+        void move_assign_equal_alloc(table& x)
+        {
+          if (!functions::nothrow_move_assignable) {
+            this->construct_spare_functions(x.current_functions());
+            this->switch_functions();
+          } else {
+            this->current_functions().move_assign(x.current_functions());
+          }
+          delete_buckets();
+          mlf_ = x.mlf_;
+          move_buckets_from(x);
+        }
+
+        template <typename UniqueType>
+        void move_assign_realloc(table& x, UniqueType is_unique)
+        {
+          this->construct_spare_functions(x.current_functions());
+          BOOST_TRY
+          {
+            mlf_ = x.mlf_;
+            recalculate_max_load();
+
+            delete_buckets();
+
+            if (x.size_ > max_load_) {
+              rehash(x.size_);
+            } 
+          }
+          BOOST_CATCH(...)
+          {
+            this->cleanup_spare_functions();
+            BOOST_RETHROW
+          }
+          BOOST_CATCH_END
+          this->switch_functions();
+          move_assign_buckets(x, is_unique);
+        }
 
         // Accessors
 
@@ -3109,6 +3129,12 @@ namespace boost {
         {
           return v2_find_node_impl(
             k, buckets_v2_.at(buckets_v2_.position(this->hash_function()(k))));
+        }
+
+        v2_node_pointer find_node(
+          const_key_type& k, v2_bucket_iterator itb) const
+        {
+          return v2_find_node_impl(k, itb);
         }
 
         template <class Key, class Pred>
@@ -3278,24 +3304,24 @@ namespace boost {
           return n;
         }
 
-//         inline node_pointer resize_and_add_node_unique(
-//           node_pointer n, std::size_t key_hash)
-//         {
-//           node_tmp b(n, this->node_alloc());
-//           this->reserve_for_insert(this->size_ + 1);
-//           return this->add_node_unique(b.release(), key_hash);
-//         }
+        // inline node_pointer resize_and_add_node_unique(
+        //   node_pointer n, std::size_t key_hash)
+        // {
+        //   node_tmp b(n, this->node_alloc());
+        //   this->reserve_for_insert(this->size_ + 1);
+        //   return this->add_node_unique(b.release(), key_hash);
+        // }
 
-//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         iterator emplace_hint_unique(
-//           c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-//             return iterator(hint.node_);
-//           } else {
-//             return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
-//           }
-//         }
+        // template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        // iterator emplace_hint_unique(
+        //   c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
+        // {
+        //   if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
+        //     return iterator(hint.node_);
+        //   } else {
+        //     return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
+        //   }
+        // }
 
 //         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
 //         emplace_return emplace_unique(
@@ -3354,22 +3380,37 @@ namespace boost {
 //           }
 //         }
 
-//         template <typename Key>
-//         emplace_return try_emplace_unique(BOOST_FWD_REF(Key) k)
-//         {
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (pos) {
-//             return emplace_return(iterator(pos), false);
-//           } else {
-//             return emplace_return(
-//               iterator(this->resize_and_add_node_unique(
-//                 boost::unordered::detail::func::construct_node_pair(
-//                   this->node_alloc(), boost::forward<Key>(k)),
-//                 key_hash)),
-//               true);
-//           }
-//         }
+        template <typename Key>
+        emplace_return try_emplace_unique(BOOST_FWD_REF(Key) k)
+        {
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+
+          v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+
+          if (pos) {
+            return emplace_return(iterator(pos, itb), false);
+          } else {
+            typedef typename value_type::second_type mapped_type;
+
+            v2_node_allocator_type alloc = node_alloc();
+            detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
+              alloc, value_type(boost::forward<Key>(k), mapped_type()));
+
+            if (size_ + 1 > max_load_) {
+              rehash(size_ + 1);
+              recalculate_max_load();
+              itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            }
+
+            v2_node_pointer p = tmp_node.release();
+            buckets_v2_.insert_node(itb, p);
+
+            ++size_;
+            return emplace_return(iterator(p, itb), true);
+          }
+        }
 
 //         template <typename Key>
 //         iterator try_emplace_hint_unique(c_iterator hint, BOOST_FWD_REF(Key) k)
@@ -3559,6 +3600,7 @@ namespace boost {
             value_type const& value = tmp_node.value();
             const_key_type& key = extractor::extract(value);
             std::size_t const h = hf(key);
+
             v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(h));
             v2_node_pointer it = v2_find_node_impl(key, itb);
             if (it) {
@@ -3709,23 +3751,51 @@ namespace boost {
           // }
         }
 
-//         void assign_buckets(table const& src, true_type)
-//         {
-//           node_holder<node_allocator> holder(*this);
-//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
-//             std::size_t key_hash = this->hash(this->get_key(n));
-//             this->add_node_unique(holder.copy_of(n->value()), key_hash);
-//           }
-//         }
+        void assign_buckets(table const& src, true_type)
+        {
+          iterator end = src.end();
+          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
 
-//         void move_assign_buckets(table& src, true_type)
-//         {
-//           node_holder<node_allocator> holder(*this);
-//           for (node_pointer n = src.begin(); n; n = next_node(n)) {
-//             std::size_t key_hash = this->hash(this->get_key(n));
-//             this->add_node_unique(holder.move_copy_of(n->value()), key_hash);
-//           }
-//         }
+          for (iterator pos = src.begin(); pos != end; ++pos) {
+            value_type const& value = *pos;
+            const_key_type& key = extractor::extract(value);
+            std::size_t const key_hash = this->hash(key);
+
+            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+
+            v2_node_constructor<v2_node_allocator_type> tmp_node(node_alloc, value);
+            buckets_v2_.insert_node(itb, tmp_node.release());
+            ++size_;
+          }
+          // node_holder<node_allocator> holder(*this);
+          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
+          //   std::size_t key_hash = this->hash(this->get_key(n));
+          //   this->add_node_unique(holder.copy_of(n->value()), key_hash);
+          // }
+        }
+
+        void move_assign_buckets(table& src, true_type)
+        {
+          iterator end = src.end();
+          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
+
+          for (iterator pos = src.begin(); pos != end; ++pos) {
+            value_type value = boost::move(*pos);
+            const_key_type& key = extractor::extract(value);
+            std::size_t const key_hash = this->hash(key);
+
+            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+
+            v2_node_constructor<v2_node_allocator_type> tmp_node(node_alloc, boost::move(value));
+            buckets_v2_.insert_node(itb, tmp_node.release());
+            ++size_;
+          }
+          // node_holder<node_allocator> holder(*this);
+          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
+          //   std::size_t key_hash = this->hash(this->get_key(n));
+          //   this->add_node_unique(holder.move_copy_of(n->value()), key_hash);
+          // }
+        }
 
 //         ////////////////////////////////////////////////////////////////////////
 //         // Equivalent keys
@@ -4137,29 +4207,16 @@ namespace boost {
 //         }
       };
 
-//       //////////////////////////////////////////////////////////////////////////
-//       // Clear
+      //////////////////////////////////////////////////////////////////////////
+      // Clear
 
-//       template <typename Types> inline void table<Types>::clear_impl()
-//       {
-//         if (size_) {
-//           bucket_pointer end = get_bucket_pointer(bucket_count_);
-//           for (bucket_pointer it = buckets_; it != end; ++it) {
-//             it->next_ = node_pointer();
-//           }
-
-//           link_pointer prev = end->first_from_start();
-//           node_pointer n = next_node(prev);
-//           prev->next_ = node_pointer();
-//           size_ = 0;
-
-//           while (n) {
-//             node_pointer next = next_node(n);
-//             destroy_node(n);
-//             n = next;
-//           }
-//         }
-//       }
+      template <typename Types> inline void table<Types>::clear_impl()
+      {
+        if (size_) {
+          delete_buckets();
+          rehash(0);
+        }
+      }
 
       //////////////////////////////////////////////////////////////////////////
       // Reserve & Rehash
