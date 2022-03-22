@@ -1319,6 +1319,10 @@ namespace boost {
           typename boost::allocator_value_type<allocator_type>::type node_type;
         typedef typename node_type::value_type value_type;
 
+        typedef
+          typename boost::allocator_rebind<allocator_type, value_type>::type
+            value_allocator;
+
         allocator_type& alloc_;
         node_pointer node_;
 
@@ -1329,8 +1333,8 @@ namespace boost {
           node_pointer node = boost::allocator_allocate(alloc_, 1);
           BOOST_TRY
           {
-            boost::allocator_construct(
-              alloc_, boost::to_address(node), boost::forward<Arg>(arg));
+            boost::allocator_construct(value_allocator(alloc_),
+              node->value_ptr(), boost::forward<Arg>(arg));
             node_ = node;
           }
           BOOST_CATCH(...)
@@ -1347,7 +1351,7 @@ namespace boost {
             return;
           }
 
-          boost::allocator_destroy(alloc_, boost::to_address(node_));
+          boost::allocator_destroy(value_allocator(alloc_), node_->value_ptr());
           boost::allocator_deallocate(alloc_, node_, 1);
         }
 
@@ -1362,7 +1366,7 @@ namespace boost {
         value_type& value() BOOST_NOEXCEPT
         {
           BOOST_ASSERT(node_);
-          return node_->value;
+          return node_->value();
         }
       };
 
@@ -2388,7 +2392,7 @@ namespace boost {
           {
           }
 
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value; }
+          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
 
           bool equal(const iterator& x) const BOOST_NOEXCEPT
           {
@@ -2424,7 +2428,7 @@ namespace boost {
 
           value_type const& dereference() const BOOST_NOEXCEPT
           {
-            return p->value;
+            return p->value();
           }
 
           bool equal(const c_iterator& x) const BOOST_NOEXCEPT
@@ -2877,9 +2881,12 @@ namespace boost {
           node_allocator_traits::deallocate(node_alloc(), n, 1);
         }
 
-        void v2_delete_node(v2_node_pointer p) {
+        void v2_delete_node(v2_node_pointer p)
+        {
           v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
-          boost::allocator_destroy(node_alloc, boost::to_address(p));
+
+          value_allocator val_alloc(node_alloc);
+          boost::allocator_destroy(val_alloc, p->value_ptr());
           boost::allocator_deallocate(node_alloc, p, 1);
         }
 
@@ -2891,11 +2898,7 @@ namespace boost {
             v2_bucket_iterator itb = pos.itb;
             ++pos;
             buckets_v2_.extract_node(itb, p);
-
-            v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
-            boost::allocator_destroy(node_alloc, boost::to_address(p));
-            boost::allocator_deallocate(node_alloc, p, 1);
-
+            v2_delete_node(p);
             --size_;
           }
 
@@ -3164,7 +3167,7 @@ namespace boost {
         {
           key_equal const& pred = this->key_eq();
           for (v2_node_pointer p = itb->next; p; p = p->next) {
-            if (pred(x, extractor::extract(p->value))) {
+            if (pred(x, extractor::extract(p->value()))) {
               return p;
             }
           }
@@ -3242,7 +3245,7 @@ namespace boost {
         void transfer_node(
           v2_node_pointer p, v2_bucket_type&, v2_bucket_array_type& new_buckets)
         {
-          const_key_type& key = extractor::extract(p->value);
+          const_key_type& key = extractor::extract(p->value());
           std::size_t const h = this->hash_function()(key);
           v2_bucket_iterator itnewb = new_buckets.at(new_buckets.position(h));
           new_buckets.insert_node(itnewb, p);
@@ -3739,16 +3742,6 @@ namespace boost {
           }
 
           recalculate_max_load();
-
-          // this->create_buckets(this->bucket_count_);
-
-          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
-          //   std::size_t key_hash = this->hash(this->get_key(n));
-          //   this->add_node_unique(
-          //     boost::unordered::detail::func::construct_node(
-          //       this->node_alloc(), n->value()),
-          //     key_hash);
-          // }
         }
 
         void assign_buckets(table const& src, true_type)

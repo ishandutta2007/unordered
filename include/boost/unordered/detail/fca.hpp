@@ -9,6 +9,7 @@
 #pragma once
 #endif
 
+#include <boost/align/alignment_of.hpp>
 #include <boost/core/addressof.hpp>
 #include <boost/core/allocator_access.hpp>
 #include <boost/core/bit.hpp>
@@ -90,8 +91,7 @@ namespace boost {
               typename boost::allocator_propagate_on_container_move_assignment<
                 allocator_type>::type propagate;
 
-            if ((allocator() == other.allocator()) ||
-                propagate::value) {
+            if ((allocator() == other.allocator()) || propagate::value) {
 
               deallocate();
               this->allocator() = other.allocator();
@@ -297,18 +297,19 @@ namespace boost {
             pointer;
 
           pointer next;
-          value_type value;
+          BOOST_ALIGNMENT(boost::alignment::alignment_of<value_type>::value)
+          unsigned char buf[sizeof(value_type)];
 
-          // TODO: make this constructor optional in C++11 mode and up,
-          // depending on whether or not the SFINAE checks in Core's Allocator
-          // Access can handle `node` not having a default constructor or not tl
-          // dr; this doesn't need to be here but it is because of C++03 SFINAE
-          //
-          node() : next(), value() {}
+          node() : next() {}
 
-          template <class Arg>
-          node(BOOST_FWD_REF(Arg) arg) : next(), value(boost::forward<Arg>(arg))
+          value_type* value_ptr() BOOST_NOEXCEPT
           {
+            return reinterpret_cast<value_type*>(buf);
+          }
+
+          value_type& value() BOOST_NOEXCEPT
+          {
+            return *reinterpret_cast<value_type*>(buf);
           }
         };
 
@@ -495,7 +496,7 @@ namespace boost {
 
           const_grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
 
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value; }
+          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
 
           bool equal(
             const const_grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
