@@ -18,6 +18,7 @@
 #include <boost/cstdint.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/move/core.hpp>
+#include <boost/type_traits/aligned_storage.hpp>
 
 #include <algorithm>
 #include <vector>
@@ -297,19 +298,19 @@ namespace boost {
             pointer;
 
           pointer next;
-          BOOST_ALIGNMENT(boost::alignment::alignment_of<value_type>::value)
-          unsigned char buf[sizeof(value_type)];
+          typename boost::aligned_storage<sizeof(value_type),
+            boost::alignment_of<value_type>::value>::type buf;
 
           node() : next() {}
 
           value_type* value_ptr() BOOST_NOEXCEPT
           {
-            return reinterpret_cast<value_type*>(buf);
+            return reinterpret_cast<value_type*>(buf.address());
           }
 
           value_type& value() BOOST_NOEXCEPT
           {
-            return *reinterpret_cast<value_type*>(buf);
+            return *reinterpret_cast<value_type*>(buf.address());
           }
         };
 
