@@ -3639,11 +3639,11 @@ namespace boost {
         void insert_range_unique(no_key, InputIt i, InputIt j)
         {
           hasher const& hf = this->hash_function();
-          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
+          v2_node_allocator_type alloc = this->node_alloc();
 
           for (; i != j; ++i) {
             detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
-              node_alloc, *i);
+              alloc, *i);
 
             value_type const& value = tmp_node.value();
             const_key_type& key = extractor::extract(value);
@@ -3664,30 +3664,6 @@ namespace boost {
             buckets_v2_.insert_node(itb, nptr);
             ++size_;
           }
-
-          // node_constructor a(this->node_alloc());
-
-          // do {
-          //   if (!a.node_) {
-          //     a.create_node();
-          //   }
-          //   BOOST_UNORDERED_CALL_CONSTRUCT1(
-          //     node_allocator_traits, a.alloc_, a.node_->value_ptr(), *i);
-          //   node_tmp b(a.release(), a.alloc_);
-
-          //   const_key_type& k = this->get_key(b.node_);
-          //   std::size_t key_hash = this->hash(k);
-          //   node_pointer pos = this->find_node(key_hash, k);
-
-          //   if (pos) {
-          //     a.reclaim(b.release());
-          //   } else {
-          //     // reserve has basic exception safety if the hash function
-          //     // throws, strong otherwise.
-          //     this->reserve_for_insert(this->size_ + 1);
-          //     this->add_node_unique(b.release(), key_hash);
-          //   }
-          // } while (++i != j);
         }
 
 //         ////////////////////////////////////////////////////////////////////////
@@ -3772,11 +3748,10 @@ namespace boost {
 
             value_type const& value = *pos;
 
-            v2_node_allocator_type node_alloc =
-              buckets_v2_.get_node_allocator();
+            v2_node_allocator_type alloc = this->node_alloc();
 
             detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
-              node_alloc, value);
+              alloc, value);
 
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
@@ -3791,10 +3766,10 @@ namespace boost {
 
         void assign_buckets(table const& src, true_type)
         {
-          iterator end = src.end();
+          iterator last = src.end();
           v2_node_allocator_type alloc = this->node_alloc();
 
-          for (iterator pos = src.begin(); pos != end; ++pos) {
+          for (iterator pos = src.begin(); pos != last; ++pos) {
             value_type const& value = *pos;
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
@@ -3806,34 +3781,24 @@ namespace boost {
             ++size_;
 
           }
-          // node_holder<node_allocator> holder(*this);
-          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
-          //   std::size_t key_hash = this->hash(this->get_key(n));
-          //   this->add_node_unique(holder.copy_of(n->value()), key_hash);
-          // }
         }
 
         void move_assign_buckets(table& src, true_type)
         {
-          iterator end = src.end();
-          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
+          iterator last = src.end();
+          v2_node_allocator_type alloc = this->node_alloc();
 
-          for (iterator pos = src.begin(); pos != end; ++pos) {
+          for (iterator pos = src.begin(); pos != last; ++pos) {
             value_type value = boost::move(*pos);
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
             v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
 
-            v2_node_constructor<v2_node_allocator_type> tmp_node(node_alloc, boost::move(value));
+            v2_node_constructor<v2_node_allocator_type> tmp_node(alloc, boost::move(value));
             buckets_v2_.insert_node(itb, tmp_node.release());
             ++size_;
           }
-          // node_holder<node_allocator> holder(*this);
-          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
-          //   std::size_t key_hash = this->hash(this->get_key(n));
-          //   this->add_node_unique(holder.move_copy_of(n->value()), key_hash);
-          // }
         }
 
 //         ////////////////////////////////////////////////////////////////////////
@@ -4294,9 +4259,9 @@ namespace boost {
 
           v2_bucket_type* pos = bspan.data;
           std::size_t size = bspan.size;
-          v2_bucket_type* end = pos + size;
+          v2_bucket_type* last = pos + size;
 
-          for (; pos != end; ++pos) {
+          for (; pos != last; ++pos) {
             v2_bucket_type& b = *pos;
             for (v2_node_pointer p = b.next; p;) {
               v2_node_pointer next_p = p->next;
