@@ -2412,7 +2412,8 @@ namespace boost {
 
           void increment() BOOST_NOEXCEPT
           {
-            if (!(p = p->next)) {
+            p = p->next;
+            if (!p) {
               p = (++itb)->next;
             }
           }
@@ -2449,7 +2450,8 @@ namespace boost {
 
           void increment() BOOST_NOEXCEPT
           {
-            if (!(p = p->next)) {
+            p = p->next;
+            if (!p) {
               p = (++itb)->next;
             }
           }

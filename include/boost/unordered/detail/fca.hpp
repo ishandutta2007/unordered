@@ -242,7 +242,7 @@ namespace boost {
           static inline std::size_t position(
             std::size_t hash, std::size_t size_index)
           {
-            return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
+            return fastmod_u32(uint32_t(hash) + uint32_t(uint64_t(hash) >> 32),
               inv_sizes[size_index], uint32_t(sizes[size_index]));
           }
         };
@@ -561,7 +561,7 @@ namespace boost {
             const_local_iterator;
 
         private:
-          static const std::size_t N = group::N;
+          static const std::size_t N;
 
           Allocator allocator;
           node_allocator_type node_allocator;
@@ -776,6 +776,9 @@ namespace boost {
             pbg->prev = pbg->next = group_pointer();
           }
         };
+
+      template <class Bucket, class Allocator, class SizePolicy>
+      const std::size_t grouped_bucket_array<Bucket, Allocator, SizePolicy>::N = grouped_bucket_array<Bucket, Allocator, SizePolicy>::group::N;
 
         // struct grouped_buckets
         // {
