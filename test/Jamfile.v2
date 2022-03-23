@@ -90,16 +90,16 @@ test-suite unordered
         [ run unordered/move_tests.cpp : :
             : <define>BOOST_UNORDERED_USE_MOVE
             : bmove_move ]
-        # [ run unordered/assign_tests.cpp : :
-        #     : <define>BOOST_UNORDERED_USE_MOVE
-        #     : bmove_assign ]
+        [ run unordered/assign_tests.cpp : :
+            : <define>BOOST_UNORDERED_USE_MOVE
+            : bmove_assign ]
     ;
 
 test-suite unordered-exception
     :
         [ run exception/constructor_exception_tests.cpp framework ]
-        # [ run exception/copy_exception_tests.cpp framework ]
-        # [ run exception/assign_exception_tests.cpp framework ]
+        [ run exception/copy_exception_tests.cpp framework ]
+        [ run exception/assign_exception_tests.cpp framework ]
         # [ run exception/move_assign_exception_tests.cpp framework ]
         # [ run exception/insert_exception_tests.cpp framework ]
         # [ run exception/erase_exception_tests.cpp framework ]

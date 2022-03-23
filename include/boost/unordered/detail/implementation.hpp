@@ -1310,31 +1310,34 @@ namespace boost {
       //
       // Node construction
 
-      template <class NodeAllocator> struct v2_node_constructor
+      template <class NodeAllocator>
+      struct v2_node_constructor
       {
         typedef NodeAllocator allocator_type;
         typedef
-          typename boost::allocator_pointer<allocator_type>::type node_pointer;
+            typename boost::allocator_pointer<allocator_type>::type node_pointer;
         typedef
-          typename boost::allocator_value_type<allocator_type>::type node_type;
+            typename boost::allocator_value_type<allocator_type>::type node_type;
         typedef typename node_type::value_type value_type;
 
         typedef
-          typename boost::allocator_rebind<allocator_type, value_type>::type
-            value_allocator;
+            typename boost::allocator_rebind<allocator_type, value_type>::type
+                value_allocator;
 
-        allocator_type& alloc_;
+        allocator_type &alloc_;
         node_pointer node_;
 
         template <class Arg>
-        v2_node_constructor(allocator_type& n, BOOST_FWD_REF(Arg) arg)
+        v2_node_constructor(allocator_type &n, BOOST_FWD_REF(Arg) arg)
             : alloc_(n), node_()
         {
           node_pointer node = boost::allocator_allocate(alloc_, 1);
           BOOST_TRY
           {
-            boost::allocator_construct(value_allocator(alloc_),
-              node->value_ptr(), boost::forward<Arg>(arg));
+            value_allocator val_alloc(alloc_);
+
+            boost::allocator_construct(val_alloc,
+                                       node->value_ptr(), boost::forward<Arg>(arg));
             node_ = node;
           }
           BOOST_CATCH(...)
@@ -1347,11 +1350,13 @@ namespace boost {
 
         ~v2_node_constructor()
         {
-          if (!node_) {
+          if (!node_)
+          {
             return;
           }
 
-          boost::allocator_destroy(value_allocator(alloc_), node_->value_ptr());
+          value_allocator val_alloc(alloc_);
+          boost::allocator_destroy(val_alloc, node_->value_ptr());
           boost::allocator_deallocate(alloc_, node_, 1);
         }
 
@@ -1363,7 +1368,7 @@ namespace boost {
           return node;
         }
 
-        value_type& value() BOOST_NOEXCEPT
+        value_type &value() BOOST_NOEXCEPT
         {
           BOOST_ASSERT(node_);
           return node_->value();
@@ -1471,13 +1476,20 @@ namespace boost {
 
         template <typename Alloc, BOOST_UNORDERED_EMPLACE_TEMPLATE>
         inline
-          typename boost::unordered::detail::allocator_traits<Alloc>::pointer
+          typename boost::allocator_pointer<Alloc>::type
           construct_node_from_args(Alloc& alloc, BOOST_UNORDERED_EMPLACE_ARGS)
         {
+          typedef typename boost::allocator_value_type<Alloc>::type node;
+          typedef typename node::value_type value_type;
+          typedef typename boost::allocator_rebind<Alloc, value_type>::type
+            value_allocator;
+
+          value_allocator val_alloc(alloc);
+
           node_constructor<Alloc> a(alloc);
           a.create_node();
           construct_from_args(
-            alloc, a.node_->value_ptr(), BOOST_UNORDERED_EMPLACE_FORWARD);
+            val_alloc, a.node_->value_ptr(), BOOST_UNORDERED_EMPLACE_FORWARD);
           return a.release();
         }
 
@@ -2351,11 +2363,6 @@ namespace boost {
         typedef
           typename node_allocator_traits::const_pointer const_node_pointer;
         typedef typename bucket_allocator_traits::pointer bucket_pointer;
-        typedef boost::unordered::detail::node_constructor<node_allocator>
-          node_constructor;
-        typedef boost::unordered::detail::node_tmp<node_allocator> node_tmp;
-
-        
 
         // v2
         //
@@ -2367,6 +2374,10 @@ namespace boost {
         typedef typename v2_bucket_array_type::node_allocator_type
           v2_node_allocator_type;
         typedef typename boost::allocator_pointer<v2_node_allocator_type>::type v2_node_pointer;
+
+        typedef boost::unordered::detail::node_constructor<v2_node_allocator_type>
+          node_constructor;
+        typedef boost::unordered::detail::node_tmp<v2_node_allocator_type> node_tmp;
 
         typedef typename v2_bucket_array_type::bucket_type v2_bucket_type;
 
@@ -2687,25 +2698,30 @@ namespace boost {
         {
         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Clear buckets and Create buckets
-//         //
-//         // IMPORTANT: If the container already contains any elements, the
-//         //            buckets will not contain any links to them. This will
-//         //            need to be dealt with, for example by:
-//         //            - deleting them
-//         //            - putting them in a 'node_holder' for future use
-//         //              (as in assignment)
-//         //            - placing them in buckets (see rehash_impl)
+        ////////////////////////////////////////////////////////////////////////
+        // Clear buckets and Create buckets
+        //
+        // IMPORTANT: If the container already contains any elements, the
+        //            buckets will not contain any links to them. This will
+        //            need to be dealt with, for example by:
+        //            - deleting them
+        //            - putting them in a 'node_holder' for future use
+        //              (as in assignment)
+        //            - placing them in buckets (see rehash_impl)
 
-//         // Clear the bucket pointers.
-//         void clear_buckets()
-//         {
-//           bucket_pointer end = get_bucket_pointer(bucket_count_);
-//           for (bucket_pointer it = buckets_; it != end; ++it) {
-//             it->next_ = node_pointer();
-//           }
-//         }
+        // Clear the bucket pointers.
+        void clear_buckets()
+        {
+          iterator pos = begin(), end = this->end();
+          for (; pos != end;) {
+            v2_node_pointer p = pos.p;
+            v2_bucket_iterator itb = pos.itb;
+            ++pos;
+            buckets_v2_.extract_node(itb, p);
+            v2_delete_node(p);
+            --size_;
+          }
+        }
 
         // Create container buckets. If the container already contains any
         // buckets
@@ -2883,11 +2899,11 @@ namespace boost {
 
         void v2_delete_node(v2_node_pointer p)
         {
-          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
+          v2_node_allocator_type alloc = this->node_alloc();
 
-          value_allocator val_alloc(node_alloc);
+          value_allocator val_alloc(alloc);
           boost::allocator_destroy(val_alloc, p->value_ptr());
-          boost::allocator_deallocate(node_alloc, p, 1);
+          boost::allocator_deallocate(alloc, p, 1);
         }
 
         void delete_buckets()
@@ -2979,13 +2995,12 @@ namespace boost {
             mlf_ = x.mlf_;
             recalculate_max_load();
 
-            delete_buckets();
-            rehash(0);
-
             if (x.size_ > max_load_)
             {
               rehash(x.size_);
             }
+
+            clear_buckets();
           }
           BOOST_CATCH(...)
           {
@@ -3110,7 +3125,7 @@ namespace boost {
 
         // Accessors
 
-        const_key_type& get_key(node_pointer n) const
+        const_key_type& get_key(v2_node_pointer n) const
         {
           return extractor::extract(n->value());
         }
@@ -3246,7 +3261,7 @@ namespace boost {
           v2_node_pointer p, v2_bucket_type&, v2_bucket_array_type& new_buckets)
         {
           const_key_type& key = extractor::extract(p->value());
-          std::size_t const h = this->hash_function()(key);
+          std::size_t const h = this->hash(key);
           v2_bucket_iterator itnewb = new_buckets.at(new_buckets.position(h));
           new_buckets.insert_node(itnewb, p);
         }
@@ -3326,23 +3341,34 @@ namespace boost {
         //   }
         // }
 
-//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         emplace_return emplace_unique(
-//           const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (pos) {
-//             return emplace_return(iterator(pos), false);
-//           } else {
-//             return emplace_return(
-//               iterator(this->resize_and_add_node_unique(
-//                 boost::unordered::detail::func::construct_node_from_args(
-//                   this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-//                 key_hash)),
-//               true);
-//           }
-//         }
+        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        emplace_return emplace_unique(
+          const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+
+          if (pos) {
+            return emplace_return(iterator(pos, itb), false);
+          } else {
+            if (size_ + 1 > max_load_) {
+              rehash(size_ + 1);
+              itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            }
+
+            node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+                         this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+              this->node_alloc());
+
+            v2_node_pointer p = b.release();
+            buckets_v2_.insert_node(itb, p);
+            ++size_;
+
+            return emplace_return(iterator(p, itb), true);
+          }
+        }
 
 //         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
 //         iterator emplace_hint_unique(
@@ -3365,23 +3391,40 @@ namespace boost {
 //           }
 //         }
 
-//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-//                        this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-//             this->node_alloc());
-//           const_key_type& k = this->get_key(b.node_);
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (pos) {
-//             return emplace_return(iterator(pos), false);
-//           } else {
-//             return emplace_return(
-//               iterator(this->resize_and_add_node_unique(b.release(), key_hash)),
-//               true);
-//           }
-//         }
+        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+                         this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+                     this->node_alloc());
+
+          const_key_type &k = this->get_key(b.node_);
+          std::size_t key_hash = this->hash(k);
+
+          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+
+          if (pos)
+          {
+            return emplace_return(iterator(pos, itb), false);
+          }
+          else
+          {
+            if (size_ + 1 > max_load_)
+            {
+              rehash(size_ + 1);
+              itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            }
+
+            v2_node_pointer p = b.release();
+            buckets_v2_.insert_node(itb, p);
+            ++size_;
+
+            return emplace_return(
+                iterator(p, itb),
+                true);
+          }
+        }
 
         template <typename Key>
         emplace_return try_emplace_unique(BOOST_FWD_REF(Key) k)
@@ -3747,7 +3790,7 @@ namespace boost {
         void assign_buckets(table const& src, true_type)
         {
           iterator end = src.end();
-          v2_node_allocator_type node_alloc = buckets_v2_.get_node_allocator();
+          v2_node_allocator_type alloc = this->node_alloc();
 
           for (iterator pos = src.begin(); pos != end; ++pos) {
             value_type const& value = *pos;
@@ -3756,9 +3799,10 @@ namespace boost {
 
             v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
 
-            v2_node_constructor<v2_node_allocator_type> tmp_node(node_alloc, value);
+            v2_node_constructor<v2_node_allocator_type> tmp_node(alloc, value);
             buckets_v2_.insert_node(itb, tmp_node.release());
             ++size_;
+
           }
           // node_holder<node_allocator> holder(*this);
           // for (node_pointer n = src.begin(); n; n = next_node(n)) {
