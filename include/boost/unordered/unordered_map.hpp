@@ -913,13 +913,13 @@ namespace boost {
 //         return const_local_iterator();
 //       }
 
-//       // hash policy
+      // hash policy
 
       float load_factor() const BOOST_NOEXCEPT;
       float max_load_factor() const BOOST_NOEXCEPT { return table_.mlf_; }
       void max_load_factor(float) BOOST_NOEXCEPT;
-//       void rehash(size_type);
-//       void reserve(size_type);
+      void rehash(size_type);
+      void reserve(size_type);
 
 // #if !BOOST_WORKAROUND(BOOST_BORLANDC, < 0x0582)
 //       friend bool operator==
@@ -2104,7 +2104,7 @@ namespace boost {
 //       return table_.bucket_size(n);
 //     }
 
-//     // hash policy
+    // hash policy
 
     template <class K, class T, class H, class P, class A>
     float unordered_map<K, T, H, P, A>::load_factor() const BOOST_NOEXCEPT
@@ -2120,18 +2120,18 @@ namespace boost {
       table_.max_load_factor(m);
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     void unordered_map<K, T, H, P, A>::rehash(size_type n)
-//     {
-//       table_.rehash(n);
-//     }
+    template <class K, class T, class H, class P, class A>
+    void unordered_map<K, T, H, P, A>::rehash(size_type n)
+    {
+      table_.rehash(n);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     void unordered_map<K, T, H, P, A>::reserve(size_type n)
-//     {
-//       table_.rehash(static_cast<std::size_t>(
-//         std::ceil(static_cast<double>(n) / table_.mlf_)));
-//     }
+    template <class K, class T, class H, class P, class A>
+    void unordered_map<K, T, H, P, A>::reserve(size_type n)
+    {
+      table_.rehash(static_cast<std::size_t>(
+        std::ceil(static_cast<double>(n) / table_.mlf_)));
+    }
 
 //     template <class K, class T, class H, class P, class A>
 //     inline bool operator==(unordered_map<K, T, H, P, A> const& m1,

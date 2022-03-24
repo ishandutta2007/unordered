@@ -2620,19 +2620,19 @@ namespace boost {
 
         void recalculate_max_load()
         {
-          float fml = mlf_ * static_cast<float>(buckets_v2_.capacity());
-          std::size_t res = (std::numeric_limits<std::size_t>::max)();
-          if (res > static_cast<std::size_t>(fml))
-            res = static_cast<std::size_t>(fml);
-          max_load_ = res;
+          // float fml = mlf_ * static_cast<float>(buckets_v2_.capacity());
+          // std::size_t res = (std::numeric_limits<std::size_t>::max)();
+          // if (res > static_cast<std::size_t>(fml))
+          //   res = static_cast<std::size_t>(fml);
+          // max_load_ = res;
 
-          // using namespace std;
+          using namespace std;
 
-          // // From 6.3.1/13:
-          // // Only resize when size >= mlf_ * count
-          // max_load_ = boost::unordered::detail::double_to_size(
-          //   ceil(static_cast<double>(mlf_) *
-          //        static_cast<double>(buckets_v2_.bucket_count())));
+          // From 6.3.1/13:
+          // Only resize when size >= mlf_ * count
+          max_load_ = boost::unordered::detail::double_to_size(
+            ceil(static_cast<double>(mlf_) *
+                 static_cast<double>(buckets_v2_.bucket_count())));
         }
 
         void max_load_factor(float z)
@@ -3031,11 +3031,11 @@ namespace boost {
             // the new ones.
             delete_buckets();
             buckets_v2_.reset_allocator(x.node_alloc());
-            rehash(0);
-
+            buckets_v2_ = v2_bucket_array_type(0, x.node_alloc());
+            
             // Copy over other data, all no throw.
             mlf_ = x.mlf_;
-            // bucket_count_ = min_buckets_for_size(x.size_);
+            rehash(x.size_);
 
             // Finally copy the elements.
             if (x.size_)
@@ -3108,12 +3108,11 @@ namespace boost {
           {
             mlf_ = x.mlf_;
             recalculate_max_load();
-
-            delete_buckets();
-
             if (x.size_ > max_load_) {
               rehash(x.size_);
             } 
+
+            clear_buckets();
           }
           BOOST_CATCH(...)
           {
@@ -4245,10 +4244,21 @@ namespace boost {
       template <typename Types>
       inline void table<Types>::rehash(std::size_t min_buckets)
       {
-        std::size_t bc = (std::numeric_limits<std::size_t>::max)();
-        float fbc = 1.0f + static_cast<float>(min_buckets) / mlf_;
-        if (bc > static_cast<std::size_t>(fbc)) {
-          bc = static_cast<std::size_t>(fbc);
+        if (size_ == 0 && min_buckets <= buckets_v2_.bucket_count()) {
+          return;
+        }
+
+        std::size_t bc = min_buckets;
+        if (size_ > 0) {
+          std::size_t x =
+            static_cast<std::size_t>(1.0f + static_cast<float>(size_) / mlf_);
+          if (x > bc) {
+            bc = x;
+          }
+        }
+
+        if (bc <= buckets_v2_.bucket_count()) {
+          return;
         }
 
         v2_bucket_array_type new_buckets(bc, buckets_v2_.get_allocator());
