@@ -3178,6 +3178,14 @@ namespace boost {
         }
 
         template <class Key>
+        iterator find(Key const& k) {
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+          return iterator(pos, itb);
+        }
+
+        template <class Key>
         v2_node_pointer v2_find_node_impl(
           Key const& x, v2_bucket_iterator itb) const
         {
@@ -3331,16 +3339,16 @@ namespace boost {
         //   return this->add_node_unique(b.release(), key_hash);
         // }
 
-        // template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        // iterator emplace_hint_unique(
-        //   c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
-        // {
-        //   if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-        //     return iterator(hint.node_);
-        //   } else {
-        //     return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
-        //   }
-        // }
+        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        iterator emplace_hint_unique(
+          c_iterator hint, const_key_type& k, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
+            return iterator(hint.p, hint.itb);
+          } else {
+            return emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
+          }
+        }
 
         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
         emplace_return emplace_unique(
@@ -3371,26 +3379,16 @@ namespace boost {
           }
         }
 
-//         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         iterator emplace_hint_unique(
-//           c_iterator hint, no_key, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-//                        this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-//             this->node_alloc());
-//           const_key_type& k = this->get_key(b.node_);
-//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-//             return iterator(hint.node_);
-//           }
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (pos) {
-//             return iterator(pos);
-//           } else {
-//             return iterator(
-//               this->resize_and_add_node_unique(b.release(), key_hash));
-//           }
-//         }
+        template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        iterator emplace_hint_unique(
+          c_iterator hint, no_key, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+                       this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+            this->node_alloc());
+          const_key_type& k = this->get_key(b.node_);
+          return this->emplace_hint_unique(hint, k, BOOST_UNORDERED_EMPLACE_FORWARD);
+        }
 
         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
         emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
@@ -3447,7 +3445,6 @@ namespace boost {
 
             if (size_ + 1 > max_load_) {
               rehash(size_ + 1);
-              recalculate_max_load();
               itb = buckets_v2_.at(buckets_v2_.position(key_hash));
             }
 
@@ -3459,45 +3456,54 @@ namespace boost {
           }
         }
 
-//         template <typename Key>
-//         iterator try_emplace_hint_unique(c_iterator hint, BOOST_FWD_REF(Key) k)
-//         {
-//           if (hint.node_ && this->key_eq()(hint->first, k)) {
-//             return iterator(hint.node_);
-//           } else {
-//             return try_emplace_unique(k).first;
-//           }
-//         }
+        template <typename Key>
+        iterator try_emplace_hint_unique(c_iterator hint, BOOST_FWD_REF(Key) k)
+        {
+          if (hint.p && this->key_eq()(hint->first, k)) {
+            return iterator(hint.p, hint.itb);
+          } else {
+            return try_emplace_unique(k).first;
+          }
+        }
 
-//         template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         emplace_return try_emplace_unique(
-//           BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (pos) {
-//             return emplace_return(iterator(pos), false);
-//           } else {
-//             return emplace_return(
-//               iterator(this->resize_and_add_node_unique(
-//                 boost::unordered::detail::func::construct_node_pair_from_args(
-//                   this->node_alloc(), boost::forward<Key>(k),
-//                   BOOST_UNORDERED_EMPLACE_FORWARD),
-//                 key_hash)),
-//               true);
-//           }
-//         }
+        template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        emplace_return try_emplace_unique(
+          BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
 
-//         template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
-//         iterator try_emplace_hint_unique(
-//           c_iterator hint, BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
-//         {
-//           if (hint.node_ && this->key_eq()(hint->first, k)) {
-//             return iterator(hint.node_);
-//           } else {
-//             return try_emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
-//           }
-//         }
+          v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+
+          if (pos) {
+            return emplace_return(iterator(pos, itb), false);
+          }
+
+          if (size_ + 1 > max_load_) {
+            rehash(size_ + 1);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          }
+
+          v2_node_allocator_type alloc = node_alloc();
+          pos = detail::func::construct_node_pair_from_args(
+            alloc, k, BOOST_UNORDERED_EMPLACE_FORWARD);
+
+          buckets_v2_.insert_node(itb, pos);
+          ++size_;
+          return emplace_return(iterator(pos, itb), true);
+        }
+
+        template <typename Key, BOOST_UNORDERED_EMPLACE_TEMPLATE>
+        iterator try_emplace_hint_unique(
+          c_iterator hint, BOOST_FWD_REF(Key) k, BOOST_UNORDERED_EMPLACE_ARGS)
+        {
+          if (hint.p && this->key_eq()(hint->first, k)) {
+            return iterator(hint.p, hint.itb);
+          } else {
+            return try_emplace_unique(k, BOOST_UNORDERED_EMPLACE_FORWARD).first;
+          }
+        }
 
 //         template <typename Key, typename M>
 //         emplace_return insert_or_assign_unique(
