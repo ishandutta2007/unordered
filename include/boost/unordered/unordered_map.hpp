@@ -201,14 +201,14 @@ namespace boost {
 
       const_iterator end() const BOOST_NOEXCEPT { return const_iterator(); }
 
-//       const_iterator cbegin() const BOOST_NOEXCEPT
-//       {
-//         return const_iterator(table_.begin());
-//       }
+      const_iterator cbegin() const BOOST_NOEXCEPT
+      {
+        return const_iterator(table_.begin());
+      }
 
-//       const_iterator cend() const BOOST_NOEXCEPT { return const_iterator(); }
+      const_iterator cend() const BOOST_NOEXCEPT { return const_iterator(); }
 
-//       // size and capacity
+      // size and capacity
 
       BOOST_ATTRIBUTE_NODISCARD bool empty() const BOOST_NOEXCEPT
       {
