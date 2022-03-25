@@ -92,7 +92,8 @@ namespace boost {
               typename boost::allocator_propagate_on_container_move_assignment<
                 allocator_type>::type propagate;
 
-            if ((allocator() == other.allocator()) || propagate::value) {
+            bool prop = propagate::value;
+            if ((allocator() == other.allocator()) || prop) {
 
               deallocate();
               this->allocator() = other.allocator();

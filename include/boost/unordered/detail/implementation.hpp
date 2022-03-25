@@ -2714,8 +2714,8 @@ namespace boost {
         // Clear the bucket pointers.
         void clear_buckets()
         {
-          iterator pos = begin(), end = this->end();
-          for (; pos != end;) {
+          iterator pos = begin(), last = this->end();
+          for (; pos != last;) {
             v2_node_pointer p = pos.p;
             v2_bucket_iterator itb = pos.itb;
             ++pos;
@@ -2910,8 +2910,8 @@ namespace boost {
 
         void delete_buckets()
         {
-          iterator pos = begin(), end = this->end();
-          for (; pos != end;) {
+          iterator pos = begin(), last = this->end();
+          for (; pos != last;) {
             v2_node_pointer p = pos.p;
             v2_bucket_iterator itb = pos.itb;
             ++pos;
