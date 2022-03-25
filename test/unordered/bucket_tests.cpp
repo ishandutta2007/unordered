@@ -70,25 +70,25 @@ namespace bucket_tests {
     }
   }
 
-  boost::unordered_multimap<test::object, test::object, test::hash,
-    test::equal_to, std::allocator<test::object> >* test_multimap_std_alloc;
+  // boost::unordered_multimap<test::object, test::object, test::hash,
+  //   test::equal_to, std::allocator<test::object> >* test_multimap_std_alloc;
 
-  boost::unordered_set<test::object, test::hash, test::equal_to,
-    test::allocator2<test::object> >* test_set;
-  boost::unordered_multiset<test::object, test::hash, test::equal_to,
-    test::allocator1<test::object> >* test_multiset;
+  // boost::unordered_set<test::object, test::hash, test::equal_to,
+  //   test::allocator2<test::object> >* test_set;
+  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
+  //   test::allocator1<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::allocator1<test::object> >* test_map;
-  boost::unordered_multimap<test::object, test::object, test::hash,
-    test::equal_to, test::allocator2<test::object> >* test_multimap;
+  // boost::unordered_multimap<test::object, test::object, test::hash,
+  //   test::equal_to, test::allocator2<test::object> >* test_multimap;
 
   using test::default_generator;
   using test::generate_collisions;
   using test::limited_range;
 
   UNORDERED_TEST(tests,
-    ((test_multimap_std_alloc)(test_set)(test_multiset)(test_map)(
-      test_multimap))((default_generator)(generate_collisions)(limited_range)))
+    (/* (test_multimap_std_alloc)(test_set)(test_multiset) */(test_map)/* (
+      test_multimap) */)((default_generator)(generate_collisions)(limited_range)))
 }
 
 RUN_TESTS()

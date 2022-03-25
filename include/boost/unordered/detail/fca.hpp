@@ -783,8 +783,8 @@ namespace boost {
           typedef typename boost::allocator_pointer<node_allocator_type>::type
             node_pointer;
 
-        private:
           typedef SizePolicy size_policy;
+        private:
 
           typedef typename boost::allocator_rebind<Allocator, Bucket>::type
             bucket_allocator_type;
@@ -874,6 +874,7 @@ namespace boost {
           }
 
           node_allocator_type& get_node_allocator() { return node_allocator; }
+          bucket_allocator_type& get_bucket_allocatr() { return buckets.allocator(); }
 
           void reset_allocator(Allocator const& allocator_)
           {

@@ -2550,14 +2550,17 @@ namespace boost {
           return buckets_v2_.get_node_allocator();
         }
 
-        bucket_allocator& bucket_alloc() { return allocators_.first(); }
+        bucket_allocator& bucket_alloc()
+        {
+          return buckets_v2_.get_bucket_allocatr();
+        }
 
-//         std::size_t max_bucket_count() const
-//         {
-//           // -1 to account for the start bucket.
-//           return policy::prev_bucket_count(
-//             bucket_allocator_traits::max_size(bucket_alloc()) - 1);
-//         }
+        std::size_t max_bucket_count() const
+        {
+          typedef typename v2_bucket_array_type::size_policy size_policy;
+          return size_policy::size(size_policy::size_index(
+            boost::allocator_max_size(this->bucket_alloc())));
+        }
 
         bucket_pointer get_bucket_pointer(std::size_t bucket_index) const
         {
@@ -2600,20 +2603,22 @@ namespace boost {
           return buckets_v2_.position(hash_value);
         }
 
-//         std::size_t bucket_size(std::size_t index) const
-//         {
-//           node_pointer n = begin(index);
-//           if (!n)
-//             return 0;
+        std::size_t bucket_size(std::size_t index) const
+        {
+          v2_bucket_iterator itb = buckets_v2_.at(index);
+          v2_node_pointer n = itb->next;
 
-//           std::size_t count = 0;
-//           while (n && node_bucket(n) == index) {
-//             ++count;
-//             n = next_node(n);
-//           }
+          if (!n)
+            return 0;
 
-//           return count;
-//         }
+          std::size_t count = 0;
+          while (n) {
+            ++count;
+            n = n->next;
+          }
+
+          return count;
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Load methods

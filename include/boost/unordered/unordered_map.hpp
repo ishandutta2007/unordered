@@ -868,19 +868,19 @@ namespace boost {
 //       mapped_type& at(const key_type&);
 //       mapped_type const& at(const key_type&) const;
 
-//       // bucket interface
+      // bucket interface
 
       size_type bucket_count() const BOOST_NOEXCEPT
       {
         return table_.bucket_count();
       }
 
-//       size_type max_bucket_count() const BOOST_NOEXCEPT
-//       {
-//         return table_.max_bucket_count();
-//       }
+      size_type max_bucket_count() const BOOST_NOEXCEPT
+      {
+        return table_.max_bucket_count();
+      }
 
-//       size_type bucket_size(size_type) const;
+      size_type bucket_size(size_type) const;
 
       size_type bucket(const key_type& k) const
       {
@@ -903,15 +903,15 @@ namespace boost {
         return const_local_iterator();
       }
 
-//       const_local_iterator cbegin(size_type n) const
-//       {
-//         return const_local_iterator(table_.begin(n), n, table_.bucket_count_);
-//       }
+      const_local_iterator cbegin(size_type n) const
+      {
+        return const_local_iterator(table_.begin(n));
+      }
 
-//       const_local_iterator cend(size_type) const
-//       {
-//         return const_local_iterator();
-//       }
+      const_local_iterator cend(size_type) const
+      {
+        return const_local_iterator();
+      }
 
       // hash policy
 
@@ -2097,12 +2097,12 @@ namespace boost {
 //         std::out_of_range("Unable to find key in unordered_map."));
 //     }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::size_type
-//     unordered_map<K, T, H, P, A>::bucket_size(size_type n) const
-//     {
-//       return table_.bucket_size(n);
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::size_type
+    unordered_map<K, T, H, P, A>::bucket_size(size_type n) const
+    {
+      return table_.bucket_size(n);
+    }
 
     // hash policy
 
