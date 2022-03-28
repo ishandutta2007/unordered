@@ -3183,7 +3183,7 @@ namespace boost {
         }
 
         template <class Key>
-        iterator find(Key const& k) {
+        iterator find(Key const& k) const {
           std::size_t const key_hash = this->hash(k);
           v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
           v2_node_pointer pos = this->v2_find_node_impl(k, itb);

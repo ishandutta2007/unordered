@@ -833,9 +833,9 @@ namespace boost {
 //         return (p ? 1 : 0);
 //       }
 
-//       std::pair<iterator, iterator> equal_range(const key_type&);
-//       std::pair<const_iterator, const_iterator> equal_range(
-//         const key_type&) const;
+      std::pair<iterator, iterator> equal_range(const key_type&);
+      std::pair<const_iterator, const_iterator> equal_range(
+        const key_type&) const;
 
 //       template <class Key>
 //       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
@@ -2036,24 +2036,31 @@ namespace boost {
       return table_.find_node(k) ? 1 : 0;
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     std::pair<typename unordered_map<K, T, H, P, A>::iterator,
-//       typename unordered_map<K, T, H, P, A>::iterator>
-//     unordered_map<K, T, H, P, A>::equal_range(const key_type& k)
-//     {
-//       node_pointer n = table_.find_node(k);
-//       return std::make_pair(iterator(n), iterator(n ? table::next_node(n) : n));
-//     }
+    template <class K, class T, class H, class P, class A>
+    std::pair<typename unordered_map<K, T, H, P, A>::iterator,
+      typename unordered_map<K, T, H, P, A>::iterator>
+    unordered_map<K, T, H, P, A>::equal_range(const key_type& k)
+    {
+      iterator first = table_.find(k);
+      iterator second = first;
+      if (second != this->end()) {
+        ++second;
+      }
+      return std::make_pair(first, second);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     std::pair<typename unordered_map<K, T, H, P, A>::const_iterator,
-//       typename unordered_map<K, T, H, P, A>::const_iterator>
-//     unordered_map<K, T, H, P, A>::equal_range(const key_type& k) const
-//     {
-//       node_pointer n = table_.find_node(k);
-//       return std::make_pair(
-//         const_iterator(n), const_iterator(n ? table::next_node(n) : n));
-//     }
+    template <class K, class T, class H, class P, class A>
+    std::pair<typename unordered_map<K, T, H, P, A>::const_iterator,
+      typename unordered_map<K, T, H, P, A>::const_iterator>
+    unordered_map<K, T, H, P, A>::equal_range(const key_type& k) const
+    {
+      iterator first = table_.find(k);
+      iterator second = first;
+      if (second != this->end()) {
+        ++second;
+      }
+      return std::make_pair(const_iterator(first), const_iterator(second));
+    }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_map<K, T, H, P, A>::mapped_type&

@@ -43,7 +43,7 @@ test-suite unordered
         # [ run unordered/link_test_1.cpp unordered/link_test_2.cpp ]
         # [ run unordered/incomplete_test.cpp ]
         # [ run unordered/simple_tests.cpp ]
-        # [ run unordered/equivalent_keys_tests.cpp ]
+        [ run unordered/equivalent_keys_tests.cpp ]
         [ run unordered/constructor_tests.cpp ]
         [ run unordered/copy_tests.cpp ]
         [ run unordered/move_tests.cpp ]
