@@ -67,7 +67,7 @@ test-suite unordered
         [ run unordered/bucket_tests.cpp ]
         # [ run unordered/load_factor_tests.cpp ]
         [ run unordered/rehash_tests.cpp ]
-        # [ run unordered/equality_tests.cpp ]
+        [ run unordered/equality_tests.cpp ]
         # [ run unordered/swap_tests.cpp ]
         # [ run unordered/detail_tests.cpp ]
         # [ run unordered/deduction_tests.cpp ]

@@ -3285,25 +3285,30 @@ namespace boost {
 //         void reserve(std::size_t);
         void rehash_impl(std::size_t);
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Unique keys
+        ////////////////////////////////////////////////////////////////////////
+        // Unique keys
 
-//         // equals
+        // equals
 
-//         bool equals_unique(table const& other) const
-//         {
-//           if (this->size_ != other.size_)
-//             return false;
+        bool equals_unique(table const& other) const
+        {
+          if (this->size_ != other.size_)
+            return false;
 
-//           for (node_pointer n1 = this->begin(); n1; n1 = next_node(n1)) {
-//             node_pointer n2 = other.find_node(other.get_key(n1));
+          c_iterator pos = this->begin();
+          c_iterator end = this->end();
 
-//             if (!n2 || n1->value() != n2->value())
-//               return false;
-//           }
+          while (pos != end) {
+            v2_node_pointer p = pos.p;
+            v2_node_pointer p2 = other.find_node(this->get_key(p));
+            if (!p2 || p->value() != p2->value()) {
+              return false;
+            }
+            ++pos;
+          }
 
-//           return true;
-//         }
+          return true;
+        }
 
         // Emplace/Insert
 
