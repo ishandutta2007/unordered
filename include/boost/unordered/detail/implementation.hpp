@@ -1129,7 +1129,7 @@ namespace boost {
         inline void construct_from_args(
           Alloc& alloc, T* address, BOOST_FWD_REF(Args)... args)
         {
-          boost::unordered::detail::allocator_traits<Alloc>::construct(
+          boost::allocator_construct(
             alloc, address, boost::forward<Args>(args)...);
         }
 
@@ -1432,10 +1432,11 @@ namespace boost {
 
       template <typename NodeAlloc> struct node_tmp
       {
-        typedef boost::unordered::detail::allocator_traits<NodeAlloc>
-          node_allocator_traits;
-        typedef typename node_allocator_traits::pointer node_pointer;
-        typedef typename node_allocator_traits::value_type node;
+        typedef typename boost::allocator_value_type<NodeAlloc>::type node;
+        typedef typename boost::allocator_pointer<NodeAlloc>::type node_pointer;
+        typedef typename node::value_type value_type;
+        typedef typename boost::allocator_rebind<NodeAlloc, value_type>::type
+          value_allocator;
 
         NodeAlloc& alloc_;
         node_pointer node_;
@@ -1456,10 +1457,9 @@ namespace boost {
       template <typename Alloc> node_tmp<Alloc>::~node_tmp()
       {
         if (node_) {
-          BOOST_UNORDERED_CALL_DESTROY(
-            node_allocator_traits, alloc_, node_->value_ptr());
-          boost::unordered::detail::func::destroy(boost::to_address(node_));
-          node_allocator_traits::deallocate(alloc_, node_, 1);
+          value_allocator val_alloc(alloc_);
+          boost::allocator_destroy(val_alloc, node_->value_ptr());
+          boost::allocator_deallocate(alloc_, node_, 1);
         }
       }
     }
@@ -1475,9 +1475,8 @@ namespace boost {
         // improve implementation later.
 
         template <typename Alloc, BOOST_UNORDERED_EMPLACE_TEMPLATE>
-        inline
-          typename boost::allocator_pointer<Alloc>::type
-          construct_node_from_args(Alloc& alloc, BOOST_UNORDERED_EMPLACE_ARGS)
+        inline typename boost::allocator_pointer<Alloc>::type
+        construct_node_from_args(Alloc& alloc, BOOST_UNORDERED_EMPLACE_ARGS)
         {
           typedef typename boost::allocator_value_type<Alloc>::type node;
           typedef typename node::value_type value_type;
@@ -1494,61 +1493,88 @@ namespace boost {
         }
 
         template <typename Alloc, typename U>
-        inline
-          typename boost::unordered::detail::allocator_traits<Alloc>::pointer
-          construct_node(Alloc& alloc, BOOST_FWD_REF(U) x)
+        inline typename boost::allocator_pointer<Alloc>::type construct_node(
+          Alloc& alloc, BOOST_FWD_REF(U) x)
         {
           node_constructor<Alloc> a(alloc);
           a.create_node();
-          BOOST_UNORDERED_CALL_CONSTRUCT1(
-            boost::unordered::detail::allocator_traits<Alloc>, alloc,
-            a.node_->value_ptr(), boost::forward<U>(x));
+
+          typedef typename boost::allocator_value_type<Alloc>::type node;
+          typedef typename node::value_type value_type;
+          typedef typename boost::allocator_rebind<Alloc, value_type>::type
+            value_allocator;
+
+          value_allocator val_alloc(alloc);
+
+          boost::allocator_construct(
+            val_alloc, a.node_->value_ptr(), boost::forward<U>(x));
           return a.release();
         }
 
 #if BOOST_UNORDERED_CXX11_CONSTRUCTION
 
         template <typename Alloc, typename Key>
-        inline
-          typename boost::unordered::detail::allocator_traits<Alloc>::pointer
-          construct_node_pair(Alloc& alloc, BOOST_FWD_REF(Key) k)
+        inline typename boost::allocator_pointer<Alloc>::type
+        construct_node_pair(Alloc& alloc, BOOST_FWD_REF(Key) k)
         {
           node_constructor<Alloc> a(alloc);
           a.create_node();
-          boost::unordered::detail::allocator_traits<Alloc>::construct(alloc,
-            a.node_->value_ptr(), std::piecewise_construct,
+
+          typedef typename boost::allocator_value_type<Alloc>::type node;
+          typedef typename node::value_type value_type;
+          typedef typename boost::allocator_rebind<Alloc, value_type>::type
+            value_allocator;
+
+          value_allocator val_alloc(alloc);
+
+          boost::allocator_construct(
+            val_alloc, a.node_->value_ptr(), std::piecewise_construct,
             std::forward_as_tuple(boost::forward<Key>(k)),
             std::forward_as_tuple());
           return a.release();
         }
 
         template <typename Alloc, typename Key, typename Mapped>
-        inline
-          typename boost::unordered::detail::allocator_traits<Alloc>::pointer
-          construct_node_pair(
-            Alloc& alloc, BOOST_FWD_REF(Key) k, BOOST_FWD_REF(Mapped) m)
+        inline typename boost::allocator_pointer<Alloc>::type
+        construct_node_pair(
+          Alloc& alloc, BOOST_FWD_REF(Key) k, BOOST_FWD_REF(Mapped) m)
         {
           node_constructor<Alloc> a(alloc);
           a.create_node();
-          boost::unordered::detail::allocator_traits<Alloc>::construct(alloc,
-            a.node_->value_ptr(), std::piecewise_construct,
+
+          typedef typename boost::allocator_value_type<Alloc>::type node;
+          typedef typename node::value_type value_type;
+          typedef typename boost::allocator_rebind<Alloc, value_type>::type
+            value_allocator;
+
+          value_allocator val_alloc(alloc);
+
+          boost::allocator_construct(val_alloc, a.node_->value_ptr(),
+            std::piecewise_construct,
             std::forward_as_tuple(boost::forward<Key>(k)),
             std::forward_as_tuple(boost::forward<Mapped>(m)));
           return a.release();
         }
 
         template <typename Alloc, typename Key, typename... Args>
-        inline
-          typename boost::unordered::detail::allocator_traits<Alloc>::pointer
-          construct_node_pair_from_args(
-            Alloc& alloc, BOOST_FWD_REF(Key) k, BOOST_FWD_REF(Args)... args)
+        inline typename boost::allocator_pointer<Alloc>::type
+        construct_node_pair_from_args(
+          Alloc& alloc, BOOST_FWD_REF(Key) k, BOOST_FWD_REF(Args)... args)
         {
           node_constructor<Alloc> a(alloc);
           a.create_node();
 #if !(BOOST_COMP_CLANG && BOOST_COMP_CLANG < BOOST_VERSION_NUMBER(3, 8, 0) &&  \
       defined(BOOST_LIBSTDCXX11))
-          boost::unordered::detail::allocator_traits<Alloc>::construct(alloc,
-            a.node_->value_ptr(), std::piecewise_construct,
+
+          typedef typename boost::allocator_value_type<Alloc>::type node;
+          typedef typename node::value_type value_type;
+          typedef typename boost::allocator_rebind<Alloc, value_type>::type
+            value_allocator;
+
+          value_allocator val_alloc(alloc);
+
+          boost::allocator_construct(val_alloc, a.node_->value_ptr(),
+            std::piecewise_construct,
             std::forward_as_tuple(boost::forward<Key>(k)),
             std::forward_as_tuple(boost::forward<Args>(args)...));
 #else
@@ -1556,8 +1582,8 @@ namespace boost {
           // rvalue reference members when using older versions of clang with
           // libstdc++, so just use std::make_tuple instead of
           // std::forward_as_tuple.
-          boost::unordered::detail::allocator_traits<Alloc>::construct(alloc,
-            a.node_->value_ptr(), std::piecewise_construct,
+          boost::allocator_construct(val_alloc, a.node_->value_ptr(),
+            std::piecewise_construct,
             std::forward_as_tuple(boost::forward<Key>(k)),
             std::make_tuple(boost::forward<Args>(args)...));
 #endif
@@ -3515,26 +3541,32 @@ namespace boost {
           }
         }
 
-//         template <typename Key, typename M>
-//         emplace_return insert_or_assign_unique(
-//           BOOST_FWD_REF(Key) k, BOOST_FWD_REF(M) obj)
-//         {
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
+        template <typename Key, typename M>
+        emplace_return insert_or_assign_unique(
+          BOOST_FWD_REF(Key) k, BOOST_FWD_REF(M) obj)
+        {
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
 
-//           if (pos) {
-//             pos->value().second = boost::forward<M>(obj);
-//             return emplace_return(iterator(pos), false);
-//           } else {
-//             return emplace_return(
-//               iterator(this->resize_and_add_node_unique(
-//                 boost::unordered::detail::func::construct_node_pair(
-//                   this->node_alloc(), boost::forward<Key>(k),
-//                   boost::forward<M>(obj)),
-//                 key_hash)),
-//               true);
-//           }
-//         }
+          v2_node_pointer p = this->v2_find_node_impl(k, itb);
+          if (p) {
+            p->value().second = boost::forward<M>(obj);
+            return emplace_return(iterator(p, itb), false);
+          }
+
+          if (size_ + 1 > max_load_) {
+            rehash(size_ + 1);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          }
+
+          p = boost::unordered::detail::func::construct_node_pair(
+            this->node_alloc(), boost::forward<Key>(k), boost::forward<M>(obj));
+
+          buckets_v2_.insert_node(itb, p);
+          ++size_;
+          return emplace_return(iterator(p, itb), true);
+        }
 
 //         template <typename NodeType, typename InsertReturnType>
 //         void move_insert_node_type_unique(
@@ -4232,8 +4264,7 @@ namespace boost {
       template <typename Types> inline void table<Types>::clear_impl()
       {
         if (size_) {
-          delete_buckets();
-          rehash(0);
+          this->clear_buckets();
         }
       }
 

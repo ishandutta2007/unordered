@@ -48,7 +48,7 @@ test-suite unordered
         [ run unordered/copy_tests.cpp ]
         [ run unordered/move_tests.cpp ]
         [ run unordered/assign_tests.cpp ]
-        # [ run unordered/insert_tests.cpp ]
+        [ run unordered/insert_tests.cpp ]
         # [ run unordered/insert_stable_tests.cpp ]
         # [ run unordered/insert_hint_tests.cpp ]
         [ run unordered/emplace_tests.cpp ]

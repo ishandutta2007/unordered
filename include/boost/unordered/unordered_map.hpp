@@ -382,42 +382,42 @@ namespace boost {
         return this->emplace(x);
       }
 
-//       std::pair<iterator, bool> insert(BOOST_RV_REF(value_type) x)
-//       {
-//         return this->emplace(boost::move(x));
-//       }
+      std::pair<iterator, bool> insert(BOOST_RV_REF(value_type) x)
+      {
+        return this->emplace(boost::move(x));
+      }
 
-//       template <class P2>
-//       typename boost::enable_if<
-//         boost::is_constructible<value_type, BOOST_RV_REF(P2)>,
-//         std::pair<iterator, bool> >::type insert(BOOST_RV_REF(P2) obj)
-//       {
-//         return this->emplace(boost::forward<P2>(obj));
-//       }
+      template <class P2>
+      typename boost::enable_if<
+        boost::is_constructible<value_type, BOOST_RV_REF(P2)>,
+        std::pair<iterator, bool> >::type insert(BOOST_RV_REF(P2) obj)
+      {
+        return this->emplace(boost::forward<P2>(obj));
+      }
 
-//       iterator insert(const_iterator hint, value_type const& x)
-//       {
-//         return this->emplace_hint(hint, x);
-//       }
+      iterator insert(const_iterator hint, value_type const& x)
+      {
+        return this->emplace_hint(hint, x);
+      }
 
-//       iterator insert(const_iterator hint, BOOST_RV_REF(value_type) x)
-//       {
-//         return this->emplace_hint(hint, boost::move(x));
-//       }
+      iterator insert(const_iterator hint, BOOST_RV_REF(value_type) x)
+      {
+        return this->emplace_hint(hint, boost::move(x));
+      }
 
-//       template <class P2>
-//       typename boost::enable_if<
-//         boost::is_constructible<value_type, BOOST_RV_REF(P2)>, iterator>::type
-//       insert(const_iterator hint, BOOST_RV_REF(P2) obj)
-//       {
-//         return this->emplace_hint(hint, boost::forward<P2>(obj));
-//       }
+      template <class P2>
+      typename boost::enable_if<
+        boost::is_constructible<value_type, BOOST_RV_REF(P2)>, iterator>::type
+      insert(const_iterator hint, BOOST_RV_REF(P2) obj)
+      {
+        return this->emplace_hint(hint, boost::forward<P2>(obj));
+      }
 
       template <class InputIt> void insert(InputIt, InputIt);
 
-// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
-//       void insert(std::initializer_list<value_type>);
-// #endif
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+      void insert(std::initializer_list<value_type>);
+#endif
 
 //       // extract
 
@@ -686,36 +686,36 @@ namespace boost {
 
 #endif
 
-//       template <class M>
-//       std::pair<iterator, bool> insert_or_assign(
-//         key_type const& k, BOOST_FWD_REF(M) obj)
-//       {
-//         return table_.insert_or_assign_unique(k, boost::forward<M>(obj));
-//       }
+      template <class M>
+      std::pair<iterator, bool> insert_or_assign(
+        key_type const& k, BOOST_FWD_REF(M) obj)
+      {
+        return table_.insert_or_assign_unique(k, boost::forward<M>(obj));
+      }
 
-//       template <class M>
-//       std::pair<iterator, bool> insert_or_assign(
-//         BOOST_RV_REF(key_type) k, BOOST_FWD_REF(M) obj)
-//       {
-//         return table_.insert_or_assign_unique(
-//           boost::move(k), boost::forward<M>(obj));
-//       }
+      template <class M>
+      std::pair<iterator, bool> insert_or_assign(
+        BOOST_RV_REF(key_type) k, BOOST_FWD_REF(M) obj)
+      {
+        return table_.insert_or_assign_unique(
+          boost::move(k), boost::forward<M>(obj));
+      }
 
-//       template <class M>
-//       iterator insert_or_assign(
-//         const_iterator, key_type const& k, BOOST_FWD_REF(M) obj)
-//       {
-//         return table_.insert_or_assign_unique(k, boost::forward<M>(obj)).first;
-//       }
+      template <class M>
+      iterator insert_or_assign(
+        const_iterator, key_type const& k, BOOST_FWD_REF(M) obj)
+      {
+        return table_.insert_or_assign_unique(k, boost::forward<M>(obj)).first;
+      }
 
-//       template <class M>
-//       iterator insert_or_assign(
-//         const_iterator, BOOST_RV_REF(key_type) k, BOOST_FWD_REF(M) obj)
-//       {
-//         return table_
-//           .insert_or_assign_unique(boost::move(k), boost::forward<M>(obj))
-//           .first;
-//       }
+      template <class M>
+      iterator insert_or_assign(
+        const_iterator, BOOST_RV_REF(key_type) k, BOOST_FWD_REF(M) obj)
+      {
+        return table_
+          .insert_or_assign_unique(boost::move(k), boost::forward<M>(obj))
+          .first;
+      }
 
 //       iterator erase(iterator);
 //       iterator erase(const_iterator);
@@ -1868,7 +1868,7 @@ namespace boost {
 //              1;
 //     }
 
-//     // modifiers
+    // modifiers
 
     template <class K, class T, class H, class P, class A>
     template <class InputIt>
@@ -1880,14 +1880,14 @@ namespace boost {
       }
     }
 
-// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
-//     template <class K, class T, class H, class P, class A>
-//     void unordered_map<K, T, H, P, A>::insert(
-//       std::initializer_list<value_type> list)
-//     {
-//       this->insert(list.begin(), list.end());
-//     }
-// #endif
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+    template <class K, class T, class H, class P, class A>
+    void unordered_map<K, T, H, P, A>::insert(
+      std::initializer_list<value_type> list)
+    {
+      this->insert(list.begin(), list.end());
+    }
+#endif
 
 //     template <class K, class T, class H, class P, class A>
 //     typename unordered_map<K, T, H, P, A>::iterator
