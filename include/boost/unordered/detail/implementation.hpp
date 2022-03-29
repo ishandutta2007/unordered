@@ -3398,14 +3398,14 @@ namespace boost {
           if (pos) {
             return emplace_return(iterator(pos, itb), false);
           } else {
+            node_tmp b(boost::unordered::detail::func::construct_node_from_args(
+                         this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+              this->node_alloc());
+
             if (size_ + 1 > max_load_) {
               rehash(size_ + 1);
               itb = buckets_v2_.at(buckets_v2_.position(key_hash));
             }
-
-            node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-                         this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-              this->node_alloc());
 
             v2_node_pointer p = b.release();
             buckets_v2_.insert_node(itb, p);
@@ -3516,14 +3516,17 @@ namespace boost {
             return emplace_return(iterator(pos, itb), false);
           }
 
+          node_tmp b(
+            boost::unordered::detail::func::construct_node_pair_from_args(
+              this->node_alloc(), k, BOOST_UNORDERED_EMPLACE_FORWARD),
+            this->node_alloc());
+
           if (size_ + 1 > max_load_) {
             rehash(size_ + 1);
             itb = buckets_v2_.at(buckets_v2_.position(key_hash));
           }
 
-          v2_node_allocator_type alloc = node_alloc();
-          pos = detail::func::construct_node_pair_from_args(
-            alloc, k, BOOST_UNORDERED_EMPLACE_FORWARD);
+          pos = b.release();
 
           buckets_v2_.insert_node(itb, pos);
           ++size_;
@@ -3555,13 +3558,17 @@ namespace boost {
             return emplace_return(iterator(p, itb), false);
           }
 
+          node_tmp b(boost::unordered::detail::func::construct_node_pair(
+                       this->node_alloc(), boost::forward<Key>(k),
+                       boost::forward<M>(obj)),
+            node_alloc());
+
           if (size_ + 1 > max_load_) {
             rehash(size_ + 1);
             itb = buckets_v2_.at(buckets_v2_.position(key_hash));
           }
 
-          p = boost::unordered::detail::func::construct_node_pair(
-            this->node_alloc(), boost::forward<Key>(k), boost::forward<M>(obj));
+          p = b.release();
 
           buckets_v2_.insert_node(itb, p);
           ++size_;
