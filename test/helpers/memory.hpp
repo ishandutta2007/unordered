@@ -144,6 +144,7 @@ namespace test {
       {
         if (tracking_constructions) {
           BOOST_TEST(count_constructions > 0);
+          BOOST_ASSERT(count_constructions > 0);
           if (count_constructions > 0)
             --count_constructions;
         }
