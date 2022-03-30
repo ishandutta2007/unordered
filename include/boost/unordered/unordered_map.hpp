@@ -865,8 +865,8 @@ namespace boost {
 
       mapped_type& operator[](const key_type&);
       mapped_type& operator[](BOOST_RV_REF(key_type));
-//       mapped_type& at(const key_type&);
-//       mapped_type const& at(const key_type&) const;
+      mapped_type& at(const key_type&);
+      mapped_type const& at(const key_type&) const;
 
       // bucket interface
 
@@ -2066,33 +2066,37 @@ namespace boost {
       return table_.try_emplace_unique(boost::move(k)).first->second;
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::mapped_type&
-//     unordered_map<K, T, H, P, A>::at(const key_type& k)
-//     {
-//       if (table_.size_) {
-//         node_pointer n = table_.find_node(k);
-//         if (n)
-//           return n->value().second;
-//       }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::mapped_type&
+    unordered_map<K, T, H, P, A>::at(const key_type& k)
+    {
+      typedef typename table::v2_node_pointer v2_node_pointer;
 
-//       boost::throw_exception(
-//         std::out_of_range("Unable to find key in unordered_map."));
-//     }
+      if (table_.size_) {
+        v2_node_pointer p = table_.find_node(k);
+        if (p)
+          return p->value().second;
+      }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::mapped_type const&
-//     unordered_map<K, T, H, P, A>::at(const key_type& k) const
-//     {
-//       if (table_.size_) {
-//         node_pointer n = table_.find_node(k);
-//         if (n)
-//           return n->value().second;
-//       }
+      boost::throw_exception(
+        std::out_of_range("Unable to find key in unordered_map."));
+    }
 
-//       boost::throw_exception(
-//         std::out_of_range("Unable to find key in unordered_map."));
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::mapped_type const&
+    unordered_map<K, T, H, P, A>::at(const key_type& k) const
+    {
+      typedef typename table::v2_node_pointer v2_node_pointer;
+
+      if (table_.size_) {
+        v2_node_pointer p = table_.find_node(k);
+        if (p)
+          return p->value().second;
+      }
+
+      boost::throw_exception(
+        std::out_of_range("Unable to find key in unordered_map."));
+    }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_map<K, T, H, P, A>::size_type

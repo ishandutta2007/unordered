@@ -2421,6 +2421,9 @@ namespace boost {
           iterator() : p(), itb(){};
 
         private:
+          v2_node_pointer p;
+          v2_bucket_iterator itb;
+
           friend struct table;
           friend class boost::iterator_core_access;
 
@@ -2443,9 +2446,6 @@ namespace boost {
               p = (++itb)->next;
             }
           }
-
-          v2_node_pointer p;
-          v2_bucket_iterator itb;
         };
 
         class c_iterator : public boost::iterator_facade<c_iterator,
