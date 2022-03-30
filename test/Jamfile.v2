@@ -62,7 +62,7 @@ test-suite unordered
         # [ compile-fail unordered/insert_node_type_fail.cpp : <define>UNORDERED_TEST_MULTIMAP : insert_node_type_fail_multimap ]
         # [ compile-fail unordered/insert_node_type_fail.cpp : <define>UNORDERED_TEST_SET : insert_node_type_fail_set ]
         # [ compile-fail unordered/insert_node_type_fail.cpp : <define>UNORDERED_TEST_MULTISET : insert_node_type_fail_multiset ]
-        # [ run unordered/find_tests.cpp ]
+        [ run unordered/find_tests.cpp ]
         # [ run unordered/at_tests.cpp ]
         [ run unordered/bucket_tests.cpp ]
         # [ run unordered/load_factor_tests.cpp ]
@@ -102,7 +102,7 @@ test-suite unordered-exception
         [ run exception/assign_exception_tests.cpp framework ]
         [ run exception/move_assign_exception_tests.cpp framework ]
         [ run exception/insert_exception_tests.cpp framework ]
-        # [ run exception/erase_exception_tests.cpp framework ]
+        [ run exception/erase_exception_tests.cpp framework ]
         [ run exception/rehash_exception_tests.cpp framework ]
         # [ run exception/swap_exception_tests.cpp framework : : :
         #     <define>BOOST_UNORDERED_SWAP_METHOD=2 ]

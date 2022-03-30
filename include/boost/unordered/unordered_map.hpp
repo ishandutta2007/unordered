@@ -789,15 +789,15 @@ namespace boost {
 //           this->key_eq()));
 //       }
 
-//       template <class CompatibleKey, class CompatibleHash,
-//         class CompatiblePredicate>
-//       iterator find(CompatibleKey const&, CompatibleHash const&,
-//         CompatiblePredicate const&);
+      template <class CompatibleKey, class CompatibleHash,
+        class CompatiblePredicate>
+      iterator find(CompatibleKey const&, CompatibleHash const&,
+        CompatiblePredicate const&);
 
-//       template <class CompatibleKey, class CompatibleHash,
-//         class CompatiblePredicate>
-//       const_iterator find(CompatibleKey const&, CompatibleHash const&,
-//         CompatiblePredicate const&) const;
+      template <class CompatibleKey, class CompatibleHash,
+        class CompatiblePredicate>
+      const_iterator find(CompatibleKey const&, CompatibleHash const&,
+        CompatiblePredicate const&) const;
 
 //       bool contains(const key_type& k) const
 //       {
@@ -1697,7 +1697,7 @@ namespace boost {
 
 // #endif
 
-//     ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     template <class K, class T, class H, class P, class A>
     unordered_map<K, T, H, P, A>::unordered_map()
@@ -1999,27 +1999,25 @@ namespace boost {
       return const_iterator(table_.find(k));
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     template <class CompatibleKey, class CompatibleHash,
-//       class CompatiblePredicate>
-//     typename unordered_map<K, T, H, P, A>::iterator
-//     unordered_map<K, T, H, P, A>::find(CompatibleKey const& k,
-//       CompatibleHash const& hash, CompatiblePredicate const& eq)
-//     {
-//       return iterator(
-//         table_.find_node_impl(table::policy::apply_hash(hash, k), k, eq));
-//     }
+    template <class K, class T, class H, class P, class A>
+    template <class CompatibleKey, class CompatibleHash,
+      class CompatiblePredicate>
+    typename unordered_map<K, T, H, P, A>::iterator
+    unordered_map<K, T, H, P, A>::find(CompatibleKey const& k,
+      CompatibleHash const& hash, CompatiblePredicate const& eq)
+    {
+      return table_.transparent_find(k, hash, eq);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     template <class CompatibleKey, class CompatibleHash,
-//       class CompatiblePredicate>
-//     typename unordered_map<K, T, H, P, A>::const_iterator
-//     unordered_map<K, T, H, P, A>::find(CompatibleKey const& k,
-//       CompatibleHash const& hash, CompatiblePredicate const& eq) const
-//     {
-//       return const_iterator(
-//         table_.find_node_impl(table::policy::apply_hash(hash, k), k, eq));
-//     }
+    template <class K, class T, class H, class P, class A>
+    template <class CompatibleKey, class CompatibleHash,
+      class CompatiblePredicate>
+    typename unordered_map<K, T, H, P, A>::const_iterator
+    unordered_map<K, T, H, P, A>::find(CompatibleKey const& k,
+      CompatibleHash const& hash, CompatiblePredicate const& eq) const
+    {
+      return table_.transparent_find(k, hash, eq);
+    }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_map<K, T, H, P, A>::size_type

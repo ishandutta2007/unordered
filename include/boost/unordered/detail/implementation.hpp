@@ -3229,6 +3229,25 @@ namespace boost {
           return v2_node_pointer();
         }
 
+        template <class Key, class Hash, class Pred>
+        iterator transparent_find(Key const& k, Hash const& h, Pred const& pred)
+        {
+          if (size_ == 0) {
+            return this->end();
+          }
+
+          std::size_t const key_hash = h(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+          for (v2_node_pointer p = itb->next; p; p = p->next) {
+            if (pred(k, extractor::extract(p->value()))) {
+              return iterator(p, itb);
+            }
+          }
+
+          return this->end();
+        }
+
 //         template <class KeyEqual, class Key>
 //         link_pointer find_previous_node_impl(
 //           KeyEqual const& eq, Key const& k, std::size_t const bucket_index)
