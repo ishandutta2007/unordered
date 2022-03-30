@@ -2456,6 +2456,9 @@ namespace boost {
           c_iterator(iterator it) : p(it.p), itb(it.itb){};
 
         private:
+          v2_node_pointer p;
+          v2_bucket_iterator itb;
+
           friend struct table;
           friend class boost::iterator_core_access;
 
@@ -2481,9 +2484,6 @@ namespace boost {
               p = (++itb)->next;
             }
           }
-
-          v2_node_pointer p;
-          v2_bucket_iterator itb;
         };
 
         typedef std::pair<iterator, bool> emplace_return;
@@ -3740,55 +3740,43 @@ namespace boost {
 //           return n;
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Erase
-//         //
-//         // no throw
+        ////////////////////////////////////////////////////////////////////////
+        // Erase
+        //
+        // no throw
 
-//         template <class KeyEqual, class Key>
-//         std::size_t erase_key_unique_impl(KeyEqual const& eq, Key const& k)
-//         {
-//           if (!this->size_)
-//             return 0;
+        template <class Key> std::size_t erase_key_unique_impl(Key const& k)
+        {
+          if (!this->size_)
+            return 0;
 
-//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
+          iterator it = this->find(k);
+          if (it == this->end()) {
+            return 0;
+          }
 
-//           link_pointer prev =
-//             this->find_previous_node_impl(eq, k, bucket_index);
+          v2_bucket_iterator itb = it.itb;
+          v2_node_pointer p = it.p;
 
-//           if (!prev)
-//             return 0;
+          buckets_v2_.extract_node(itb, p);
+          this->v2_delete_node(p);
+          --size_;
+          return 1;
+        }
 
-//           node_pointer n = next_node(prev);
-//           node_pointer n2 = next_node(n);
-//           prev->next_ = n2;
-//           --size_;
-//           this->fix_bucket(bucket_index, prev, n2);
-//           this->destroy_node(n);
-          
-//           return 1;
-//         }
+        iterator erase_nodes_unique(c_iterator first, c_iterator last)
+        {
+          while (first != last) {
+            v2_bucket_iterator itb = first.itb;
+            v2_node_pointer p = first.p;
+            ++first;
 
-//         void erase_nodes_unique(node_pointer i, node_pointer j)
-//         {
-//           std::size_t bucket_index = this->node_bucket(i);
-
-//           // Find the node before i.
-//           link_pointer prev = this->get_previous_start(bucket_index);
-//           while (prev->next_ != i)
-//             prev = prev->next_;
-
-//           // Delete the nodes.
-//           prev->next_ = j;
-//           do {
-//             node_pointer next = next_node(i);
-//             destroy_node(i);
-//             --size_;
-//             bucket_index = this->fix_bucket(bucket_index, prev, next);
-//             i = next;
-//           } while (i != j);
-//         }
+            buckets_v2_.extract_node(itb, p);
+            v2_delete_node(p);
+            --size_;
+          }
+          return iterator(last.p, last.itb);
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // fill_buckets_unique

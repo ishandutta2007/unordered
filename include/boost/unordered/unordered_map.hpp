@@ -717,10 +717,10 @@ namespace boost {
           .first;
       }
 
-//       iterator erase(iterator);
-//       iterator erase(const_iterator);
-//       size_type erase(const key_type&);
-//       iterator erase(const_iterator, const_iterator);
+      iterator erase(iterator);
+      iterator erase(const_iterator);
+      size_type erase(const key_type&);
+      iterator erase(const_iterator, const_iterator);
 
 //       template <class Key>
 //       typename boost::enable_if_c<
@@ -732,10 +732,10 @@ namespace boost {
 //           this->key_eq(), boost::forward<Key>(k));
 //       }
 
-//       BOOST_UNORDERED_DEPRECATED("Use erase instead")
-//       void quick_erase(const_iterator it) { erase(it); }
-//       BOOST_UNORDERED_DEPRECATED("Use erase instead")
-//       void erase_return_void(const_iterator it) { erase(it); }
+      BOOST_UNORDERED_DEPRECATED("Use erase instead")
+      void quick_erase(const_iterator it) { erase(it); }
+      BOOST_UNORDERED_DEPRECATED("Use erase instead")
+      void erase_return_void(const_iterator it) { erase(it); }
 
 //       void swap(unordered_map&)
 //         BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
@@ -1889,46 +1889,38 @@ namespace boost {
     }
 #endif
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::iterator
-//     unordered_map<K, T, H, P, A>::erase(iterator position)
-//     {
-//       node_pointer node = table::get_node(position);
-//       BOOST_ASSERT(node);
-//       node_pointer next = table::next_node(node);
-//       table_.erase_nodes_unique(node, next);
-//       return iterator(next);
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::iterator
+    unordered_map<K, T, H, P, A>::erase(iterator position)
+    {
+      const_iterator last = position;
+      ++last;
+      return table_.erase_nodes_unique(position, last);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::iterator
-//     unordered_map<K, T, H, P, A>::erase(const_iterator position)
-//     {
-//       node_pointer node = table::get_node(position);
-//       BOOST_ASSERT(node);
-//       node_pointer next = table::next_node(node);
-//       table_.erase_nodes_unique(node, next);
-//       return iterator(next);
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::iterator
+    unordered_map<K, T, H, P, A>::erase(const_iterator position)
+    {
+      const_iterator last = position;
+      ++last;
+      return table_.erase_nodes_unique(position, last);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::size_type
-//     unordered_map<K, T, H, P, A>::erase(const key_type& k)
-//     {
-//       return table_.erase_key_unique_impl(this->key_eq(), k);
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::size_type
+    unordered_map<K, T, H, P, A>::erase(const key_type& k)
+    {
+      return table_.erase_key_unique_impl(k);
+    }
 
-//     template <class K, class T, class H, class P, class A>
-//     typename unordered_map<K, T, H, P, A>::iterator
-//     unordered_map<K, T, H, P, A>::erase(
-//       const_iterator first, const_iterator last)
-//     {
-//       node_pointer last_node = table::get_node(last);
-//       if (first == last)
-//         return iterator(last_node);
-//       table_.erase_nodes_unique(table::get_node(first), last_node);
-//       return iterator(last_node);
-//     }
+    template <class K, class T, class H, class P, class A>
+    typename unordered_map<K, T, H, P, A>::iterator
+    unordered_map<K, T, H, P, A>::erase(
+      const_iterator first, const_iterator last)
+    {
+      return table_.erase_nodes_unique(first, last);
+    }
 
 //     template <class K, class T, class H, class P, class A>
 //     void unordered_map<K, T, H, P, A>::swap(unordered_map& other)
