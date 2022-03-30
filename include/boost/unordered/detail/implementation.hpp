@@ -1310,71 +1310,6 @@ namespace boost {
       //
       // Node construction
 
-      template <class NodeAllocator>
-      struct v2_node_constructor
-      {
-        typedef NodeAllocator allocator_type;
-        typedef
-            typename boost::allocator_pointer<allocator_type>::type node_pointer;
-        typedef
-            typename boost::allocator_value_type<allocator_type>::type node_type;
-        typedef typename node_type::value_type value_type;
-
-        typedef
-            typename boost::allocator_rebind<allocator_type, value_type>::type
-                value_allocator;
-
-        allocator_type &alloc_;
-        node_pointer node_;
-
-        template <class Arg>
-        v2_node_constructor(allocator_type &n, BOOST_FWD_REF(Arg) arg)
-            : alloc_(n), node_()
-        {
-          node_pointer node = boost::allocator_allocate(alloc_, 1);
-          BOOST_TRY
-          {
-            value_allocator val_alloc(alloc_);
-
-            boost::allocator_construct(val_alloc,
-                                       node->value_ptr(), boost::forward<Arg>(arg));
-            node_ = node;
-          }
-          BOOST_CATCH(...)
-          {
-            boost::allocator_deallocate(alloc_, node, 1);
-            BOOST_RETHROW;
-          }
-          BOOST_CATCH_END
-        }
-
-        ~v2_node_constructor()
-        {
-          if (!node_)
-          {
-            return;
-          }
-
-          value_allocator val_alloc(alloc_);
-          boost::allocator_destroy(val_alloc, node_->value_ptr());
-          boost::allocator_deallocate(alloc_, node_, 1);
-        }
-
-        node_pointer release() BOOST_NOEXCEPT
-        {
-          BOOST_ASSERT(node_);
-          node_pointer node = node_;
-          node_ = node_pointer();
-          return node;
-        }
-
-        value_type &value() BOOST_NOEXCEPT
-        {
-          BOOST_ASSERT(node_);
-          return node_->value();
-        }
-      };
-
       template <typename NodeAlloc> struct node_constructor
       {
         typedef NodeAlloc node_allocator;
@@ -3492,18 +3427,18 @@ namespace boost {
           if (pos) {
             return emplace_return(iterator(pos, itb), false);
           } else {
-            typedef typename value_type::second_type mapped_type;
-
             v2_node_allocator_type alloc = node_alloc();
-            detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
-              alloc, value_type(boost::forward<Key>(k), mapped_type()));
+
+            node_tmp tmp(
+              detail::func::construct_node_pair(alloc, boost::forward<Key>(k)),
+              alloc);
 
             if (size_ + 1 > max_load_) {
               rehash(size_ + 1);
               itb = buckets_v2_.at(buckets_v2_.position(key_hash));
             }
 
-            v2_node_pointer p = tmp_node.release();
+            v2_node_pointer p = tmp.release();
             buckets_v2_.insert_node(itb, p);
 
             ++size_;
@@ -3715,10 +3650,9 @@ namespace boost {
           v2_node_allocator_type alloc = this->node_alloc();
 
           for (; i != j; ++i) {
-            detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
-              alloc, *i);
+            node_tmp tmp(detail::func::construct_node(alloc, *i), alloc);
 
-            value_type const& value = tmp_node.value();
+            value_type const& value = tmp.node_->value();
             const_key_type& key = extractor::extract(value);
             std::size_t const h = hf(key);
 
@@ -3733,7 +3667,7 @@ namespace boost {
               itb = buckets_v2_.at(buckets_v2_.position(h));
             }
 
-            v2_node_pointer nptr = tmp_node.release();
+            v2_node_pointer nptr = tmp.release();
             buckets_v2_.insert_node(itb, nptr);
             ++size_;
           }
@@ -3811,14 +3745,13 @@ namespace boost {
 
             v2_node_allocator_type alloc = this->node_alloc();
 
-            detail::v2_node_constructor<v2_node_allocator_type> tmp_node(
-              alloc, value);
+            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
 
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
             v2_bucket_iterator itb =
               buckets_v2_.at(buckets_v2_.position(key_hash));
-            buckets_v2_.insert_node(itb, tmp_node.release());
+            buckets_v2_.insert_node(itb, tmp.release());
             ++size_;
           }
 
@@ -3835,12 +3768,13 @@ namespace boost {
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
-            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
 
-            v2_node_constructor<v2_node_allocator_type> tmp_node(alloc, value);
-            buckets_v2_.insert_node(itb, tmp_node.release());
+            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
+
+            buckets_v2_.insert_node(itb, tmp.release());
             ++size_;
-
           }
         }
 
@@ -3854,10 +3788,13 @@ namespace boost {
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
-            v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
 
-            v2_node_constructor<v2_node_allocator_type> tmp_node(alloc, boost::move(value));
-            buckets_v2_.insert_node(itb, tmp_node.release());
+            node_tmp tmp(
+              detail::func::construct_node(alloc, boost::move(value)), alloc);
+
+            buckets_v2_.insert_node(itb, tmp.release());
             ++size_;
           }
         }
