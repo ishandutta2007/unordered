@@ -423,13 +423,13 @@ namespace test {
     // is never used when C++11 support isn't available, so might as
     // well check that in the text.
     // TODO: Or maybe just disallow them for values?
-    template <typename U> void construct(U* p);
-    template <typename U, typename A0> void construct(U* p, A0 const&);
-    template <typename U, typename A0, typename A1>
-    void construct(U* p, A0 const&, A1 const&);
-    template <typename U, typename A0, typename A1, typename A2>
-    void construct(U* p, A0 const&, A1 const&, A2 const&);
-    template <typename U> void destroy(U* p);
+    // template <typename U> void construct(U* p);
+    // template <typename U, typename A0> void construct(U* p, A0 const&);
+    // template <typename U, typename A0, typename A1>
+    // void construct(U* p, A0 const&, A1 const&);
+    // template <typename U, typename A0, typename A1, typename A2>
+    // void construct(U* p, A0 const&, A1 const&, A2 const&);
+    // template <typename U> void destroy(U* p);
 
   public:
 #endif
