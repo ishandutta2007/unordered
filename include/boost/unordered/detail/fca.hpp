@@ -175,8 +175,9 @@ namespace boost {
 
           void swap(dynamic_array& other)
           {
-            if (boost::allocator_propagate_on_container_swap<
-                  allocator_type>::type::value) {
+            bool b = boost::allocator_propagate_on_container_swap<
+              allocator_type>::type::value;
+            if (b) {
               std::swap(this->allocator(), other.allocator());
             }
             std::swap(p_, other.p_);
@@ -882,8 +883,9 @@ namespace boost {
             buckets.swap(other.buckets);
             groups.swap(other.groups);
 
-            if (boost::allocator_propagate_on_container_swap<
-                  allocator_type>::type::value) {
+            bool b = boost::allocator_propagate_on_container_swap<
+              allocator_type>::type::value;
+            if (b) {
               std::swap(allocator, other.allocator);
               std::swap(node_allocator, other.node_allocator);
             }
