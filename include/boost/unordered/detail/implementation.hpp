@@ -3214,32 +3214,41 @@ namespace boost {
 //           return find_previous_node_impl(this->key_eq(), k, bucket_index);
 //         }
 
-//         // Extract and erase
+        // Extract and erase
 
-//         template <class Key> node_pointer extract_by_key_impl(Key const& k)
-//         {
-//           if (!this->size_) {
-//             return node_pointer();
-//           }
-//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
-//           link_pointer prev =
-//             this->find_previous_node_impl(this->key_eq(), k, bucket_index);
-//           if (!prev) {
-//             return node_pointer();
-//           }
-//           node_pointer n = next_node(prev);
-//           node_pointer n2 = next_node(n);
-//           if (n2) {
-//             n2->set_first_in_group();
-//           }
-//           prev->next_ = n2;
-//           --this->size_;
-//           this->fix_bucket(bucket_index, prev, n2);
-//           n->next_ = link_pointer();
+        template <class Key> v2_node_pointer extract_by_key_impl(Key const& k)
+        {
+          if (!this->size_) {
+            return v2_node_pointer();
+          }
 
-//           return n;
-//         }
+          iterator it = this->find(k);
+          if (it == this->end()) {
+            return v2_node_pointer();
+          }
+
+          buckets_v2_.extract_node(it.itb, it.p);
+          --size_;
+
+          return it.p;
+          // std::size_t bucket_index = this->hash_to_bucket(key_hash);
+          // link_pointer prev =
+          //   this->find_previous_node_impl(this->key_eq(), k, bucket_index);
+          // if (!prev) {
+          //   return node_pointer();
+          // }
+          // node_pointer n = next_node(prev);
+          // node_pointer n2 = next_node(n);
+          // if (n2) {
+          //   n2->set_first_in_group();
+          // }
+          // prev->next_ = n2;
+          // --this->size_;
+          // this->fix_bucket(bucket_index, prev, n2);
+          // n->next_ = link_pointer();
+
+          // return n;
+        }
 
 //         inline node_pointer extract_by_key(const_key_type& k)
 //         {
@@ -3669,25 +3678,33 @@ namespace boost {
           }
         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Extract
+        ////////////////////////////////////////////////////////////////////////
+        // Extract
 
-//         inline node_pointer extract_by_iterator_unique(c_iterator i)
-//         {
-//           node_pointer n = i.node_;
-//           BOOST_ASSERT(n);
-//           std::size_t bucket_index = this->node_bucket(n);
-//           link_pointer prev = this->get_previous_start(bucket_index);
-//           while (prev->next_ != n) {
-//             prev = prev->next_;
-//           }
-//           node_pointer n2 = next_node(n);
-//           prev->next_ = n2;
-//           --this->size_;
-//           this->fix_bucket(bucket_index, prev, n2);
-//           n->next_ = link_pointer();
-//           return n;
-//         }
+        inline v2_node_pointer extract_by_iterator_unique(c_iterator i)
+        {
+          v2_node_pointer p = i.p;
+          v2_bucket_iterator itb = i.itb;
+
+          buckets_v2_.extract_node(itb, p);
+          --size_;
+
+          return p;
+
+          // node_pointer n = i.node_;
+          // BOOST_ASSERT(n);
+          // std::size_t bucket_index = this->node_bucket(n);
+          // link_pointer prev = this->get_previous_start(bucket_index);
+          // while (prev->next_ != n) {
+          //   prev = prev->next_;
+          // }
+          // node_pointer n2 = next_node(n);
+          // prev->next_ = n2;
+          // --this->size_;
+          // this->fix_bucket(bucket_index, prev, n2);
+          // n->next_ = link_pointer();
+          // return n;
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Erase

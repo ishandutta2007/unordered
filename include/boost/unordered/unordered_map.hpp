@@ -419,18 +419,18 @@ namespace boost {
       void insert(std::initializer_list<value_type>);
 #endif
 
-//       // extract
+      // extract
 
-//       node_type extract(const_iterator position)
-//       {
-//         return node_type(
-//           table_.extract_by_iterator_unique(position), table_.node_alloc());
-//       }
+      node_type extract(const_iterator position)
+      {
+        return node_type(
+          table_.extract_by_iterator_unique(position), table_.node_alloc());
+      }
 
-//       node_type extract(const key_type& k)
-//       {
-//         return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
-//       }
+      node_type extract(const key_type& k)
+      {
+        return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
+      }
 
 //       template <class Key>
 //       typename boost::enable_if_c<
@@ -1042,7 +1042,7 @@ namespace boost {
 //       typedef typename table::c_iterator const_iterator;
 //       typedef typename table::l_iterator local_iterator;
 //       typedef typename table::cl_iterator const_local_iterator;
-//       typedef typename types::node_type node_type;
+      // typedef typename types::node_type node_type;
 
 //     private:
 //       table table_;
@@ -1967,7 +1967,7 @@ namespace boost {
 //     }
 // #endif
 
-//     // observers
+    // observers
 
     template <class K, class T, class H, class P, class A>
     typename unordered_map<K, T, H, P, A>::hasher
@@ -2640,19 +2640,17 @@ namespace boost {
       template <typename Types> friend struct ::boost::unordered::detail::table;
       template <class K2, class T2, class H2, class P2, class A2>
       friend class boost::unordered::unordered_map;
-      template <class K2, class T2, class H2, class P2, class A2>
-      friend class boost::unordered::unordered_multimap;
+      // template <class K2, class T2, class H2, class P2, class A2>
+      // friend class boost::unordered::unordered_multimap;
 
-      typedef typename boost::unordered::detail::rebind_wrap<A,
-        std::pair<K const, T> >::type value_allocator;
-      typedef boost::unordered::detail::allocator_traits<value_allocator>
-        value_allocator_traits;
+      typedef typename boost::allocator_rebind<A, std::pair<K const, T> >::type
+        value_allocator;
+
       typedef N node;
-      typedef typename boost::unordered::detail::rebind_wrap<A, node>::type
-        node_allocator;
-      typedef boost::unordered::detail::allocator_traits<node_allocator>
-        node_allocator_traits;
-      typedef typename node_allocator_traits::pointer node_pointer;
+      typedef typename boost::allocator_rebind<A, node>::type node_allocator;
+
+      typedef
+        typename boost::allocator_pointer<node_allocator>::type node_pointer;
 
     public:
       typedef K key_type;
@@ -2681,8 +2679,8 @@ namespace boost {
       }
 
       node_handle_map(BOOST_RV_REF(node_handle_map) n) BOOST_NOEXCEPT
-        : ptr_(n.ptr_),
-          alloc_(boost::move(n.alloc_))
+          : ptr_(n.ptr_),
+            alloc_(boost::move(n.alloc_))
       {
         n.ptr_ = node_pointer();
       }
@@ -2690,8 +2688,8 @@ namespace boost {
       node_handle_map& operator=(BOOST_RV_REF(node_handle_map) n)
       {
         BOOST_ASSERT(!alloc_.has_value() ||
-                     value_allocator_traits::
-                       propagate_on_container_move_assignment::value ||
+                     boost::allocator_propagate_on_container_move_assignment<
+                       value_allocator>::type::value ||
                      (n.alloc_.has_value() && alloc_ == n.alloc_));
 
         if (ptr_) {
@@ -2702,8 +2700,8 @@ namespace boost {
         }
 
         if (!alloc_.has_value() ||
-            value_allocator_traits::propagate_on_container_move_assignment::
-              value) {
+            boost::allocator_propagate_on_container_move_assignment<
+              value_allocator>::type::value) {
           alloc_ = boost::move(n.alloc_);
         }
         ptr_ = n.ptr_;
@@ -2731,14 +2729,17 @@ namespace boost {
       }
 
       void swap(node_handle_map& n) BOOST_NOEXCEPT_IF(
-        value_allocator_traits::propagate_on_container_swap::value ||
-        value_allocator_traits::is_always_equal::value)
+        boost::allocator_propagate_on_container_swap<
+          value_allocator>::type::value ||
+        boost::allocator_is_always_equal<value_allocator>::type::value)
       {
-        BOOST_ASSERT(
-          !alloc_.has_value() || !n.alloc_.has_value() ||
-          value_allocator_traits::propagate_on_container_swap::value ||
-          alloc_ == n.alloc_);
-        if (value_allocator_traits::propagate_on_container_swap::value ||
+
+        BOOST_ASSERT(!alloc_.has_value() || !n.alloc_.has_value() ||
+                     boost::allocator_propagate_on_container_swap<
+                       value_allocator>::type::value ||
+                     alloc_ == n.alloc_);
+        if (boost::allocator_propagate_on_container_swap<
+              value_allocator>::type::value ||
             !alloc_.has_value() || !n.alloc_.has_value()) {
           boost::swap(alloc_, n.alloc_);
         }
