@@ -68,7 +68,7 @@ test-suite unordered
         [ run unordered/load_factor_tests.cpp ]
         [ run unordered/rehash_tests.cpp ]
         [ run unordered/equality_tests.cpp ]
-        # [ run unordered/swap_tests.cpp ]
+        [ run unordered/swap_tests.cpp ]
         # [ run unordered/detail_tests.cpp ]
         # [ run unordered/deduction_tests.cpp ]
         # [ run unordered/scoped_allocator.cpp : : : <toolset>msvc-14.0:<build>no ]

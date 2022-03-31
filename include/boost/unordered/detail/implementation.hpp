@@ -2735,83 +2735,79 @@ namespace boost {
           new ((void*)boost::to_address(end)) bucket(dummy_node);
         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Swap and Move
+        ////////////////////////////////////////////////////////////////////////
+        // Swap and Move
 
-//         void swap_allocators(table& other, false_type)
-//         {
-//           boost::unordered::detail::func::ignore_unused_variable_warning(other);
+        void swap_allocators(table& other, false_type)
+        {
+          boost::unordered::detail::func::ignore_unused_variable_warning(other);
 
-//           // According to 23.2.1.8, if propagate_on_container_swap is
-//           // false the behaviour is undefined unless the allocators
-//           // are equal.
-//           BOOST_ASSERT(node_alloc() == other.node_alloc());
-//         }
+          // According to 23.2.1.8, if propagate_on_container_swap is
+          // false the behaviour is undefined unless the allocators
+          // are equal.
+          BOOST_ASSERT(node_alloc() == other.node_alloc());
+        }
 
-//         void swap_allocators(table& other, true_type)
-//         {
-//           allocators_.swap(other.allocators_);
-//         }
+        void swap_allocators(table& other, true_type)
+        {
+          allocators_.swap(other.allocators_);
+        }
 
-//         // Not nothrow swappable
-//         void swap(table& x, false_type)
-//         {
-//           if (this == &x) {
-//             return;
-//           }
+        // Not nothrow swappable
+        void swap(table& x, false_type)
+        {
+          if (this == &x) {
+            return;
+          }
 
-//           this->construct_spare_functions(x.current_functions());
-//           BOOST_TRY { x.construct_spare_functions(this->current_functions()); }
-//           BOOST_CATCH(...)
-//           {
-//             this->cleanup_spare_functions();
-//             BOOST_RETHROW
-//           }
-//           BOOST_CATCH_END
-//           this->switch_functions();
-//           x.switch_functions();
+          this->construct_spare_functions(x.current_functions());
+          BOOST_TRY { x.construct_spare_functions(this->current_functions()); }
+          BOOST_CATCH(...)
+          {
+            this->cleanup_spare_functions();
+            BOOST_RETHROW
+          }
+          BOOST_CATCH_END
+          this->switch_functions();
+          x.switch_functions();
 
-//           swap_allocators(
-//             x, boost::unordered::detail::integral_constant<bool,
-//                  allocator_traits<
-//                    node_allocator>::propagate_on_container_swap::value>());
+          swap_allocators(
+            x, boost::unordered::detail::integral_constant<bool,
+                 allocator_traits<
+                   node_allocator>::propagate_on_container_swap::value>());
 
-//           boost::swap(buckets_, x.buckets_);
-//           boost::swap(bucket_count_, x.bucket_count_);
-//           boost::swap(bcount_log2_, x.bcount_log2_);
-//           boost::swap(size_, x.size_);
-//           std::swap(mlf_, x.mlf_);
-//           std::swap(max_load_, x.max_load_);
-//         }
+          buckets_v2_.swap(x.buckets_v2_);
+          boost::swap(size_, x.size_);
+          std::swap(mlf_, x.mlf_);
+          std::swap(max_load_, x.max_load_);
+        }
 
-//         // Nothrow swappable
-//         void swap(table& x, true_type)
-//         {
-//           swap_allocators(
-//             x, boost::unordered::detail::integral_constant<bool,
-//                  allocator_traits<
-//                    node_allocator>::propagate_on_container_swap::value>());
+        // Nothrow swappable
+        void swap(table& x, true_type)
+        {
+          swap_allocators(
+            x, boost::unordered::detail::integral_constant<bool,
+                 allocator_traits<
+                   node_allocator>::propagate_on_container_swap::value>());
 
-//           boost::swap(buckets_, x.buckets_);
-//           boost::swap(bucket_count_, x.bucket_count_);
-//           boost::swap(bcount_log2_, x.bcount_log2_);
-//           boost::swap(size_, x.size_);
-//           std::swap(mlf_, x.mlf_);
-//           std::swap(max_load_, x.max_load_);
-//           this->current_functions().swap(x.current_functions());
-//         }
+          buckets_v2_.swap(x.buckets_v2_);
+          boost::swap(size_, x.size_);
+          std::swap(mlf_, x.mlf_);
+          std::swap(max_load_, x.max_load_);
+          this->current_functions().swap(x.current_functions());
+        }
 
-//         // Only swaps the allocators if propagate_on_container_swap.
-//         // If not propagate_on_container_swap and allocators aren't
-//         // equal, behaviour is undefined.
-//         void swap(table& x)
-//         {
-//           BOOST_ASSERT(allocator_traits<
-//                          node_allocator>::propagate_on_container_swap::value ||
-//                        node_alloc() == x.node_alloc());
-//           swap(x, boost::unordered::detail::integral_constant<bool,
-//                     functions::nothrow_swappable>());
-//         }
+        // Only swaps the allocators if propagate_on_container_swap.
+        // If not propagate_on_container_swap and allocators aren't
+        // equal, behaviour is undefined.
+        void swap(table& x)
+        {
+          BOOST_ASSERT(boost::allocator_propagate_on_container_swap<
+                         v2_node_allocator_type>::type::value ||
+                       node_alloc() == x.node_alloc());
+          swap(x, boost::unordered::detail::integral_constant<bool,
+                    functions::nothrow_swappable>());
+        }
 
         // Only call with nodes allocated with the currect allocator, or
         // one that is equal to it. (Can't assert because other's

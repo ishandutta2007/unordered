@@ -737,10 +737,10 @@ namespace boost {
       BOOST_UNORDERED_DEPRECATED("Use erase instead")
       void erase_return_void(const_iterator it) { erase(it); }
 
-//       void swap(unordered_map&)
-//         BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
-//             boost::is_nothrow_swappable<H>::value&&
-//               boost::is_nothrow_swappable<P>::value);
+      void swap(unordered_map&)
+        BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
+            boost::is_nothrow_swappable<H>::value&&
+              boost::is_nothrow_swappable<P>::value);
       void clear() BOOST_NOEXCEPT { table_.clear_impl(); }
 
 //       template <typename H2, typename P2>
@@ -1922,14 +1922,14 @@ namespace boost {
       return table_.erase_nodes_unique(first, last);
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     void unordered_map<K, T, H, P, A>::swap(unordered_map& other)
-//       BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
-//           boost::is_nothrow_swappable<H>::value&&
-//             boost::is_nothrow_swappable<P>::value)
-//     {
-//       table_.swap(other.table_);
-//     }
+    template <class K, class T, class H, class P, class A>
+    void unordered_map<K, T, H, P, A>::swap(unordered_map& other)
+      BOOST_NOEXCEPT_IF(value_allocator_traits::is_always_equal::value&&
+          boost::is_nothrow_swappable<H>::value&&
+            boost::is_nothrow_swappable<P>::value)
+    {
+      table_.swap(other.table_);
+    }
 
 //     template <class K, class T, class H, class P, class A>
 //     template <typename H2, typename P2>
@@ -2160,19 +2160,19 @@ namespace boost {
       return !m1.table_.equals_unique(m2.table_);
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     inline void swap(
-//       unordered_map<K, T, H, P, A>& m1, unordered_map<K, T, H, P, A>& m2)
-//       BOOST_NOEXCEPT_IF(BOOST_NOEXCEPT_EXPR(m1.swap(m2)))
-//     {
-// #if BOOST_WORKAROUND(BOOST_CODEGEARC, BOOST_TESTED_AT(0x0613))
-//       struct dummy
-//       {
-//         unordered_map<K, T, H, P, A> x;
-//       };
-// #endif
-//       m1.swap(m2);
-//     }
+    template <class K, class T, class H, class P, class A>
+    inline void swap(
+      unordered_map<K, T, H, P, A>& m1, unordered_map<K, T, H, P, A>& m2)
+      BOOST_NOEXCEPT_IF(BOOST_NOEXCEPT_EXPR(m1.swap(m2)))
+    {
+#if BOOST_WORKAROUND(BOOST_CODEGEARC, BOOST_TESTED_AT(0x0613))
+      struct dummy
+      {
+        unordered_map<K, T, H, P, A> x;
+      };
+#endif
+      m1.swap(m2);
+    }
 
 //     template <class K, class T, class H, class P, class A, class Predicate>
 //     typename unordered_map<K, T, H, P, A>::size_type erase_if(

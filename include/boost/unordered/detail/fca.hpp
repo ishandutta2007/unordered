@@ -21,7 +21,6 @@
 #include <boost/type_traits/aligned_storage.hpp>
 
 #include <algorithm>
-#include <vector>
 
 namespace boost {
   namespace unordered {
@@ -173,6 +172,16 @@ namespace boost {
           }
 
           void clear() BOOST_NOEXCEPT { deallocate(); }
+
+          void swap(dynamic_array& other)
+          {
+            if (boost::allocator_propagate_on_container_swap<
+                  allocator_type>::type::value) {
+              std::swap(this->allocator(), other.allocator());
+            }
+            std::swap(p_, other.p_);
+            std::swap(len_, other.len_);
+          }
 
         private:
           void deallocate() BOOST_NOEXCEPT
@@ -784,8 +793,8 @@ namespace boost {
             node_pointer;
 
           typedef SizePolicy size_policy;
-        private:
 
+        private:
           typedef typename boost::allocator_rebind<Allocator, Bucket>::type
             bucket_allocator_type;
           typedef typename boost::allocator_pointer<bucket_allocator_type>::type
@@ -866,6 +875,20 @@ namespace boost {
             return *this;
           };
 
+          void swap(grouped_bucket_array& other)
+          {
+            std::swap(size_index_, other.size_index_);
+            std::swap(size_, other.size_);
+            buckets.swap(other.buckets);
+            groups.swap(other.groups);
+
+            if (boost::allocator_propagate_on_container_swap<
+                  allocator_type>::type::value) {
+              std::swap(allocator, other.allocator);
+              std::swap(node_allocator, other.node_allocator);
+            }
+          }
+
           Allocator get_allocator() const { return allocator; }
 
           node_allocator_type const& get_node_allocator() const
@@ -874,7 +897,10 @@ namespace boost {
           }
 
           node_allocator_type& get_node_allocator() { return node_allocator; }
-          bucket_allocator_type& get_bucket_allocatr() { return buckets.allocator(); }
+          bucket_allocator_type& get_bucket_allocatr()
+          {
+            return buckets.allocator();
+          }
 
           void reset_allocator(Allocator const& allocator_)
           {
@@ -892,7 +918,6 @@ namespace boost {
             if (size_ == 0) {
               return end();
             }
-
             return ++at(size_);
           }
 
