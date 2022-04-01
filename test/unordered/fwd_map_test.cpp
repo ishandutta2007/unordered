@@ -28,32 +28,32 @@ bool call_not_equals(
   return x != y;
 }
 
-template <typename T>
-void call_swap(
-  boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
-{
-  swap(x, y);
-}
+// template <typename T>
+// void call_swap(
+//   boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
+// {
+//   swap(x, y);
+// }
 
-template <typename T>
-bool call_equals(
-  boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
-{
-  return x == y;
-}
+// template <typename T>
+// bool call_equals(
+//   boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
+// {
+//   return x == y;
+// }
 
-template <typename T>
-bool call_not_equals(
-  boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
-{
-  return x != y;
-}
+// template <typename T>
+// bool call_not_equals(
+//   boost::unordered_multimap<T, T>& x, boost::unordered_multimap<T, T>& y)
+// {
+//   return x != y;
+// }
 
 #include <boost/unordered_map.hpp>
 #include "../helpers/test.hpp"
 
 typedef boost::unordered_map<int, int> int_map;
-typedef boost::unordered_multimap<int, int> int_multimap;
+// typedef boost::unordered_multimap<int, int> int_multimap;
 
 UNORDERED_AUTO_TEST (use_map_fwd_declared_function) {
   int_map x, y;
@@ -71,11 +71,11 @@ UNORDERED_AUTO_TEST (use_map_fwd_declared_function) {
   BOOST_TEST(call_not_equals(x, y));
 }
 
-UNORDERED_AUTO_TEST (use_multimap_fwd_declared_function) {
-  int_multimap x, y;
-  call_swap(x, y);
-  BOOST_TEST(call_equals(x, y));
-  BOOST_TEST(!call_not_equals(x, y));
-}
+// UNORDERED_AUTO_TEST (use_multimap_fwd_declared_function) {
+//   int_multimap x, y;
+//   call_swap(x, y);
+//   BOOST_TEST(call_equals(x, y));
+//   BOOST_TEST(!call_not_equals(x, y));
+// }
 
 RUN_TESTS()
