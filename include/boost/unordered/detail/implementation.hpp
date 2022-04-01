@@ -2353,6 +2353,13 @@ namespace boost {
                            boost::forward_traversal_tag>
         {
         public:
+          typedef typename Types::value_type value_type;
+          typedef value_type element_type;
+          typedef value_type* pointer;
+          typedef value_type& reference;
+          typedef std::ptrdiff_t difference_type;
+          typedef std::forward_iterator_tag iterator_category;
+
           iterator() : p(), itb(){};
 
         private:
@@ -2387,6 +2394,13 @@ namespace boost {
                                  value_type const, boost::forward_traversal_tag>
         {
         public:
+          typedef typename Types::value_type value_type;
+          typedef value_type const element_type;
+          typedef value_type const* pointer;
+          typedef value_type const& reference;
+          typedef std::ptrdiff_t difference_type;
+          typedef std::forward_iterator_tag iterator_category;
+
           c_iterator() : p(), itb(){};
           c_iterator(iterator it) : p(it.p), itb(it.itb){};
 

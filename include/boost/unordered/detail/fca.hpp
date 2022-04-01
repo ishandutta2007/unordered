@@ -19,6 +19,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/move/core.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
+#include <boost/swap.hpp>
 
 #include <algorithm>
 
@@ -95,7 +96,9 @@ namespace boost {
             if ((allocator() == other.allocator()) || prop) {
 
               deallocate();
-              this->allocator() = other.allocator();
+              allocator_type* ap = boost::addressof(this->allocator());
+              ap->~allocator_type();
+              new (ap) allocator_type(other.allocator());
 
               p_ = other.p_;
               len_ = other.len_;
@@ -178,7 +181,7 @@ namespace boost {
             bool b = boost::allocator_propagate_on_container_swap<
               allocator_type>::type::value;
             if (b) {
-              std::swap(this->allocator(), other.allocator());
+              boost::swap(this->allocator(), other.allocator());
             }
             std::swap(p_, other.p_);
             std::swap(len_, other.len_);
@@ -703,9 +706,15 @@ namespace boost {
                 boost::forward_traversal_tag>
         {
           typedef typename node<Allocator>::pointer node_pointer;
-          typedef typename node<Allocator>::value_type value_type;
 
         public:
+          typedef typename node<Allocator>::value_type value_type;
+          typedef value_type element_type;
+          typedef value_type* pointer;
+          typedef value_type& reference;
+          typedef std::ptrdiff_t difference_type;
+          typedef std::forward_iterator_tag iterator_category;
+
           grouped_local_bucket_iterator() : p() {}
 
         private:
@@ -718,7 +727,7 @@ namespace boost {
 
           grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
 
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value; }
+          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
 
           bool equal(
             const grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
@@ -739,9 +748,15 @@ namespace boost {
                 boost::forward_traversal_tag>
         {
           typedef typename node<Allocator>::pointer node_pointer;
-          typedef typename node<Allocator>::value_type const value_type;
 
         public:
+          typedef typename node<Allocator>::value_type const value_type;
+          typedef value_type const element_type;
+          typedef value_type const* pointer;
+          typedef value_type const& reference;
+          typedef std::ptrdiff_t difference_type;
+          typedef std::forward_iterator_tag iterator_category;
+
           const_grouped_local_bucket_iterator() : p() {}
           const_grouped_local_bucket_iterator(
             grouped_local_bucket_iterator<Allocator> it)
@@ -886,8 +901,8 @@ namespace boost {
             bool b = boost::allocator_propagate_on_container_swap<
               allocator_type>::type::value;
             if (b) {
-              std::swap(allocator, other.allocator);
-              std::swap(node_allocator, other.node_allocator);
+              boost::swap(allocator, other.allocator);
+              boost::swap(node_allocator, other.node_allocator);
             }
           }
 
@@ -999,9 +1014,9 @@ namespace boost {
 
           void extract_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
           {
-            node_pointer* pp = &itb->next;
+            node_pointer* pp = boost::addressof(itb->next);
             while ((*pp) != p)
-              pp = &(*pp)->next;
+              pp = boost::addressof((*pp)->next);
             *pp = p->next;
             if (!itb->next)
               unlink_bucket(itb);

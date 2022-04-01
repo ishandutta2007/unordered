@@ -217,7 +217,7 @@ namespace boost {
 
       size_type size() const BOOST_NOEXCEPT { return table_.size_; }
 
-//       size_type max_size() const BOOST_NOEXCEPT;
+      size_type max_size() const BOOST_NOEXCEPT;
 
 // emplace
 
@@ -1854,19 +1854,19 @@ namespace boost {
 
 #endif
 
-//     // size and capacity
+    // size and capacity
 
-//     template <class K, class T, class H, class P, class A>
-//     std::size_t unordered_map<K, T, H, P, A>::max_size() const BOOST_NOEXCEPT
-//     {
-//       using namespace std;
+    template <class K, class T, class H, class P, class A>
+    std::size_t unordered_map<K, T, H, P, A>::max_size() const BOOST_NOEXCEPT
+    {
+      using namespace std;
 
-//       // size <= mlf_ * count
-//       return boost::unordered::detail::double_to_size(
-//                ceil(static_cast<double>(table_.mlf_) *
-//                     static_cast<double>(table_.max_bucket_count()))) -
-//              1;
-//     }
+      // size <= mlf_ * count
+      return boost::unordered::detail::double_to_size(
+               ceil(static_cast<double>(table_.mlf_) *
+                    static_cast<double>(table_.max_bucket_count()))) -
+             1;
+    }
 
     // modifiers
 
