@@ -49,8 +49,11 @@ namespace boost {
 
         typedef boost::unordered::node_handle_map<v2_node_type, K, M, A>
           node_type;
-        typedef boost::unordered::insert_return_type_map<node, K, M, A>
-          insert_return_type;
+        // typedef boost::unordered::insert_return_type_map<v2_node_type, K, M, A>
+        //   insert_return_type;
+
+        typedef typename table::iterator v2_iterator;
+        typedef boost::unordered::insert_return_type_map<v2_iterator, node_type> insert_return_type;
       };
 
       template <typename K, typename M, typename H, typename P, typename A>

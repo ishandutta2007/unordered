@@ -3534,48 +3534,78 @@ namespace boost {
           return emplace_return(iterator(p, itb), true);
         }
 
-//         template <typename NodeType, typename InsertReturnType>
-//         void move_insert_node_type_unique(
-//           NodeType& np, InsertReturnType& result)
-//         {
-//           if (np) {
-//             const_key_type& k = this->get_key(np.ptr_);
-//             std::size_t key_hash = this->hash(k);
-//             node_pointer pos = this->find_node(key_hash, k);
+        template <typename NodeType, typename InsertReturnType>
+        void move_insert_node_type_unique(
+          NodeType& np, InsertReturnType& result)
+        {
+          if (!np) {
+            result.position = this->end();
+            result.inserted = false;
+            return;
+          }
 
-//             if (pos) {
-//               result.node = boost::move(np);
-//               result.position = iterator(pos);
-//             } else {
-//               this->reserve_for_insert(this->size_ + 1);
-//               result.position =
-//                 iterator(this->add_node_unique(np.ptr_, key_hash));
-//               result.inserted = true;
-//               np.ptr_ = node_pointer();
-//             }
-//           }
-//         }
+          const_key_type& k = this->get_key(np.ptr_);
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer p = this->v2_find_node_impl(k, itb);
 
-//         template <typename NodeType>
-//         iterator move_insert_node_type_with_hint_unique(
-//           c_iterator hint, NodeType& np)
-//         {
-//           if (!np) {
-//             return iterator();
-//           }
-//           const_key_type& k = this->get_key(np.ptr_);
-//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-//             return iterator(hint.node_);
-//           }
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer pos = this->find_node(key_hash, k);
-//           if (!pos) {
-//             this->reserve_for_insert(this->size_ + 1);
-//             pos = this->add_node_unique(np.ptr_, key_hash);
-//             np.ptr_ = node_pointer();
-//           }
-//           return iterator(pos);
-//         }
+          if (p) {
+            iterator pos(p, itb);
+            result.node = boost::move(np);
+            result.position = pos;
+            result.inserted = false;
+            return;
+          }
+
+          if (size_ + 1 > max_load_) {
+            this->rehash(size_ + 1);
+          }
+
+          p = np.ptr_;
+          itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+
+          buckets_v2_.insert_node(itb, p);
+          np.ptr_ = v2_node_pointer();
+          ++size_;
+
+          result.position = iterator(p, itb);
+          result.inserted = true;
+        }
+
+        template <typename NodeType>
+        iterator move_insert_node_type_with_hint_unique(
+          c_iterator hint, NodeType& np)
+        {
+          if (!np) {
+            return this->end();
+          }
+
+          const_key_type& k = this->get_key(np.ptr_);
+          if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
+            return iterator(hint.p, hint.itb);
+          }
+
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer p = this->v2_find_node_impl(k, itb);
+          if (p) {
+            return iterator(p, itb);
+          }
+
+          p = np.ptr_;
+
+          if (size_ + 1 > max_load_) {
+            this->rehash(size_ + 1);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          }
+
+          buckets_v2_.insert_node(itb, p);
+          ++size_;
+          np.ptr_ = v2_node_pointer();
+          return iterator(p, itb);
+        }
 
 //         template <typename Types2>
 //         void merge_unique(boost::unordered::detail::table<Types2>& other)

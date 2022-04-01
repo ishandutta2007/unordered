@@ -442,17 +442,17 @@ namespace boost {
 //           table_.node_alloc());
 //       }
 
-//       insert_return_type insert(BOOST_RV_REF(node_type) np)
-//       {
-//         insert_return_type result;
-//         table_.move_insert_node_type_unique(np, result);
-//         return boost::move(result);
-//       }
+      insert_return_type insert(BOOST_RV_REF(node_type) np)
+      {
+        insert_return_type result;
+        table_.move_insert_node_type_unique((node_type&)np, result);
+        return boost::move(result);
+      }
 
-//       iterator insert(const_iterator hint, BOOST_RV_REF(node_type) np)
-//       {
-//         return table_.move_insert_node_type_with_hint_unique(hint, np);
-//       }
+      iterator insert(const_iterator hint, BOOST_RV_REF(node_type) np)
+      {
+        return table_.move_insert_node_type_with_hint_unique(hint, np);
+      }
 
 // #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES) ||                               
 //   (BOOST_COMP_GNUC && BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(4, 6, 0))
@@ -2754,25 +2754,26 @@ namespace boost {
       x.swap(y);
     }
 
-    template <class N, class K, class T, class A> struct insert_return_type_map
+    template <class Iter, class NodeType> struct insert_return_type_map
     {
     private:
       BOOST_MOVABLE_BUT_NOT_COPYABLE(insert_return_type_map)
 
-      typedef typename boost::unordered::detail::rebind_wrap<A,
-        std::pair<K const, T> >::type value_allocator;
-      typedef N node_;
+      // typedef typename boost::allocator_rebind<A,
+      //   std::pair<K const, T> >::type value_allocator;
+      // typedef N node_;
 
     public:
+      Iter position;
       bool inserted;
-      boost::unordered::iterator_detail::iterator<node_> position;
-      boost::unordered::node_handle_map<N, K, T, A> node;
+      NodeType node;
 
-      insert_return_type_map() : inserted(false), position(), node() {}
+      insert_return_type_map() : position(), inserted(false), node() {}
 
       insert_return_type_map(BOOST_RV_REF(insert_return_type_map)
-          x) BOOST_NOEXCEPT : inserted(x.inserted),
-                              position(x.position),
+          x) BOOST_NOEXCEPT : position(x.position),
+                              inserted(x.inserted),
+
                               node(boost::move(x.node))
       {
       }
@@ -2786,9 +2787,9 @@ namespace boost {
       }
     };
 
-    template <class N, class K, class T, class A>
-    void swap(insert_return_type_map<N, K, T, A>& x,
-      insert_return_type_map<N, K, T, A>& y)
+    template <class Iter, class NodeType>
+    void swap(insert_return_type_map<Iter, NodeType>& x,
+      insert_return_type_map<Iter, NodeType>& y)
     {
       boost::swap(x.node, y.node);
       boost::swap(x.inserted, y.inserted);
