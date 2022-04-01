@@ -454,15 +454,15 @@ namespace boost {
         return table_.move_insert_node_type_with_hint_unique(hint, np);
       }
 
-// #if defined(BOOST_NO_CXX11_RVALUE_REFERENCES) ||                               
-//   (BOOST_COMP_GNUC && BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(4, 6, 0))
-//     private:
-//       // Note: Use r-value node_type to insert.
-//       insert_return_type insert(node_type&);
-//       iterator insert(const_iterator, node_type& np);
+#if defined(BOOST_NO_CXX11_RVALUE_REFERENCES) ||                               \
+  (BOOST_COMP_GNUC && BOOST_COMP_GNUC < BOOST_VERSION_NUMBER(4, 6, 0))
+    private:
+      // Note: Use r-value node_type to insert.
+      insert_return_type insert(node_type&);
+      iterator insert(const_iterator, node_type& np);
 
-//     public:
-// #endif
+    public:
+#endif
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
