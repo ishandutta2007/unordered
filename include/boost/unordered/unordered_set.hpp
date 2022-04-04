@@ -41,8 +41,8 @@ namespace boost {
 #if defined(BOOST_UNORDERED_USE_MOVE)
       BOOST_COPYABLE_AND_MOVABLE(unordered_set)
 #endif
-      template <typename, typename, typename, typename>
-      friend class unordered_multiset;
+      // template <typename, typename, typename, typename>
+      // friend class unordered_multiset;
 
     public:
       typedef T key_type;
@@ -561,7 +561,7 @@ namespace boost {
 
       size_type bucket_count() const BOOST_NOEXCEPT
       {
-        return table_.bucket_count_;
+        return table_.bucket_count();
       }
 
       size_type max_bucket_count() const BOOST_NOEXCEPT
@@ -583,7 +583,7 @@ namespace boost {
 
       const_local_iterator begin(size_type n) const
       {
-        return const_local_iterator(table_.begin(n), n, table_.bucket_count_);
+        return const_local_iterator(table_.begin(n));
       }
 
       local_iterator end(size_type) { return local_iterator(); }
@@ -595,7 +595,7 @@ namespace boost {
 
       const_local_iterator cbegin(size_type n) const
       {
-        return const_local_iterator(table_.begin(n), n, table_.bucket_count_);
+        return const_local_iterator(table_.begin(n));
       }
 
       const_local_iterator cend(size_type) const
@@ -665,7 +665,7 @@ namespace boost {
 
 #endif
 
-    template <class T, class H, class P, class A> class unordered_multiset
+/*     template <class T, class H, class P, class A> class unordered_multiset
     {
 #if defined(BOOST_UNORDERED_USE_MOVE)
       BOOST_COPYABLE_AND_MOVABLE(unordered_multiset)
@@ -1238,7 +1238,7 @@ namespace boost {
       friend bool operator!=
         <T, H, P, A>(unordered_multiset const&, unordered_multiset const&);
 #endif
-    }; // class template unordered_multiset
+    }; */ // class template unordered_multiset
 
 #if BOOST_UNORDERED_TEMPLATE_DEDUCTION_GUIDES
 
@@ -1575,7 +1575,7 @@ namespace boost {
     typename unordered_set<T, H, P, A>::const_iterator
     unordered_set<T, H, P, A>::find(const key_type& k) const
     {
-      return const_iterator(table_.find_node(k));
+      return const_iterator(table_.find(k));
     }
 
     template <class T, class H, class P, class A>
@@ -1585,8 +1585,7 @@ namespace boost {
     unordered_set<T, H, P, A>::find(CompatibleKey const& k,
       CompatibleHash const& hash, CompatiblePredicate const& eq) const
     {
-      return const_iterator(
-        table_.find_node_impl(table::policy::apply_hash(hash, k), k, eq));
+      return table_.transparent_find(k, hash, eq);;
     }
 
     template <class T, class H, class P, class A>
@@ -1618,9 +1617,9 @@ namespace boost {
     template <class T, class H, class P, class A>
     float unordered_set<T, H, P, A>::load_factor() const BOOST_NOEXCEPT
     {
-      BOOST_ASSERT(table_.bucket_count_ != 0);
+      BOOST_ASSERT(table_.bucket_count() != 0);
       return static_cast<float>(table_.size_) /
-             static_cast<float>(table_.bucket_count_);
+             static_cast<float>(table_.bucket_count());
     }
 
     template <class T, class H, class P, class A>
@@ -1690,7 +1689,7 @@ namespace boost {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-
+/* 
     template <class T, class H, class P, class A>
     unordered_multiset<T, H, P, A>::unordered_multiset()
         : table_(boost::unordered::detail::default_bucket_count, hasher(),
@@ -2097,7 +2096,7 @@ namespace boost {
       unordered_multiset<K, H, P, A>& c, Predicate pred)
     {
       return detail::erase_if(c, pred);
-    }
+    } */
 
     template <typename N, typename T, typename A> class node_handle_set
     {
@@ -2106,8 +2105,8 @@ namespace boost {
       template <typename Types> friend struct ::boost::unordered::detail::table;
       template <class T2, class H2, class P2, class A2>
       friend class unordered_set;
-      template <class T2, class H2, class P2, class A2>
-      friend class unordered_multiset;
+      // template <class T2, class H2, class P2, class A2>
+      // friend class unordered_multiset;
 
       typedef typename boost::unordered::detail::rebind_wrap<A, T>::type
         value_allocator;

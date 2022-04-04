@@ -397,8 +397,8 @@ namespace constructor_tests {
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     std::allocator<test::object> >* test_map_std_alloc;
 
-  // boost::unordered_set<test::object, test::hash, test::equal_to,
-  //   test::allocator1<test::object> >* test_set;
+  boost::unordered_set<test::object, test::hash, test::equal_to,
+    test::allocator1<test::object> >* test_set;
   // boost::unordered_multiset<test::object, test::hash, test::equal_to,
   //   test::allocator2<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
@@ -411,48 +411,36 @@ namespace constructor_tests {
   using test::limited_range;
 
   UNORDERED_TEST(constructor_tests1,
-    ((test_map_std_alloc)(test_map))(
+    ((test_map_std_alloc)(test_set)/* (test_multiset) */(test_map)/* (test_multimap) */)(
       (default_generator)(generate_collisions)(limited_range)))
 
   UNORDERED_TEST(constructor_tests2,
-    ((test_map))(
+    ((test_set)/* (test_multiset) */(test_map)/* (test_multimap) */)(
       (default_generator)(generate_collisions)(limited_range)))
 
   UNORDERED_TEST(map_constructor_test,
-    ((test_map_std_alloc)(test_map))(
+    ((test_map_std_alloc)(test_map)/* (test_multimap) */)(
       (default_generator)(generate_collisions)(limited_range)))
 
-  // UNORDERED_TEST(constructor_tests1,
-  //   ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap))(
-  //     (default_generator)(generate_collisions)(limited_range)))
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 
-  // UNORDERED_TEST(constructor_tests2,
-  //   ((test_set)(test_multiset)(test_map)(test_multimap))(
-  //     (default_generator)(generate_collisions)(limited_range)))
+  UNORDERED_AUTO_TEST (test_default_initializer_list) {
+    std::initializer_list<int> init;
+    boost::unordered_set<int> x1 = init;
+    BOOST_TEST(x1.empty());
+  }
 
-  // UNORDERED_TEST(map_constructor_test,
-  //   ((test_map_std_alloc)(test_map)(test_multimap))(
-  //     (default_generator)(generate_collisions)(limited_range)))
+#endif
 
-// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
+#if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 
-//   UNORDERED_AUTO_TEST (test_default_initializer_list) {
-//     std::initializer_list<int> init;
-//     boost::unordered_set<int> x1 = init;
-//     BOOST_TEST(x1.empty());
-//   }
+  UNORDERED_AUTO_TEST (test_initializer_list) {
+    boost::unordered_set<int> x1 = {2, 10, 45, -5};
+    BOOST_TEST(x1.find(10) != x1.end());
+    BOOST_TEST(x1.find(46) == x1.end());
+  }
 
-// #endif
-
-// #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
-
-//   UNORDERED_AUTO_TEST (test_initializer_list) {
-//     boost::unordered_set<int> x1 = {2, 10, 45, -5};
-//     BOOST_TEST(x1.find(10) != x1.end());
-//     BOOST_TEST(x1.find(46) == x1.end());
-//   }
-
-// #endif
+#endif
 } // namespace constructor_tests
 
 RUN_TESTS_QUIET()
