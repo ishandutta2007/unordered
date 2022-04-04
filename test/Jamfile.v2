@@ -38,7 +38,7 @@ test-suite unordered
         # [ run unordered/allocator_traits.cpp ]
         # [ run unordered/minimal_allocator.cpp ]
         # [ run unordered/compile_set.cpp ]
-        # [ run unordered/compile_map.cpp ]
+        [ run unordered/compile_map.cpp ]
         # [ run unordered/noexcept_tests.cpp ]
         # [ run unordered/link_test_1.cpp unordered/link_test_2.cpp ]
         # [ run unordered/incomplete_test.cpp ]
