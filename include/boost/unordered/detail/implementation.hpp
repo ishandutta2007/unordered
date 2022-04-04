@@ -2676,8 +2676,9 @@ namespace boost {
           boost::unordered::detail::move_tag m)
             : functions(x, m), allocators_(a, a),
               bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
-              max_load_(0), buckets_(), buckets_v2_(boost::move(x.buckets_v2_), a)
+              max_load_(0), buckets_(), buckets_v2_(x.bucket_count(), a)
         {
+          recalculate_max_load();
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -2837,30 +2838,52 @@ namespace boost {
           other.max_load_ = 0;
         }
 
-//         // For use in the constructor when allocators might be different.
-//         void move_construct_buckets(table& src)
-//         {
-//           if (this->node_alloc() == src.node_alloc()) {
-//             move_buckets_from(src);
-//           } else {
-//             this->create_buckets(this->bucket_count_);
-//             link_pointer prev = this->get_previous_start();
-//             std::size_t last_bucket = this->bucket_count_;
-//             for (node_pointer n = src.begin(); n; n = next_node(n)) {
-//               std::size_t n_bucket = n->get_bucket();
-//               if (n_bucket != last_bucket) {
-//                 this->get_bucket_pointer(n_bucket)->next_ = prev;
-//               }
-//               node_pointer n2 = boost::unordered::detail::func::construct_node(
-//                 this->node_alloc(), boost::move(n->value()));
-//               n2->bucket_info_ = n->bucket_info_;
-//               prev->next_ = n2;
-//               ++size_;
-//               prev = n2;
-//               last_bucket = n_bucket;
-//             }
-//           }
-//         }
+        // For use in the constructor when allocators might be different.
+        void move_construct_buckets(table& src)
+        {
+          if (this->node_alloc() == src.node_alloc()) {
+            move_buckets_from(src);
+            return;
+          }
+
+          if (src.size_ == 0) {
+            return;
+          }
+
+          BOOST_ASSERT(buckets_v2_.bucket_count() == src.buckets_v2_.bucket_count());
+
+          for (iterator pos = src.begin(); pos != src.end(); ++pos) {
+            this->emplace_unique(no_key(), boost::move(pos.p->value()));
+          }
+
+          // v2_bucket_iterator pos1 = ++buckets_v2_.at(buckets_v2_.bucket_count());
+          // v2_bucket_iterator end = src.buckets_v2_.end();
+          // for (v2_bucket_iterator pos = src.buckets_v2_.begin(); pos != end;
+          //      ++pos, ++pos1) {
+          //   for (v2_node_pointer p = pos->next; p; p = p->next) {
+          //     buckets_v2_.insert_node(
+          //       pos1, detail::func::construct_node(
+          //               this->node_alloc(), boost::move(p->value())));
+          //     ++size_;
+          //   }
+          // }
+          // this->create_buckets(this->bucket_count_);
+          // link_pointer prev = this->get_previous_start();
+          // std::size_t last_bucket = this->bucket_count_;
+          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
+          //   std::size_t n_bucket = n->get_bucket();
+          //   if (n_bucket != last_bucket) {
+          //     this->get_bucket_pointer(n_bucket)->next_ = prev;
+          //   }
+          //   node_pointer n2 = boost::unordered::detail::func::construct_node(
+          //     this->node_alloc(), boost::move(n->value()));
+          //   n2->bucket_info_ = n->bucket_info_;
+          //   prev->next_ = n2;
+          //   ++size_;
+          //   prev = n2;
+          //   last_bucket = n_bucket;
+          // }
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Delete/destruct
@@ -3024,14 +3047,11 @@ namespace boost {
         template <typename UniqueType>
         void move_assign(table& x, UniqueType is_unique)
         {
-          typedef
-            typename boost::allocator_propagate_on_container_move_assignment<
-              v2_node_allocator_type>::type pocma;
-
           if (this != &x) {
             move_assign(x, is_unique,
               boost::unordered::detail::integral_constant<bool,
-                pocma::value>());
+                boost::allocator_propagate_on_container_move_assignment<
+                  v2_node_allocator_type>::type::value>());
           }
         }
 
@@ -3047,6 +3067,7 @@ namespace boost {
           }
           delete_buckets();
           allocators_.move_assign(x.allocators_);
+          buckets_v2_.reset_allocator(x.buckets_v2_.get_allocator());
           mlf_ = x.mlf_;
           move_buckets_from(x);
         }
