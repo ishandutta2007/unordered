@@ -743,13 +743,13 @@ namespace boost {
               boost::is_nothrow_swappable<P>::value);
       void clear() BOOST_NOEXCEPT { table_.clear_impl(); }
 
-//       template <typename H2, typename P2>
-//       void merge(boost::unordered_map<K, T, H2, P2, A>& source);
+      template <typename H2, typename P2>
+      void merge(boost::unordered_map<K, T, H2, P2, A>& source);
 
-// #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-//       template <typename H2, typename P2>
-//       void merge(boost::unordered_map<K, T, H2, P2, A>&& source);
-// #endif
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+      template <typename H2, typename P2>
+      void merge(boost::unordered_map<K, T, H2, P2, A>&& source);
+#endif
 
 //       template <typename H2, typename P2>
 //       void merge(boost::unordered_multimap<K, T, H2, P2, A>& source);
@@ -1931,23 +1931,23 @@ namespace boost {
       table_.swap(other.table_);
     }
 
-//     template <class K, class T, class H, class P, class A>
-//     template <typename H2, typename P2>
-//     void unordered_map<K, T, H, P, A>::merge(
-//       boost::unordered_map<K, T, H2, P2, A>& source)
-//     {
-//       table_.merge_unique(source.table_);
-//     }
+    template <class K, class T, class H, class P, class A>
+    template <typename H2, typename P2>
+    void unordered_map<K, T, H, P, A>::merge(
+      boost::unordered_map<K, T, H2, P2, A>& source)
+    {
+      table_.merge_unique(source.table_);
+    }
 
-// #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-//     template <class K, class T, class H, class P, class A>
-//     template <typename H2, typename P2>
-//     void unordered_map<K, T, H, P, A>::merge(
-//       boost::unordered_map<K, T, H2, P2, A>&& source)
-//     {
-//       table_.merge_unique(source.table_);
-//     }
-// #endif
+#if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
+    template <class K, class T, class H, class P, class A>
+    template <typename H2, typename P2>
+    void unordered_map<K, T, H, P, A>::merge(
+      boost::unordered_map<K, T, H2, P2, A>&& source)
+    {
+      table_.merge_unique(source.table_);
+    }
+#endif
 
 //     template <class K, class T, class H, class P, class A>
 //     template <typename H2, typename P2>

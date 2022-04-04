@@ -3621,39 +3621,45 @@ namespace boost {
           return iterator(p, itb);
         }
 
-//         template <typename Types2>
-//         void merge_unique(boost::unordered::detail::table<Types2>& other)
-//         {
-//           typedef boost::unordered::detail::table<Types2> other_table;
-//           BOOST_STATIC_ASSERT(
-//             (boost::is_same<node, typename other_table::node>::value));
-//           BOOST_ASSERT(this->node_alloc() == other.node_alloc());
+        template <typename Types2>
+        void merge_unique(boost::unordered::detail::table<Types2>& other)
+        {
+          typedef boost::unordered::detail::table<Types2> other_table;
+          BOOST_STATIC_ASSERT((boost::is_same<v2_node_type,
+            typename other_table::v2_node_type>::value));
+          BOOST_ASSERT(this->node_alloc() == other.node_alloc());
 
-//           if (other.size_) {
-//             link_pointer prev = other.get_previous_start();
+          if (other.size_ == 0) {
+            return;
+          }
 
-//             while (prev->next_) {
-//               node_pointer n = other_table::next_node(prev);
-//               const_key_type& k = this->get_key(n);
-//               std::size_t key_hash = this->hash(k);
-//               node_pointer pos = this->find_node(key_hash, k);
+          if (size_ + other.size_ > max_load_) {
+            this->rehash(size_ + other.size_);
+          }
 
-//               if (pos) {
-//                 prev = n;
-//               } else {
-//                 this->reserve_for_insert(this->size_ + 1);
-//                 node_pointer n2 = next_node(n);
-//                 prev->next_ = n2;
-//                 if (n2 && n->is_first_in_group()) {
-//                   n2->set_first_in_group();
-//                 }
-//                 --other.size_;
-//                 other.fix_bucket(other.node_bucket(n), prev, n2);
-//                 this->add_node_unique(n, key_hash);
-//               }
-//             }
-//           }
-//         }
+          iterator end = other.end();
+          for (iterator pos = other.begin(); pos != end;) {
+            const_key_type& key = other.get_key(pos.p);
+            std::size_t const key_hash = this->hash(key);
+
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+
+            if (this->v2_find_node_impl(key, itb)) {
+              ++pos;
+              continue;
+            }
+
+            iterator old = pos;
+            ++pos;
+
+            v2_node_pointer p = other.extract_by_iterator_unique(old);
+            buckets_v2_.insert_node(itb, p);
+            ++size_;
+          }
+
+          other.buckets_v2_.unlink_empty_buckets();
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Insert range methods
