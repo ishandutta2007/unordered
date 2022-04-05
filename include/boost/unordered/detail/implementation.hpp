@@ -3700,8 +3700,6 @@ namespace boost {
             buckets_v2_.insert_node(itb, p);
             ++size_;
           }
-
-          other.buckets_v2_.unlink_empty_buckets();
         }
 
         ////////////////////////////////////////////////////////////////////////
