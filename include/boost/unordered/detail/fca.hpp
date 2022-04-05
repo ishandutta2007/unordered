@@ -529,9 +529,9 @@ namespace boost {
           position<1572869>, position<3145739>, position<6291469>,
           position<12582917>, position<25165843>, position<50331653>,
           position<100663319>, position<201326611>, position<402653189>,
-          position<805306457>, position<1610612741>, position<3221225473>,
+          position<805306457>, position<1610612741>, position<3221225473ul>,
 #if !defined(FCA_HAS_64B_SIZE_T)
-          position<4294967291>,
+          position<4294967291ul>,
 #endif
 #endif
 
