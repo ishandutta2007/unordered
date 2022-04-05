@@ -68,7 +68,7 @@ namespace boost {
       typedef std::size_t size_type;
       typedef std::ptrdiff_t difference_type;
 
-      typedef typename table::iterator iterator;
+      typedef typename table::c_iterator iterator;
       typedef typename table::c_iterator const_iterator;
       typedef typename table::l_iterator local_iterator;
       typedef typename table::cl_iterator const_local_iterator;
@@ -578,7 +578,7 @@ namespace boost {
 
       local_iterator begin(size_type n)
       {
-        return local_iterator(table_.begin(n), n, table_.bucket_count_);
+        return local_iterator(table_.begin(n));
       }
 
       const_local_iterator begin(size_type n) const
@@ -1483,29 +1483,23 @@ namespace boost {
     typename unordered_set<T, H, P, A>::iterator
     unordered_set<T, H, P, A>::erase(const_iterator position)
     {
-      node_pointer node = table::get_node(position);
-      BOOST_ASSERT(node);
-      node_pointer next = table::next_node(node);
-      table_.erase_nodes_unique(node, next);
-      return iterator(next);
+      const_iterator last = position;
+      ++last;
+      return table_.erase_nodes_unique(position, last);
     }
 
     template <class T, class H, class P, class A>
     typename unordered_set<T, H, P, A>::size_type
     unordered_set<T, H, P, A>::erase(const key_type& k)
     {
-      return table_.erase_key_unique_impl(this->key_eq(), k);
+      return table_.erase_key_unique_impl(k);
     }
 
     template <class T, class H, class P, class A>
     typename unordered_set<T, H, P, A>::iterator
     unordered_set<T, H, P, A>::erase(const_iterator first, const_iterator last)
     {
-      node_pointer last_node = table::get_node(last);
-      if (first == last)
-        return iterator(last_node);
-      table_.erase_nodes_unique(table::get_node(first), last_node);
-      return iterator(last_node);
+      return table_.erase_nodes_unique(first, last);
     }
 
     template <class T, class H, class P, class A>
@@ -1585,7 +1579,7 @@ namespace boost {
     unordered_set<T, H, P, A>::find(CompatibleKey const& k,
       CompatibleHash const& hash, CompatiblePredicate const& eq) const
     {
-      return table_.transparent_find(k, hash, eq);;
+      return table_.transparent_find(k, hash, eq);
     }
 
     template <class T, class H, class P, class A>
@@ -1600,9 +1594,12 @@ namespace boost {
       typename unordered_set<T, H, P, A>::const_iterator>
     unordered_set<T, H, P, A>::equal_range(const key_type& k) const
     {
-      node_pointer n = table_.find_node(k);
-      return std::make_pair(
-        const_iterator(n), const_iterator(n ? table::next_node(n) : n));
+      iterator first = table_.find(k);
+      iterator second = first;
+      if (second != this->end()) {
+        ++second;
+      }
+      return std::make_pair(first, second);
     }
 
     template <class T, class H, class P, class A>

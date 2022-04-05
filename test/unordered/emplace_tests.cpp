@@ -5,7 +5,7 @@
 
 // clang-format off
 #include "../helpers/prefix.hpp"
-// #include <boost/unordered_set.hpp>
+#include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include "../helpers/postfix.hpp"
 // clang-format on
@@ -167,86 +167,86 @@ namespace emplace_tests {
     emplace_value(emplace_value const&);
   };
 
-  // UNORDERED_AUTO_TEST (emplace_set) {
-  //   test::check_instances check_;
+  UNORDERED_AUTO_TEST (emplace_set) {
+    test::check_instances check_;
 
-  //   typedef boost::unordered_set<emplace_value, boost::hash<emplace_value> >
-  //     container;
-  //   typedef container::iterator iterator;
-  //   typedef std::pair<iterator, bool> return_type;
-  //   container x(10);
-  //   iterator i1;
-  //   return_type r1, r2;
+    typedef boost::unordered_set<emplace_value, boost::hash<emplace_value> >
+      container;
+    typedef container::iterator iterator;
+    typedef std::pair<iterator, bool> return_type;
+    container x(10);
+    iterator i1;
+    return_type r1, r2;
 
-  //   // 2 args
+    // 2 args
 
-  //   emplace_value v1(10, "x");
-  //   r1 = x.emplace(10, std::string("x"));
-  //   BOOST_TEST_EQ(x.size(), 1u);
-  //   BOOST_TEST(r1.second);
-  //   BOOST_TEST(*r1.first == v1);
-  //   BOOST_TEST(r1.first == x.find(v1));
-  //   BOOST_TEST_EQ(check_.instances(), 2);
-  //   BOOST_TEST_EQ(check_.constructions(), 2);
+    emplace_value v1(10, "x");
+    r1 = x.emplace(10, std::string("x"));
+    BOOST_TEST_EQ(x.size(), 1u);
+    BOOST_TEST(r1.second);
+    BOOST_TEST(*r1.first == v1);
+    BOOST_TEST(r1.first == x.find(v1));
+    BOOST_TEST_EQ(check_.instances(), 2);
+    BOOST_TEST_EQ(check_.constructions(), 2);
 
-  //   // 3 args
+    // 3 args
 
-  //   emplace_value v2(3, "foo", 'a');
-  //   r1 = x.emplace(3, "foo", 'a');
-  //   BOOST_TEST_EQ(x.size(), 2u);
-  //   BOOST_TEST(r1.second);
-  //   BOOST_TEST(*r1.first == v2);
-  //   BOOST_TEST(r1.first == x.find(v2));
-  //   BOOST_TEST_EQ(check_.instances(), 4);
-  //   BOOST_TEST_EQ(check_.constructions(), 4);
+    emplace_value v2(3, "foo", 'a');
+    r1 = x.emplace(3, "foo", 'a');
+    BOOST_TEST_EQ(x.size(), 2u);
+    BOOST_TEST(r1.second);
+    BOOST_TEST(*r1.first == v2);
+    BOOST_TEST(r1.first == x.find(v2));
+    BOOST_TEST_EQ(check_.instances(), 4);
+    BOOST_TEST_EQ(check_.constructions(), 4);
 
-  //   // 7 args with hint + duplicate
+    // 7 args with hint + duplicate
 
-  //   emplace_value v3(25, "something", 'z', 4, 5, 6, 7);
-  //   i1 = x.emplace_hint(r1.first, 25, "something", 'z', 4, 5, 6, 7);
-  //   BOOST_TEST_EQ(x.size(), 3u);
-  //   BOOST_TEST(*i1 == v3);
-  //   BOOST_TEST(i1 == x.find(v3));
-  //   BOOST_TEST_EQ(check_.instances(), 6);
-  //   BOOST_TEST_EQ(check_.constructions(), 6);
+    emplace_value v3(25, "something", 'z', 4, 5, 6, 7);
+    i1 = x.emplace_hint(r1.first, 25, "something", 'z', 4, 5, 6, 7);
+    BOOST_TEST_EQ(x.size(), 3u);
+    BOOST_TEST(*i1 == v3);
+    BOOST_TEST(i1 == x.find(v3));
+    BOOST_TEST_EQ(check_.instances(), 6);
+    BOOST_TEST_EQ(check_.constructions(), 6);
 
-  //   r2 = x.emplace(25, "something", 'z', 4, 5, 6, 7);
-  //   BOOST_TEST_EQ(x.size(), 3u);
-  //   BOOST_TEST(!r2.second);
-  //   BOOST_TEST(i1 == r2.first);
-  //   // The container has to construct an object in order to check
-  //   // whether it can emplace, so there's an extra construction
-  //   // here.
-  //   BOOST_TEST_EQ(check_.instances(), 6);
-  //   BOOST_TEST_EQ(check_.constructions(), 7);
+    r2 = x.emplace(25, "something", 'z', 4, 5, 6, 7);
+    BOOST_TEST_EQ(x.size(), 3u);
+    BOOST_TEST(!r2.second);
+    BOOST_TEST(i1 == r2.first);
+    // The container has to construct an object in order to check
+    // whether it can emplace, so there's an extra construction
+    // here.
+    BOOST_TEST_EQ(check_.instances(), 6);
+    BOOST_TEST_EQ(check_.constructions(), 7);
 
-  //   // 10 args + hint duplicate
+    // 10 args + hint duplicate
 
-  //   std::string s1;
-  //   emplace_value v4(10, s1, 'a', 4, 5, 6, 7, 8, 9, 10);
-  //   r1 = x.emplace(10, s1, 'a', 4, 5, 6, 7, 8, 9, 10);
-  //   BOOST_TEST_EQ(x.size(), 4u);
-  //   BOOST_TEST(r1.second);
-  //   BOOST_TEST(*r1.first == v4);
-  //   BOOST_TEST(r1.first == x.find(v4));
-  //   BOOST_TEST_EQ(check_.instances(), 8);
-  //   BOOST_TEST_EQ(check_.constructions(), 9);
+    std::string s1;
+    emplace_value v4(10, s1, 'a', 4, 5, 6, 7, 8, 9, 10);
+    r1 = x.emplace(10, s1, 'a', 4, 5, 6, 7, 8, 9, 10);
+    BOOST_TEST_EQ(x.size(), 4u);
+    BOOST_TEST(r1.second);
+    BOOST_TEST(*r1.first == v4);
+    BOOST_TEST(r1.first == x.find(v4));
+    BOOST_TEST_EQ(check_.instances(), 8);
+    BOOST_TEST_EQ(check_.constructions(), 9);
 
-  //   BOOST_TEST(
-  //     r1.first == x.emplace_hint(r1.first, 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
-  //   BOOST_TEST(
-  //     r1.first == x.emplace_hint(r2.first, 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
-  //   BOOST_TEST(
-  //     r1.first == x.emplace_hint(x.end(), 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
-  //   BOOST_TEST_EQ(check_.instances(), 8);
-  //   BOOST_TEST_EQ(check_.constructions(), 12);
+    BOOST_TEST(
+      r1.first == x.emplace_hint(r1.first, 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
+    BOOST_TEST(
+      r1.first == x.emplace_hint(r2.first, 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
+    BOOST_TEST(
+      r1.first == x.emplace_hint(x.end(), 10, "", 'a', 4, 5, 6, 7, 8, 9, 10));
+    BOOST_TEST_EQ(check_.instances(), 8);
+    BOOST_TEST_EQ(check_.constructions(), 12);
 
-  //   BOOST_TEST_EQ(x.size(), 4u);
-  //   BOOST_TEST(x.count(v1) == 1);
-  //   BOOST_TEST(x.count(v2) == 1);
-  //   BOOST_TEST(x.count(v3) == 1);
-  //   BOOST_TEST(x.count(v4) == 1);
-  // }
+    BOOST_TEST_EQ(x.size(), 4u);
+    BOOST_TEST(x.count(v1) == 1);
+    BOOST_TEST(x.count(v2) == 1);
+    BOOST_TEST(x.count(v3) == 1);
+    BOOST_TEST(x.count(v4) == 1);
+  }
 
   // UNORDERED_AUTO_TEST (emplace_multiset) {
   //   test::check_instances check_;

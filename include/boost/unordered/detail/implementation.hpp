@@ -3196,7 +3196,7 @@ namespace boost {
         }
 
         template <class Key, class Hash, class Pred>
-        iterator transparent_find(Key const& k, Hash const& h, Pred const& pred)
+        iterator transparent_find(Key const& k, Hash const& h, Pred const& pred) const
         {
           if (size_ == 0) {
             return this->end();
@@ -3416,8 +3416,30 @@ namespace boost {
           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
                        this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
             this->node_alloc());
+
           const_key_type& k = this->get_key(b.node_);
-          return this->emplace_hint_unique(hint, k, BOOST_UNORDERED_EMPLACE_FORWARD);
+          if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
+            return iterator(hint.p, hint.itb);
+          }
+
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+
+          v2_node_pointer p = this->v2_find_node_impl(k, itb);
+          if (p) {
+            return iterator(p, itb);
+          }
+
+          if (size_ + 1 > max_load_) {
+            this->rehash(size_ + 1);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          }
+
+          p = b.release();
+          buckets_v2_.insert_node(itb, p);
+          ++size_;
+          return iterator(p, itb);
         }
 
         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
