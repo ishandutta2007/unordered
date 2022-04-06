@@ -70,7 +70,7 @@ namespace boost {
 
       typedef typename table::c_iterator iterator;
       typedef typename table::c_iterator const_iterator;
-      typedef typename table::l_iterator local_iterator;
+      typedef typename table::cl_iterator local_iterator;
       typedef typename table::cl_iterator const_local_iterator;
       typedef typename types::node_type node_type;
       typedef typename types::insert_return_type insert_return_type;
@@ -411,7 +411,7 @@ namespace boost {
 
       node_type extract(const key_type& k)
       {
-        return node_type(table_.extract_by_key(k), table_.node_alloc());
+        return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
       }
 
       template <class Key>
@@ -2213,25 +2213,25 @@ namespace boost {
       x.swap(y);
     }
 
-    template <typename N, typename T, typename A> struct insert_return_type_set
+    template <class Iter, class NodeType> struct insert_return_type_set
     {
     private:
       BOOST_MOVABLE_BUT_NOT_COPYABLE(insert_return_type_set)
 
-      typedef typename boost::unordered::detail::rebind_wrap<A, T>::type
-        value_allocator;
-      typedef N node_;
+      // typedef typename boost::unordered::detail::rebind_wrap<A, T>::type
+      //   value_allocator;
+      // typedef N node_;
 
     public:
+      Iter position;
       bool inserted;
-      boost::unordered::iterator_detail::c_iterator<node_> position;
-      boost::unordered::node_handle_set<N, T, A> node;
+      NodeType node;
 
-      insert_return_type_set() : inserted(false), position(), node() {}
+      insert_return_type_set() : position(), inserted(false), node() {}
 
       insert_return_type_set(BOOST_RV_REF(insert_return_type_set)
-          x) BOOST_NOEXCEPT : inserted(x.inserted),
-                              position(x.position),
+          x) BOOST_NOEXCEPT : position(x.position),
+                              inserted(x.inserted),
                               node(boost::move(x.node))
       {
       }
@@ -2245,9 +2245,9 @@ namespace boost {
       }
     };
 
-    template <typename N, typename T, typename A>
+    template <class Iter, class NodeType>
     void swap(
-      insert_return_type_set<N, T, A>& x, insert_return_type_set<N, T, A>& y)
+      insert_return_type_set<Iter, NodeType>& x, insert_return_type_set<Iter, NodeType>& y)
     {
       boost::swap(x.node, y.node);
       boost::swap(x.inserted, y.inserted);

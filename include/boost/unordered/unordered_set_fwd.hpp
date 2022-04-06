@@ -57,7 +57,7 @@ namespace boost {
       unordered_multiset<K, H, P, A>& c, Predicate pred);
 
     template <class N, class T, class A> class node_handle_set;
-    template <class N, class T, class A> struct insert_return_type_set;
+    template <class Iter, class NodeType> struct insert_return_type_set;
   }
 
   using boost::unordered::unordered_set;

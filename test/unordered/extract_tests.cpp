@@ -113,8 +113,8 @@ namespace extract_tests {
     BOOST_LIGHTWEIGHT_TEST_OSTREAM << "\n";
   }
 
-  // boost::unordered_set<test::object, test::hash, test::equal_to,
-  //   test::allocator1<test::object> >* test_set;
+  boost::unordered_set<test::object, test::hash, test::equal_to,
+    test::allocator1<test::object> >* test_set;
   // boost::unordered_multiset<test::object, test::hash, test::equal_to,
   //   test::allocator2<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
@@ -126,7 +126,7 @@ namespace extract_tests {
   using test::generate_collisions;
 
   UNORDERED_TEST(
-    extract_tests1, (/* (test_set)(test_multiset) */(test_map)/* (test_multimap) */)(
+    extract_tests1, ((test_set)/* (test_multiset) */(test_map)/* (test_multimap) */)(
                       (default_generator)(generate_collisions)))
 }
 

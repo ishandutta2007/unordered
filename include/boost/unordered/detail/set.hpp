@@ -40,8 +40,16 @@ namespace boost {
         typedef boost::unordered::iterator_detail::cl_iterator<node>
           cl_iterator;
 
-        typedef boost::unordered::node_handle_set<node, T, A> node_type;
-        typedef boost::unordered::insert_return_type_set<node, T, A>
+        typedef boost::unordered::detail::v2::grouped_bucket_array<
+          v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
+          v2_bucket_array_type;
+
+        typedef typename v2_bucket_array_type::node_type v2_node_type;
+
+        typedef boost::unordered::node_handle_set<v2_node_type, T, A> node_type;
+
+        typedef typename table::c_iterator v2_iterator;
+        typedef boost::unordered::insert_return_type_set<v2_iterator, node_type>
           insert_return_type;
       };
 
