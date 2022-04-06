@@ -2850,10 +2850,22 @@ namespace boost {
             return;
           }
 
-          BOOST_ASSERT(buckets_v2_.bucket_count() == src.buckets_v2_.bucket_count());
+          BOOST_ASSERT(
+            buckets_v2_.bucket_count() == src.buckets_v2_.bucket_count());
 
+          this->rehash(src.size_);
           for (iterator pos = src.begin(); pos != src.end(); ++pos) {
-            this->emplace_unique(no_key(), boost::move(pos.p->value()));
+            node_tmp b(detail::func::construct_node(
+                         this->node_alloc(), boost::move(pos.p->value())),
+              this->node_alloc());
+
+            const_key_type& k = this->get_key(b.node_);
+            std::size_t key_hash = this->hash(k);
+
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+            buckets_v2_.insert_node(itb, b.release());
+            ++size_;
           }
 
           // v2_bucket_iterator pos1 = ++buckets_v2_.at(buckets_v2_.bucket_count());
