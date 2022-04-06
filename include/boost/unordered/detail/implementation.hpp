@@ -2611,7 +2611,7 @@ namespace boost {
           // From 6.3.1/13:
           // Only resize when size >= mlf_ * count
           max_load_ = boost::unordered::detail::double_to_size(
-            ceil(static_cast<double>(mlf_) *
+            floor(static_cast<double>(mlf_) *
                  static_cast<double>(buckets_v2_.bucket_count())));
         }
 
@@ -3858,8 +3858,6 @@ namespace boost {
             buckets_v2_.insert_node(itb, tmp.release());
             ++size_;
           }
-
-          recalculate_max_load();
         }
 
         void assign_buckets(table const& src, true_type)
@@ -4350,10 +4348,18 @@ namespace boost {
           return;
         }
 
-        std::size_t bc = min_buckets;
+        std::size_t bc = (std::max)(min_buckets, size_);
         if (size_ > 0) {
           std::size_t x =
             static_cast<std::size_t>(1.0f + static_cast<float>(size_) / mlf_);
+
+          if (x > bc) {
+            bc = x;
+          }
+
+          x = static_cast<std::size_t>(
+            1.0f + static_cast<float>(min_buckets) / mlf_);
+
           if (x > bc) {
             bc = x;
           }

@@ -1319,7 +1319,7 @@ namespace boost {
             unordered_set::value_allocator_traits::
               select_on_container_copy_construction(other.get_allocator()))
     {
-      if (other.table_.size_) {
+      if (other.size()) {
         table_.copy_buckets(
           other.table_, boost::unordered::detail::true_type());
       }
