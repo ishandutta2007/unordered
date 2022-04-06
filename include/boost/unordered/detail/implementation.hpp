@@ -2742,12 +2742,12 @@ namespace boost {
           init_bcount_log2();
           recalculate_max_load();
 
-          bucket_pointer end =
+          bucket_pointer last =
             buckets_ + static_cast<std::ptrdiff_t>(new_count);
-          for (bucket_pointer i = buckets_; i != end; ++i) {
+          for (bucket_pointer i = buckets_; i != last; ++i) {
             new ((void*)boost::to_address(i)) bucket();
           }
-          new ((void*)boost::to_address(end)) bucket(dummy_node);
+          new ((void*)boost::to_address(last)) bucket(dummy_node);
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -2936,8 +2936,8 @@ namespace boost {
 
         void destroy_buckets()
         {
-          bucket_pointer end = get_bucket_pointer(bucket_count_ + 1);
-          for (bucket_pointer it = buckets_; it != end; ++it) {
+          bucket_pointer last = get_bucket_pointer(bucket_count_ + 1);
+          for (bucket_pointer it = buckets_; it != last; ++it) {
             boost::unordered::detail::func::destroy(boost::to_address(it));
           }
 
@@ -3328,9 +3328,9 @@ namespace boost {
             return false;
 
           c_iterator pos = this->begin();
-          c_iterator end = this->end();
+          c_iterator last = this->end();
 
-          while (pos != end) {
+          while (pos != last) {
             v2_node_pointer p = pos.p;
             v2_node_pointer p2 = other.find_node(this->get_key(p));
             if (!p2 || p->value() != p2->value()) {
@@ -3692,8 +3692,8 @@ namespace boost {
             this->rehash(size_ + other.size_);
           }
 
-          iterator end = other.end();
-          for (iterator pos = other.begin(); pos != end;) {
+          iterator last = other.end();
+          for (iterator pos = other.begin(); pos != last;) {
             const_key_type& key = other.get_key(pos.p);
             std::size_t const key_hash = this->hash(key);
 
@@ -4722,7 +4722,7 @@ namespace boost {
 
         size_type const size = c.size();
 
-        for (iterator pos = c.begin(), end = c.end(); pos != end;) {
+        for (iterator pos = c.begin(), last = c.end(); pos != last;) {
           if (pred(*pos)) {
             pos = c.erase(pos);
           } else {
