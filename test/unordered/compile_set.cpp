@@ -23,17 +23,17 @@
 
 INSTANTIATE(set)<int, boost::hash<int>, std::equal_to<int>,
   test::minimal::allocator<int> >;
-INSTANTIATE(multiset)<int const, boost::hash<int>, std::equal_to<int>,
-  test::minimal::allocator<int> >;
+// INSTANTIATE(multiset)<int const, boost::hash<int>, std::equal_to<int>,
+//   test::minimal::allocator<int> >;
 
 INSTANTIATE(set)<test::minimal::assignable const,
   test::minimal::hash<test::minimal::assignable>,
   test::minimal::equal_to<test::minimal::assignable>,
   test::minimal::allocator<int> >;
-INSTANTIATE(multiset)<test::minimal::assignable,
-  test::minimal::hash<test::minimal::assignable>,
-  test::minimal::equal_to<test::minimal::assignable>,
-  test::minimal::allocator<int> >;
+// INSTANTIATE(multiset)<test::minimal::assignable,
+//   test::minimal::hash<test::minimal::assignable>,
+//   test::minimal::equal_to<test::minimal::assignable>,
+//   test::minimal::allocator<int> >;
 
 UNORDERED_AUTO_TEST (test0) {
   test::minimal::constructor_param x;
@@ -58,23 +58,23 @@ UNORDERED_AUTO_TEST (test0) {
   container_test(int_set2, 0);
   container_test(set, assignable);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
 
-  boost::unordered_multiset<int> int_multiset;
+  // boost::unordered_multiset<int> int_multiset;
 
-  boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
-    test::minimal::cxx11_allocator<int> >
-    int_multiset2;
+  // boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
+  //   test::minimal::cxx11_allocator<int> >
+  //   int_multiset2;
 
-  boost::unordered_multiset<test::minimal::assignable,
-    test::minimal::hash<test::minimal::assignable>,
-    test::minimal::equal_to<test::minimal::assignable>,
-    test::minimal::allocator<test::minimal::assignable> >
-    multiset;
+  // boost::unordered_multiset<test::minimal::assignable,
+  //   test::minimal::hash<test::minimal::assignable>,
+  //   test::minimal::equal_to<test::minimal::assignable>,
+  //   test::minimal::allocator<test::minimal::assignable> >
+  //   multiset;
 
-  container_test(int_multiset, 0);
-  container_test(int_multiset2, 0);
-  container_test(multiset, assignable);
+  // container_test(int_multiset, 0);
+  // container_test(int_multiset2, 0);
+  // container_test(multiset, assignable);
 }
 
 UNORDERED_AUTO_TEST (equality_tests) {
@@ -97,23 +97,23 @@ UNORDERED_AUTO_TEST (equality_tests) {
   equality_test(int_set2);
   equality_test(set);
 
-  boost::unordered_multiset<int> int_multiset;
+  // boost::unordered_multiset<int> int_multiset;
 
-  boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
-    test::minimal::cxx11_allocator<int> >
-    int_multiset2;
+  // boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
+  //   test::minimal::cxx11_allocator<int> >
+  //   int_multiset2;
 
-  boost::unordered_multiset<
-    test::minimal::copy_constructible_equality_comparable,
-    test::minimal::hash<test::minimal::copy_constructible_equality_comparable>,
-    test::minimal::equal_to<
-      test::minimal::copy_constructible_equality_comparable>,
-    test::minimal::allocator<value_type> >
-    multiset;
+  // boost::unordered_multiset<
+  //   test::minimal::copy_constructible_equality_comparable,
+  //   test::minimal::hash<test::minimal::copy_constructible_equality_comparable>,
+  //   test::minimal::equal_to<
+  //     test::minimal::copy_constructible_equality_comparable>,
+  //   test::minimal::allocator<value_type> >
+  //   multiset;
 
-  equality_test(int_multiset);
-  equality_test(int_multiset2);
-  equality_test(multiset);
+  // equality_test(int_multiset);
+  // equality_test(int_multiset2);
+  // equality_test(multiset);
 }
 
 UNORDERED_AUTO_TEST (test1) {
@@ -137,21 +137,21 @@ UNORDERED_AUTO_TEST (test1) {
   unordered_set_test(set2, value);
   unordered_copyable_test(set2, value, value, hash, equal_to);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset." << std::endl;
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset." << std::endl;
 
-  boost::unordered_multiset<int> multiset;
+  // boost::unordered_multiset<int> multiset;
 
-  boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
-    test::minimal::cxx11_allocator<int> >
-    multiset2;
+  // boost::unordered_multiset<int, boost::hash<int>, std::equal_to<int>,
+  //   test::minimal::cxx11_allocator<int> >
+  //   multiset2;
 
-  unordered_equivalent_test(multiset, value);
-  unordered_set_test(multiset, value);
-  unordered_copyable_test(multiset, value, value, hash, equal_to);
+  // unordered_equivalent_test(multiset, value);
+  // unordered_set_test(multiset, value);
+  // unordered_copyable_test(multiset, value, value, hash, equal_to);
 
-  unordered_equivalent_test(multiset2, value);
-  unordered_set_test(multiset2, value);
-  unordered_copyable_test(multiset2, value, value, hash, equal_to);
+  // unordered_equivalent_test(multiset2, value);
+  // unordered_set_test(multiset2, value);
+  // unordered_copyable_test(multiset2, value, value, hash, equal_to);
 }
 
 UNORDERED_AUTO_TEST (test2) {
@@ -175,18 +175,18 @@ UNORDERED_AUTO_TEST (test2) {
   unordered_copyable_test(set, assignable, assignable, hash, equal_to);
   unordered_set_member_test(set, assignable);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
 
-  boost::unordered_multiset<test::minimal::assignable,
-    test::minimal::hash<test::minimal::assignable>,
-    test::minimal::equal_to<test::minimal::assignable>,
-    test::minimal::allocator<test::minimal::assignable> >
-    multiset;
+  // boost::unordered_multiset<test::minimal::assignable,
+  //   test::minimal::hash<test::minimal::assignable>,
+  //   test::minimal::equal_to<test::minimal::assignable>,
+  //   test::minimal::allocator<test::minimal::assignable> >
+  //   multiset;
 
-  unordered_equivalent_test(multiset, assignable);
-  unordered_set_test(multiset, assignable);
-  unordered_copyable_test(multiset, assignable, assignable, hash, equal_to);
-  unordered_set_member_test(multiset, assignable);
+  // unordered_equivalent_test(multiset, assignable);
+  // unordered_set_test(multiset, assignable);
+  // unordered_copyable_test(multiset, assignable, assignable, hash, equal_to);
+  // unordered_set_member_test(multiset, assignable);
 }
 
 UNORDERED_AUTO_TEST (movable1_tests) {
@@ -208,17 +208,17 @@ UNORDERED_AUTO_TEST (movable1_tests) {
   unordered_set_test(set, movable1);
   unordered_movable_test(set, movable1, movable1, hash, equal_to);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
 
-  boost::unordered_multiset<test::minimal::movable1,
-    test::minimal::hash<test::minimal::movable1>,
-    test::minimal::equal_to<test::minimal::movable1>,
-    test::minimal::allocator<test::minimal::movable1> >
-    multiset;
+  // boost::unordered_multiset<test::minimal::movable1,
+  //   test::minimal::hash<test::minimal::movable1>,
+  //   test::minimal::equal_to<test::minimal::movable1>,
+  //   test::minimal::allocator<test::minimal::movable1> >
+  //   multiset;
 
-  // unordered_equivalent_test(multiset, movable1);
-  unordered_set_test(multiset, movable1);
-  unordered_movable_test(multiset, movable1, movable1, hash, equal_to);
+  // // unordered_equivalent_test(multiset, movable1);
+  // unordered_set_test(multiset, movable1);
+  // unordered_movable_test(multiset, movable1, movable1, hash, equal_to);
 }
 
 UNORDERED_AUTO_TEST (movable2_tests) {
@@ -240,17 +240,17 @@ UNORDERED_AUTO_TEST (movable2_tests) {
   unordered_set_test(set, movable2);
   unordered_movable_test(set, movable2, movable2, hash, equal_to);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
 
-  boost::unordered_multiset<test::minimal::movable2,
-    test::minimal::hash<test::minimal::movable2>,
-    test::minimal::equal_to<test::minimal::movable2>,
-    test::minimal::allocator<test::minimal::movable2> >
-    multiset;
+  // boost::unordered_multiset<test::minimal::movable2,
+  //   test::minimal::hash<test::minimal::movable2>,
+  //   test::minimal::equal_to<test::minimal::movable2>,
+  //   test::minimal::allocator<test::minimal::movable2> >
+  //   multiset;
 
-  // unordered_equivalent_test(multiset, movable2);
-  unordered_set_test(multiset, movable2);
-  unordered_movable_test(multiset, movable2, movable2, hash, equal_to);
+  // // unordered_equivalent_test(multiset, movable2);
+  // unordered_set_test(multiset, movable2);
+  // unordered_movable_test(multiset, movable2, movable2, hash, equal_to);
 }
 
 UNORDERED_AUTO_TEST (destructible_tests) {
@@ -269,14 +269,14 @@ UNORDERED_AUTO_TEST (destructible_tests) {
 
   unordered_destructible_test(set);
 
-  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
 
-  boost::unordered_multiset<test::minimal::destructible,
-    test::minimal::hash<test::minimal::destructible>,
-    test::minimal::equal_to<test::minimal::destructible> >
-    multiset;
+  // boost::unordered_multiset<test::minimal::destructible,
+  //   test::minimal::hash<test::minimal::destructible>,
+  //   test::minimal::equal_to<test::minimal::destructible> >
+  //   multiset;
 
-  unordered_destructible_test(multiset);
+  // unordered_destructible_test(multiset);
 }
 
 // Test for ambiguity when using key convertible from iterator
@@ -303,11 +303,11 @@ UNORDERED_AUTO_TEST (lwg2059) {
     x.erase(x.begin());
   }
 
-  {
-    boost::unordered_multiset<lwg2059_key> x;
-    x.emplace(lwg2059_key(10));
-    x.erase(x.begin());
-  }
+  // {
+  //   boost::unordered_multiset<lwg2059_key> x;
+  //   x.emplace(lwg2059_key(10));
+  //   x.erase(x.begin());
+  // }
 }
 
 RUN_TESTS()

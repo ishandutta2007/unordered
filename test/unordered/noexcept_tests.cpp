@@ -202,19 +202,19 @@ namespace noexcept_tests {
     if (have_is_nothrow_move) {
       BOOST_TEST((boost::is_nothrow_move_constructible<
         boost::unordered_set<int> >::value));
-      BOOST_TEST((boost::is_nothrow_move_constructible<
-        boost::unordered_multiset<int> >::value));
+      // BOOST_TEST((boost::is_nothrow_move_constructible<
+      //   boost::unordered_multiset<int> >::value));
       BOOST_TEST((boost::is_nothrow_move_constructible<
         boost::unordered_map<int, int> >::value));
-      BOOST_TEST((boost::is_nothrow_move_constructible<
-        boost::unordered_multimap<int, int> >::value));
+      // BOOST_TEST((boost::is_nothrow_move_constructible<
+      //   boost::unordered_multimap<int, int> >::value));
     }
 
     BOOST_TEST((!boost::is_nothrow_move_constructible<
                 boost::unordered_set<int, hash_possible_exception> >::value));
-    BOOST_TEST(
-      (!boost::is_nothrow_move_constructible<boost::unordered_multiset<int,
-          boost::hash<int>, equal_to_possible_exception> >::value));
+    // BOOST_TEST(
+    //   (!boost::is_nothrow_move_constructible<boost::unordered_multiset<int,
+    //       boost::hash<int>, equal_to_possible_exception> >::value));
   }
 
   UNORDERED_AUTO_TEST (test_nothrow_move_when_noexcept) {

@@ -92,14 +92,14 @@ UNORDERED_AUTO_TEST (simple_tests) {
   using namespace std;
   srand(14878);
 
-  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_set.\n";
-  // boost::unordered_set<int> set;
-  // simple_test(set);
+  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_set.\n";
+  boost::unordered_set<int> set;
+  simple_test(set);
 
-  // set.insert(1);
-  // set.insert(2);
-  // set.insert(1456);
-  // simple_test(set);
+  set.insert(1);
+  set.insert(2);
+  set.insert(1456);
+  simple_test(set);
 
   // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
   // boost::unordered_multiset<int> multiset;
