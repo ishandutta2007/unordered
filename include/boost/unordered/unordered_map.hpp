@@ -2773,7 +2773,6 @@ namespace boost {
       insert_return_type_map(BOOST_RV_REF(insert_return_type_map)
           x) BOOST_NOEXCEPT : position(x.position),
                               inserted(x.inserted),
-
                               node(boost::move(x.node))
       {
       }
