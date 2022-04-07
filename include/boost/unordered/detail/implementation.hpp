@@ -3035,6 +3035,7 @@ namespace boost {
           }
           else
           {
+            v2_bucket_array_type new_buckets(x.size_, x.node_alloc());
             this->construct_spare_functions(x.current_functions());
             this->switch_functions();
 
@@ -3042,8 +3043,8 @@ namespace boost {
             // the new ones.
             delete_buckets();
             buckets_v2_.reset_allocator(x.node_alloc());
-            buckets_v2_ = v2_bucket_array_type(0, x.node_alloc());
-            
+            buckets_v2_ = boost::move(new_buckets);
+
             // Copy over other data, all no throw.
             mlf_ = x.mlf_;
             rehash(x.size_);
@@ -3155,8 +3156,9 @@ namespace boost {
 
         v2_node_pointer find_node(const_key_type& k) const
         {
+          std::size_t const key_hash = this->hash(k);
           return v2_find_node_impl(
-            k, buckets_v2_.at(buckets_v2_.position(this->hash_function()(k))));
+            k, buckets_v2_.at(buckets_v2_.position(key_hash)));
         }
 
         v2_node_pointer find_node(
@@ -3858,13 +3860,11 @@ namespace boost {
             }
 
             value_type const& value = *pos;
-
-            v2_node_allocator_type alloc = this->node_alloc();
-
-            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
-
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
+
+            v2_node_allocator_type alloc = this->node_alloc();
+            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
             v2_bucket_iterator itb =
               buckets_v2_.at(buckets_v2_.position(key_hash));
             buckets_v2_.insert_node(itb, tmp.release());

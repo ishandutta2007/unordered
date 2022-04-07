@@ -18,8 +18,8 @@
 #include <boost/cstdint.hpp>
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/move/core.hpp>
-#include <boost/type_traits/aligned_storage.hpp>
 #include <boost/swap.hpp>
+#include <boost/type_traits/aligned_storage.hpp>
 
 #include <algorithm>
 
@@ -56,7 +56,16 @@ namespace boost {
                 len_(n)
           {
             p_ = boost::allocator_allocate(a, len_);
-            boost::allocator_construct_n(a, boost::to_address(p_), len_);
+            BOOST_TRY
+            {
+              boost::allocator_construct_n(a, boost::to_address(p_), len_);
+            }
+            BOOST_CATCH(...)
+            {
+              boost::allocator_deallocate(a, p_, n);
+              BOOST_RETHROW
+            }
+            BOOST_CATCH_END
           }
 
           dynamic_array(dynamic_array const& other)
