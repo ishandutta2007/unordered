@@ -1021,6 +1021,34 @@ namespace boost {
             itb->next = p;
           }
 
+          void insert_node_hint(iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
+          {
+            if (!itb->next) { // empty bucket
+              typename iterator::bucket_pointer pb = itb.p;
+              typename iterator::bucket_group_pointer pbg = itb.pbg;
+
+              std::size_t n =
+                static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
+              if (!pbg->bitmask) { // empty group
+                pbg->buckets =
+                  bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
+                pbg->next = groups.back().next;
+                pbg->next->prev = pbg;
+                pbg->prev = group_pointer_traits::pointer_to(groups.back());
+                pbg->prev->next = pbg;
+              }
+              pbg->bitmask |= set_bit(n % N);
+            }
+
+            if (hint) {
+              p->next = hint->next;
+              hint->next = p;
+            } else {
+              p->next = itb->next;
+              itb->next = p;
+            }
+          }
+
           void extract_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
           {
             node_pointer* pp = boost::addressof(itb->next);

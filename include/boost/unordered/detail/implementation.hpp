@@ -2491,19 +2491,22 @@ namespace boost {
 //           return n1;
 //         }
 
-//         std::size_t group_count(node_pointer n) const
-//         {
-//           std::size_t x = 0;
-//           node_pointer it = n;
-//           do {
-//             ++x;
-//             it = next_node(it);
-//           } while (it && !it->is_first_in_group());
-
-//           return x;
-//         }
-
-
+        template <class Key> std::size_t group_count(Key const& k) const
+        {
+          if (size_ == 0) {
+            return 0;
+          }
+          std::size_t c = 0;
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
+          for (v2_node_pointer pos = itb->next; pos; pos = pos->next) {
+            if (this->key_eq()(k, this->get_key(pos))) {
+              ++c;
+            }
+          }
+          return c;
+        }
 
         std::size_t node_bucket(node_pointer n) const
         {
@@ -4062,16 +4065,22 @@ namespace boost {
 //           return n;
 //         }
 
-//         iterator emplace_equiv(node_pointer n)
-//         {
-//           node_tmp a(n, this->node_alloc());
-//           const_key_type& k = this->get_key(a.node_);
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer position = this->find_node(key_hash, k);
-//           this->reserve_for_insert(this->size_ + 1);
-//           return iterator(
-//             this->add_node_equiv(a.release(), key_hash, position));
-//         }
+        iterator emplace_equiv(v2_node_pointer n)
+        {
+          node_tmp a(n, this->node_alloc());
+          if (size_ + 1 > max_load_) {
+            this->rehash(size_ + 1);
+          }    
+
+          const_key_type& k = this->get_key(a.node_);
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer hint = this->v2_find_node_impl(k, itb);
+          v2_node_pointer p = a.release();
+          buckets_v2_.insert_node_hint(itb, p, hint);
+          ++size_;
+          return iterator(p, itb);
+        }
 
 //         iterator emplace_hint_equiv(c_iterator hint, node_pointer n)
 //         {
@@ -4090,14 +4099,18 @@ namespace boost {
 //           }
 //         }
 
-//         void emplace_no_rehash_equiv(node_pointer n)
-//         {
-//           node_tmp a(n, this->node_alloc());
-//           const_key_type& k = this->get_key(a.node_);
-//           std::size_t key_hash = this->hash(k);
-//           node_pointer position = this->find_node(key_hash, k);
-//           this->add_node_equiv(a.release(), key_hash, position);
-//         }
+        void emplace_no_rehash_equiv(v2_node_pointer n)
+        {
+          BOOST_ASSERT(size_ + 1 <= max_load_);
+          node_tmp a(n, this->node_alloc());
+          const_key_type& k = this->get_key(a.node_);
+          std::size_t key_hash = this->hash(k);
+          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer hint = this->v2_find_node_impl(k, itb);
+          v2_node_pointer p = a.release();
+          buckets_v2_.insert_node_hint(itb, p, hint);
+          ++size_;
+        }
 
 //         template <typename NodeType>
 //         iterator move_insert_node_type_equiv(NodeType& np)
@@ -4141,43 +4154,45 @@ namespace boost {
 //           return result;
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Insert range methods
+        ////////////////////////////////////////////////////////////////////////
+        // Insert range methods
 
-//         // if hash function throws, or inserting > 1 element, basic exception
-//         // safety. Strong otherwise
-//         template <class I>
-//         typename boost::unordered::detail::enable_if_forward<I, void>::type
-//         insert_range_equiv(I i, I j)
-//         {
-//           if (i == j)
-//             return;
+        // if hash function throws, or inserting > 1 element, basic exception
+        // safety. Strong otherwise
+        template <class I>
+        typename boost::unordered::detail::enable_if_forward<I, void>::type
+        insert_range_equiv(I i, I j)
+        {
+          if (i == j)
+            return;
 
-//           std::size_t distance = static_cast<std::size_t>(std::distance(i, j));
-//           if (distance == 1) {
-//             emplace_equiv(boost::unordered::detail::func::construct_node(
-//               this->node_alloc(), *i));
-//           } else {
-//             // Only require basic exception safety here
-//             this->reserve_for_insert(this->size_ + distance);
+          std::size_t distance = static_cast<std::size_t>(std::distance(i, j));
+          if (distance == 1) {
+            emplace_equiv(boost::unordered::detail::func::construct_node(
+              this->node_alloc(), *i));
+          } else {
+            // Only require basic exception safety here
+            if (this->size_ + distance > max_load_) {
+              this->rehash(this->size_ + distance);
+            }
 
-//             for (; i != j; ++i) {
-//               emplace_no_rehash_equiv(
-//                 boost::unordered::detail::func::construct_node(
-//                   this->node_alloc(), *i));
-//             }
-//           }
-//         }
+            for (; i != j; ++i) {
+              emplace_no_rehash_equiv(
+                boost::unordered::detail::func::construct_node(
+                  this->node_alloc(), *i));
+            }
+          }
+        }
 
-//         template <class I>
-//         typename boost::unordered::detail::disable_if_forward<I, void>::type
-//         insert_range_equiv(I i, I j)
-//         {
-//           for (; i != j; ++i) {
-//             emplace_equiv(boost::unordered::detail::func::construct_node(
-//               this->node_alloc(), *i));
-//           }
-//         }
+        template <class I>
+        typename boost::unordered::detail::disable_if_forward<I, void>::type
+        insert_range_equiv(I i, I j)
+        {
+          for (; i != j; ++i) {
+            emplace_equiv(boost::unordered::detail::func::construct_node(
+              this->node_alloc(), *i));
+          }
+        }
 
 //         ////////////////////////////////////////////////////////////////////////
 //         // Extract
