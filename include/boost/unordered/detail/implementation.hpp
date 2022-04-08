@@ -4341,20 +4341,39 @@ namespace boost {
           // }
         }
 
-//         void move_assign_buckets(table& src, false_type)
-//         {
-//           node_holder<node_allocator> holder(*this);
-//           for (node_pointer n = src.begin(); n;) {
-//             std::size_t key_hash = this->hash(this->get_key(n));
-//             node_pointer group_end(next_group(n));
-//             node_pointer pos = this->add_node_equiv(
-//               holder.move_copy_of(n->value()), key_hash, node_pointer());
-//             for (n = next_node(n); n != group_end; n = next_node(n)) {
-//               this->add_node_equiv(
-//                 holder.move_copy_of(n->value()), key_hash, pos);
-//             }
-//           }
-//         }
+        void move_assign_buckets(table& src, false_type)
+        {
+          iterator last = src.end();
+          v2_node_allocator_type alloc = this->node_alloc();
+
+          for (iterator pos = src.begin(); pos != last; ++pos) {
+            value_type value = boost::move(*pos);
+            const_key_type& key = extractor::extract(value);
+            std::size_t const key_hash = this->hash(key);
+
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+
+            v2_node_pointer hint = this->v2_find_node_impl(key, itb);
+            node_tmp tmp(
+              detail::func::construct_node(alloc, boost::move(value)), alloc);
+
+            buckets_v2_.insert_node_hint(itb, tmp.release(), hint);
+            ++size_;
+          }
+
+          // node_holder<node_allocator> holder(*this);
+          // for (node_pointer n = src.begin(); n;) {
+          //   std::size_t key_hash = this->hash(this->get_key(n));
+          //   node_pointer group_end(next_group(n));
+          //   node_pointer pos = this->add_node_equiv(
+          //     holder.move_copy_of(n->value()), key_hash, node_pointer());
+          //   for (n = next_node(n); n != group_end; n = next_node(n)) {
+          //     this->add_node_equiv(
+          //       holder.move_copy_of(n->value()), key_hash, pos);
+          //   }
+          // }
+        }
       };
 
       //////////////////////////////////////////////////////////////////////////

@@ -303,69 +303,69 @@ namespace move_tests {
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::allocator2<test::object> >* test_set;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::allocator1<test::object> >* test_multiset;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::allocator1<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::allocator1<test::object> >* test_map;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to, test::allocator2<test::object> >* test_multimap;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to, test::allocator2<test::object> >* test_multimap;
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::propagate_move> >*
     test_set_prop_move;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::cxx11_allocator<test::object, test::propagate_move> >*
-  //   test_multiset_prop_move;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::cxx11_allocator<test::object, test::propagate_move> >*
+    test_multiset_prop_move;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::propagate_move> >*
     test_map_prop_move;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to, test::cxx11_allocator<test::object, test::propagate_move> >*
-  //   test_multimap_prop_move;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to, test::cxx11_allocator<test::object, test::propagate_move> >*
+    test_multimap_prop_move;
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::no_propagate_move> >*
     test_set_no_prop_move;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::cxx11_allocator<test::object, test::no_propagate_move> >*
-  //   test_multiset_no_prop_move;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::cxx11_allocator<test::object, test::no_propagate_move> >*
+    test_multiset_no_prop_move;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::no_propagate_move> >*
     test_map_no_prop_move;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to,
-  //   test::cxx11_allocator<test::object, test::no_propagate_move> >*
-  //   test_multimap_no_prop_move;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to,
+    test::cxx11_allocator<test::object, test::no_propagate_move> >*
+    test_multimap_no_prop_move;
 
   using test::default_generator;
   using test::generate_collisions;
   using test::limited_range;
 
   UNORDERED_TEST(move_construct_tests1,
-    ((test_map_std_alloc)(test_set)/* (test_multiset) */(test_map)/* (test_multimap) */(
-      test_set_prop_move)/* (test_multiset_prop_move) */(test_map_prop_move)/* (
-      test_multimap_prop_move)*/(test_set_no_prop_move)/*(
-      test_multiset_no_prop_move) */(test_map_no_prop_move)/* (
-      test_multimap_no_prop_move) */)(
+    ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap)(
+      test_set_prop_move)(test_multiset_prop_move)(test_map_prop_move)(
+      test_multimap_prop_move)(test_set_no_prop_move)(
+      test_multiset_no_prop_move)(test_map_no_prop_move)(
+      test_multimap_no_prop_move))(
       (default_generator)(generate_collisions)(limited_range)))
   UNORDERED_TEST(move_assign_tests1,
-    (/* (test_map_std_alloc)*/(test_set)/*(test_multiset) */(test_map)/* (test_multimap)*/(
-      test_set_prop_move)/*(test_multiset_prop_move) */(test_map_prop_move)/* (
-      test_multimap_prop_move)*/(test_set_no_prop_move)/*(
-      test_multiset_no_prop_move) */(test_map_no_prop_move)/* (
-      test_multimap_no_prop_move) */)(
+    ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap)(
+      test_set_prop_move)(test_multiset_prop_move)(test_map_prop_move)(
+      test_multimap_prop_move)(test_set_no_prop_move)(
+      test_multiset_no_prop_move)(test_map_no_prop_move)(
+      test_multimap_no_prop_move))(
       (default_generator)(generate_collisions)(limited_range)))
   UNORDERED_TEST(move_construct_tests2,
-    ((test_set)/*(test_multiset) */(test_map)/* (test_multimap)*/(test_set_prop_move)/*(
-      test_multiset_prop_move) */(test_map_prop_move)/* (test_multimap_prop_move)*/(
-      test_set_no_prop_move)/*(test_multiset_no_prop_move) */(test_map_no_prop_move)/* (
-      test_multimap_no_prop_move) */)(
+    ((test_set)(test_multiset)(test_map)(test_multimap)(test_set_prop_move)(
+      test_multiset_prop_move)(test_map_prop_move)(test_multimap_prop_move)(
+      test_set_no_prop_move)(test_multiset_no_prop_move)(test_map_no_prop_move)(
+      test_multimap_no_prop_move))(
       (default_generator)(generate_collisions)(limited_range)))
   UNORDERED_TEST(move_assign_tests2,
-    ((test_set)/*(test_multiset) */(test_map)/* (test_multimap)*/(test_set_prop_move)/*(
-      test_multiset_prop_move) */(test_map_prop_move)/* (test_multimap_prop_move)*/(
-      test_set_no_prop_move)/*(test_multiset_no_prop_move) */(test_map_no_prop_move)/* (
-      test_multimap_no_prop_move) */)(
+    ((test_set)(test_multiset)(test_map)(test_multimap)(test_set_prop_move)(
+      test_multiset_prop_move)(test_map_prop_move)(test_multimap_prop_move)(
+      test_set_no_prop_move)(test_multiset_no_prop_move)(test_map_no_prop_move)(
+      test_multimap_no_prop_move))(
       (default_generator)(generate_collisions)(limited_range)))
 }
 
