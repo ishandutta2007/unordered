@@ -4388,28 +4388,10 @@ namespace boost {
       template <typename Types>
       inline void table<Types>::rehash(std::size_t min_buckets)
       {
-        if (size_ == 0 && min_buckets <= buckets_v2_.bucket_count()) {
-          return;
-        }
-
         std::size_t bc = (std::max)(min_buckets, size_);
-        if (size_ > 0) {
-          std::size_t x =
-            static_cast<std::size_t>(1.0f + static_cast<float>(size_) / mlf_);
+        bc = static_cast<std::size_t>(1.0f + static_cast<float>(bc) / mlf_);
 
-          if (x > bc) {
-            bc = x;
-          }
-
-          x = static_cast<std::size_t>(
-            1.0f + static_cast<float>(min_buckets) / mlf_);
-
-          if (x > bc) {
-            bc = x;
-          }
-        }
-
-        if (bc <= buckets_v2_.bucket_count()) {
+        if (bc <= buckets_v2_.bucket_count() || bc <= max_load_) {
           return;
         }
 
