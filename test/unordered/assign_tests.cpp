@@ -204,40 +204,40 @@ namespace assign_tests {
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::allocator1<test::object> >* test_set;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::allocator2<test::object> >* test_multiset;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::allocator2<test::object> >* test_multiset;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::allocator2<test::object> >* test_map;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to, test::allocator1<test::object> >* test_multimap;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to, test::allocator1<test::object> >* test_multimap;
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::propagate_assign> >*
     test_set_prop_assign;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::cxx11_allocator<test::object, test::propagate_assign> >*
-  //   test_multiset_prop_assign;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::cxx11_allocator<test::object, test::propagate_assign> >*
+    test_multiset_prop_assign;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::propagate_assign> >*
     test_map_prop_assign;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to,
-  //   test::cxx11_allocator<test::object, test::propagate_assign> >*
-  //   test_multimap_prop_assign;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to,
+    test::cxx11_allocator<test::object, test::propagate_assign> >*
+    test_multimap_prop_assign;
 
   boost::unordered_set<test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::no_propagate_assign> >*
     test_set_no_prop_assign;
-  // boost::unordered_multiset<test::object, test::hash, test::equal_to,
-  //   test::cxx11_allocator<test::object, test::no_propagate_assign> >*
-  //   test_multiset_no_prop_assign;
+  boost::unordered_multiset<test::object, test::hash, test::equal_to,
+    test::cxx11_allocator<test::object, test::no_propagate_assign> >*
+    test_multiset_no_prop_assign;
   boost::unordered_map<test::object, test::object, test::hash, test::equal_to,
     test::cxx11_allocator<test::object, test::no_propagate_assign> >*
     test_map_no_prop_assign;
-  // boost::unordered_multimap<test::object, test::object, test::hash,
-  //   test::equal_to,
-  //   test::cxx11_allocator<test::object, test::no_propagate_assign> >*
-  //   test_multimap_no_prop_assign;
+  boost::unordered_multimap<test::object, test::object, test::hash,
+    test::equal_to,
+    test::cxx11_allocator<test::object, test::no_propagate_assign> >*
+    test_multimap_no_prop_assign;
 
   using test::default_generator;
   using test::generate_collisions;
@@ -255,19 +255,19 @@ namespace assign_tests {
   }
 
   UNORDERED_TEST(assign_tests1,
-    ((test_map_std_alloc)(test_set)/* (test_multiset) */(test_map)/* (test_multimap) */(
-      test_set_prop_assign)/* (test_multiset_prop_assign) */(test_map_prop_assign)/* (
-      test_multimap_prop_assign) */(test_set_no_prop_assign)/* (
-      test_multiset_no_prop_assign) */(test_map_no_prop_assign)/* (
-      test_multimap_no_prop_assign) */)(
+    ((test_map_std_alloc)(test_set)(test_multiset)(test_map)(test_multimap)(
+      test_set_prop_assign)(test_multiset_prop_assign)(test_map_prop_assign)(
+      test_multimap_prop_assign)(test_set_no_prop_assign)(
+      test_multiset_no_prop_assign)(test_map_no_prop_assign)(
+      test_multimap_no_prop_assign))(
       (default_generator)(generate_collisions)(limited_range)))
 
   UNORDERED_TEST(
-    assign_tests2, ((test_set)/* (test_multiset) */(test_map)/* (test_multimap) */(
-                     test_set_prop_assign)/* (test_multiset_prop_assign) */(
-                     test_map_prop_assign)/* (test_multimap_prop_assign) */(
-                     test_set_no_prop_assign)/* (test_multiset_no_prop_assign) */(
-                     test_map_no_prop_assign)/* (test_multimap_no_prop_assign) */)(
+    assign_tests2, ((test_set)(test_multiset)(test_map)(test_multimap)(
+                     test_set_prop_assign)(test_multiset_prop_assign)(
+                     test_map_prop_assign)(test_multimap_prop_assign)(
+                     test_set_no_prop_assign)(test_multiset_no_prop_assign)(
+                     test_map_no_prop_assign)(test_multimap_no_prop_assign))(
                      (default_generator)(generate_collisions)(limited_range)))
 
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
