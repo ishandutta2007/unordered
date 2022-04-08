@@ -4288,25 +4288,27 @@ namespace boost {
         ////////////////////////////////////////////////////////////////////////
         // fill_buckets
 
-//         void copy_buckets(table const& src, false_type)
-//         {
-//           this->create_buckets(this->bucket_count_);
+        void copy_buckets(table const& src, false_type)
+        {
+          if (size_ + src.size_ > max_load_) {
+            this->rehash(size_ + src.size_);
+          }
 
-//           for (node_pointer n = src.begin(); n;) {
-//             std::size_t key_hash = this->hash(this->get_key(n));
-//             node_pointer group_end(next_group(n));
-//             node_pointer pos = this->add_node_equiv(
-//               boost::unordered::detail::func::construct_node(
-//                 this->node_alloc(), n->value()),
-//               key_hash, node_pointer());
-//             for (n = next_node(n); n != group_end; n = next_node(n)) {
-//               this->add_node_equiv(
-//                 boost::unordered::detail::func::construct_node(
-//                   this->node_alloc(), n->value()),
-//                 key_hash, pos);
-//             }
-//           }
-//         }
+          iterator last = src.end();
+          for (iterator pos = src.begin(); pos != last; ++pos) {
+            value_type const& value = *pos;
+            const_key_type& key = extractor::extract(value);
+            std::size_t const key_hash = this->hash(key);
+
+            v2_node_allocator_type alloc = this->node_alloc();
+            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+            v2_node_pointer hint = this->v2_find_node_impl(key, itb);
+            buckets_v2_.insert_node_hint(itb, tmp.release(), hint);
+            ++size_;
+          }
+        }
 
         void assign_buckets(table const& src, false_type)
         {
