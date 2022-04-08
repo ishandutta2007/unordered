@@ -4082,22 +4082,33 @@ namespace boost {
           return iterator(p, itb);
         }
 
-//         iterator emplace_hint_equiv(c_iterator hint, node_pointer n)
-//         {
-//           node_tmp a(n, this->node_alloc());
-//           const_key_type& k = this->get_key(a.node_);
-//           if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-//             this->reserve_for_insert(this->size_ + 1);
-//             return iterator(
-//               this->add_using_hint_equiv(a.release(), hint.node_));
-//           } else {
-//             std::size_t key_hash = this->hash(k);
-//             node_pointer position = this->find_node(key_hash, k);
-//             this->reserve_for_insert(this->size_ + 1);
-//             return iterator(
-//               this->add_node_equiv(a.release(), key_hash, position));
-//           }
-//         }
+        iterator emplace_hint_equiv(c_iterator hint, v2_node_pointer n)
+        {
+          node_tmp a(n, this->node_alloc());
+          const_key_type& k = this->get_key(a.node_);
+          v2_bucket_iterator itb = hint.itb;
+          v2_node_pointer p = hint.p;
+
+          if (p && this->key_eq()(k, this->get_key(p))) {
+            if (size_ + 1 > max_load_) {
+              std::size_t const key_hash = this->hash(k);
+              this->rehash(size_ + 1);
+              itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            }
+          } else {
+            std::size_t const key_hash = this->hash(k);
+            if (size_ + 1 > max_load_) {
+              this->rehash(size_ + 1);
+            }
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            p = this->v2_find_node_impl(k, itb);
+          }
+
+          a.release();
+          buckets_v2_.insert_node_hint(itb, n, p);
+          ++size_;
+          return iterator(n, itb);
+        }
 
         void emplace_no_rehash_equiv(v2_node_pointer n)
         {

@@ -2488,14 +2488,14 @@ namespace boost {
     typename unordered_multimap<K, T, H, P, A>::iterator
     unordered_multimap<K, T, H, P, A>::find(const key_type& k)
     {
-      return iterator(table_.find_node(k));
+      return iterator(table_.find(k));
     }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_multimap<K, T, H, P, A>::const_iterator
     unordered_multimap<K, T, H, P, A>::find(const key_type& k) const
     {
-      return const_iterator(table_.find_node(k));
+      return const_iterator(table_.find(k));
     }
 
     template <class K, class T, class H, class P, class A>

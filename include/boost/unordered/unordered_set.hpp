@@ -697,9 +697,9 @@ namespace boost {
       typedef std::size_t size_type;
       typedef std::ptrdiff_t difference_type;
 
-      typedef typename table::iterator iterator;
+      typedef typename table::c_iterator iterator;
       typedef typename table::c_iterator const_iterator;
-      typedef typename table::l_iterator local_iterator;
+      typedef typename table::cl_iterator local_iterator;
       typedef typename table::cl_iterator const_local_iterator;
       typedef typename types::node_type node_type;
 
@@ -1979,7 +1979,7 @@ namespace boost {
     typename unordered_multiset<T, H, P, A>::const_iterator
     unordered_multiset<T, H, P, A>::find(const key_type& k) const
     {
-      return const_iterator(table_.find_node(k));
+      return const_iterator(table_.find(k));
     }
 
     template <class T, class H, class P, class A>
@@ -1989,8 +1989,7 @@ namespace boost {
     unordered_multiset<T, H, P, A>::find(CompatibleKey const& k,
       CompatibleHash const& hash, CompatiblePredicate const& eq) const
     {
-      return const_iterator(
-        table_.find_node_impl(table::policy::apply_hash(hash, k), k, eq));
+      return table_.transparent_find(k, hash, eq);
     }
 
     template <class T, class H, class P, class A>
