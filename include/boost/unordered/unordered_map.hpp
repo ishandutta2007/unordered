@@ -2532,9 +2532,8 @@ namespace boost {
       typename unordered_multimap<K, T, H, P, A>::iterator>
     unordered_multimap<K, T, H, P, A>::equal_range(const key_type& k)
     {
-      node_pointer n = table_.find_node(k);
-      return std::make_pair(
-        iterator(n), iterator(n ? table_.next_group(n) : n));
+      iterator n = table_.find(k);
+      return std::make_pair(n, (n == end() ? n : table_.next_group(k, n)));
     }
 
     template <class K, class T, class H, class P, class A>
@@ -2542,9 +2541,9 @@ namespace boost {
       typename unordered_multimap<K, T, H, P, A>::const_iterator>
     unordered_multimap<K, T, H, P, A>::equal_range(const key_type& k) const
     {
-      node_pointer n = table_.find_node(k);
-      return std::make_pair(
-        const_iterator(n), const_iterator(n ? table_.next_group(n) : n));
+      iterator n = table_.find(k);
+      return std::make_pair(const_iterator(n),
+        const_iterator(n == end() ? n : table_.next_group(k, n)));
     }
 
     template <class K, class T, class H, class P, class A>

@@ -2482,14 +2482,15 @@ namespace boost {
           return n2;
         }
 
-//         node_pointer next_group(node_pointer n) const
-//         {
-//           node_pointer n1 = n;
-//           do {
-//             n1 = next_node(n1);
-//           } while (n1 && !n1->is_first_in_group());
-//           return n1;
-//         }
+        template <class Key>
+        iterator next_group(Key const& k, c_iterator n) const
+        {
+          c_iterator last = this->end();
+          do {
+            ++n;
+          } while (n != last && this->key_eq()(k, extractor::extract(*n)));
+          return iterator(n.p, n.itb);
+        }
 
         template <class Key> std::size_t group_count(Key const& k) const
         {
