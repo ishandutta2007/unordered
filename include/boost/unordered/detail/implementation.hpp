@@ -4145,22 +4145,32 @@ namespace boost {
           ++size_;
         }
 
-//         template <typename NodeType>
-//         iterator move_insert_node_type_equiv(NodeType& np)
-//         {
-//           iterator result;
+        template <typename NodeType>
+        iterator move_insert_node_type_equiv(NodeType& np)
+        {
+          iterator result;
 
-//           if (np) {
-//             const_key_type& k = this->get_key(np.ptr_);
-//             std::size_t key_hash = this->hash(k);
-//             node_pointer pos = this->find_node(key_hash, k);
-//             this->reserve_for_insert(this->size_ + 1);
-//             result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
-//             np.ptr_ = node_pointer();
-//           }
+          if (np) {
+            if (size_ + 1 > max_load_) {
+              this->rehash(size_ + 1);
+            }
 
-//           return result;
-//         }
+            const_key_type& k = this->get_key(np.ptr_);
+            std::size_t key_hash = this->hash(k);
+
+            v2_bucket_iterator itb =
+              buckets_v2_.at(buckets_v2_.position(key_hash));
+
+            v2_node_pointer hint = this->v2_find_node_impl(k, itb);
+            buckets_v2_.insert_node_hint(itb, np.ptr_, hint);
+            ++size_;
+
+            result = iterator(np.ptr_, itb);
+            np.ptr_ = v2_node_pointer();
+          }
+
+          return result;
+        }
 
 //         template <typename NodeType>
 //         iterator move_insert_node_type_with_hint_equiv(
