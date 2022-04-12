@@ -231,13 +231,13 @@ namespace unnecessary_copy_tests {
   }
 
   boost::unordered_set<count_copies>* set;
-  // boost::unordered_multiset<count_copies>* multiset;
+  boost::unordered_multiset<count_copies>* multiset;
   boost::unordered_map<int, count_copies>* map;
-  // boost::unordered_multimap<int, count_copies>* multimap;
+  boost::unordered_multimap<int, count_copies>* multimap;
 
-  UNORDERED_TEST(unnecessary_copy_insert_test, ((set)/* (multiset) */(map)/* (multimap) */))
-  UNORDERED_TEST(unnecessary_copy_insert_rvalue_set_test, ((set)/* (multiset) */))
-  UNORDERED_TEST(unnecessary_copy_insert_rvalue_map_test, ((map)/* (multimap) */))
+  UNORDERED_TEST(unnecessary_copy_insert_test, ((set)(multiset)(map)(multimap)))
+  UNORDERED_TEST(unnecessary_copy_insert_rvalue_set_test, ((set)(multiset)))
+  UNORDERED_TEST(unnecessary_copy_insert_rvalue_map_test, ((map)(multimap)))
 
   template <class T> void unnecessary_copy_emplace_test(T*)
   {
@@ -262,9 +262,9 @@ namespace unnecessary_copy_tests {
   }
 
   UNORDERED_TEST(
-    unnecessary_copy_emplace_test, ((set)/* (multiset) */(map)/* (multimap) */))
+    unnecessary_copy_emplace_test, ((set)(multiset)(map)(multimap)))
   UNORDERED_TEST(
-    unnecessary_copy_emplace_rvalue_test, ((set)/* (multiset) */(map)/* (multimap) */))
+    unnecessary_copy_emplace_rvalue_test, ((set)(multiset)(map)(multimap)))
 
 #if !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
   template <class T> void unnecessary_copy_emplace_std_move_test(T*)
@@ -280,7 +280,7 @@ namespace unnecessary_copy_tests {
   }
 
   UNORDERED_TEST(
-    unnecessary_copy_emplace_std_move_test, ((set)/* (multiset) */(map)/* (multimap) */))
+    unnecessary_copy_emplace_std_move_test, ((set)(multiset)(map)(multimap)))
 #endif
 
   template <class T> void unnecessary_copy_emplace_boost_move_test(T*)
@@ -302,7 +302,7 @@ namespace unnecessary_copy_tests {
   }
 
   UNORDERED_TEST(
-    unnecessary_copy_emplace_boost_move_test, ((set)/* (multiset) */(map)/* (multimap) */))
+    unnecessary_copy_emplace_boost_move_test, ((set)(multiset)(map)(multimap)))
 
   template <class T> void unnecessary_copy_emplace_boost_move_set_test(T*)
   {
@@ -317,7 +317,7 @@ namespace unnecessary_copy_tests {
   }
 
   UNORDERED_TEST(
-    unnecessary_copy_emplace_boost_move_set_test, ((set)/* (multiset) */))
+    unnecessary_copy_emplace_boost_move_set_test, ((set)(multiset)))
 
   template <class T> void unnecessary_copy_emplace_boost_move_map_test(T*)
   {
@@ -339,7 +339,7 @@ namespace unnecessary_copy_tests {
   }
 
   UNORDERED_TEST(
-    unnecessary_copy_emplace_boost_move_map_test, ((map)/* (multimap) */))
+    unnecessary_copy_emplace_boost_move_map_test, ((map)(multimap)))
 
   UNORDERED_AUTO_TEST (unnecessary_copy_emplace_set_test) {
     // When calling 'source' the object is moved on some compilers, but not
