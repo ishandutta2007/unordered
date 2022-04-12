@@ -4253,70 +4253,58 @@ namespace boost {
 //           return i;
 //         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Erase
-//         //
-//         // no throw
+        ////////////////////////////////////////////////////////////////////////
+        // Erase
+        //
+        // no throw
 
-//         template <class KeyEqual, class Key>
-//         std::size_t erase_key_equiv_impl(KeyEqual const& eq, Key const& k)
-//         {
-//           if (!this->size_)
-//             return 0;
+        template <class KeyEqual, class Key>
+        std::size_t erase_key_equiv_impl(KeyEqual const& eq, Key const& k)
+        {
+          if (!this->size_)
+            return 0;
 
-//           std::size_t key_hash = policy::apply_hash(this->hash_function(), k);
-//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
-//           link_pointer prev =
-//             this->find_previous_node_impl(eq, k, bucket_index);
-//           if (!prev)
-//             return 0;
+          std::size_t const key_hash = this->hash(k);
+          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_node_pointer p = itb->next;
 
-//           std::size_t deleted_count = 0;
-//           node_pointer n = next_node(prev);
-//           do {
-//             node_pointer n2 = next_node(n);
-//             destroy_node(n);
-//             ++deleted_count;
-//             n = n2;
-//           } while (n && !n->is_first_in_group());
-//           size_ -= deleted_count;
-//           prev->next_ = n;
-//           this->fix_bucket(bucket_index, prev, n);
-//           return deleted_count;
-//         }
+          std::size_t deleted_count = 0;
 
-//         std::size_t erase_key_equiv(const_key_type& k)
-//         {
-//           return this->erase_key_equiv_impl(this->key_eq(), k);
-//         }
+          while (p) {
+            if (eq(extractor::extract(p->value()), k)) {
+              v2_node_pointer q = p;
+              p = p->next;
+              buckets_v2_.extract_node(itb, q);
+              this->v2_delete_node(q);
+              --size_;
+              ++deleted_count;
+            } else {
+              p = p->next;
+            }
+          }
 
-//         link_pointer erase_nodes_equiv(node_pointer i, node_pointer j)
-//         {
-//           std::size_t bucket_index = this->node_bucket(i);
+          return deleted_count;
+        }
 
-//           link_pointer prev = this->get_previous_start(bucket_index);
-//           while (prev->next_ != i) {
-//             prev = next_node(prev);
-//           }
+        std::size_t erase_key_equiv(const_key_type& k)
+        {
+          return this->erase_key_equiv_impl(this->key_eq(), k);
+        }
 
-//           // Delete the nodes.
-//           // Is it inefficient to call fix_bucket for every node?
-//           bool includes_first = false;
-//           prev->next_ = j;
-//           do {
-//             includes_first = includes_first || i->is_first_in_group();
-//             node_pointer next = next_node(i);
-//             destroy_node(i);
-//             --size_;
-//             bucket_index = this->fix_bucket(bucket_index, prev, next);
-//             i = next;
-//           } while (i != j);
-//           if (j && includes_first) {
-//             j->set_first_in_group();
-//           }
+        iterator erase_nodes_equiv(c_iterator i, c_iterator j)
+        {
+          while (i != j) {
+            v2_bucket_iterator itb = i.itb;
+            v2_node_pointer p = i.p;
+            ++i;
 
-//           return prev;
-//         }
+            buckets_v2_.extract_node(itb, p);
+            this->v2_delete_node(p);
+            --size_;
+          }
+
+          return iterator(j.p, j.itb);
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // fill_buckets

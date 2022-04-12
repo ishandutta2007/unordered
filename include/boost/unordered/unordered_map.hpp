@@ -2376,22 +2376,20 @@ namespace boost {
     typename unordered_multimap<K, T, H, P, A>::iterator
     unordered_multimap<K, T, H, P, A>::erase(iterator position)
     {
-      node_pointer node = table::get_node(position);
-      BOOST_ASSERT(node);
-      node_pointer next = table::next_node(node);
-      table_.erase_nodes_equiv(node, next);
-      return iterator(next);
+      BOOST_ASSERT(position != this->end());
+      iterator next = position;
+      ++next;
+      return table_.erase_nodes_equiv(position, next);
     }
 
     template <class K, class T, class H, class P, class A>
     typename unordered_multimap<K, T, H, P, A>::iterator
     unordered_multimap<K, T, H, P, A>::erase(const_iterator position)
     {
-      node_pointer node = table::get_node(position);
-      BOOST_ASSERT(node);
-      node_pointer next = table::next_node(node);
-      table_.erase_nodes_equiv(node, next);
-      return iterator(next);
+      BOOST_ASSERT(position != this->end());
+      const_iterator next = position;
+      ++next;
+      return table_.erase_nodes_equiv(position, next);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -2406,11 +2404,7 @@ namespace boost {
     unordered_multimap<K, T, H, P, A>::erase(
       const_iterator first, const_iterator last)
     {
-      node_pointer last_node = table::get_node(last);
-      if (first == last)
-        return iterator(last_node);
-      table_.erase_nodes_equiv(table::get_node(first), last_node);
-      return iterator(last_node);
+      return table_.erase_nodes_equiv(first, last);
     }
 
     template <class K, class T, class H, class P, class A>
