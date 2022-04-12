@@ -1393,7 +1393,7 @@ namespace boost {
 
       node_type extract(const key_type& k)
       {
-        return node_type(table_.extract_by_key(k), table_.node_alloc());
+        return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
       }
 
       template <class Key>
@@ -2629,8 +2629,8 @@ namespace boost {
       template <typename Types> friend struct ::boost::unordered::detail::table;
       template <class K2, class T2, class H2, class P2, class A2>
       friend class boost::unordered::unordered_map;
-      // template <class K2, class T2, class H2, class P2, class A2>
-      // friend class boost::unordered::unordered_multimap;
+      template <class K2, class T2, class H2, class P2, class A2>
+      friend class boost::unordered::unordered_multimap;
 
       typedef typename boost::allocator_rebind<A, std::pair<K const, T> >::type
         value_allocator;

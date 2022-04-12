@@ -1035,7 +1035,7 @@ namespace boost {
 
       node_type extract(const key_type& k)
       {
-        return node_type(table_.extract_by_key(k), table_.node_alloc());
+        return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
       }
 
       template <class Key>

@@ -4227,31 +4227,37 @@ namespace boost {
           }
         }
 
-//         ////////////////////////////////////////////////////////////////////////
-//         // Extract
+        ////////////////////////////////////////////////////////////////////////
+        // Extract
 
-//         inline node_pointer extract_by_iterator_equiv(c_iterator n)
-//         {
-//           node_pointer i = n.node_;
-//           BOOST_ASSERT(i);
-//           node_pointer j(next_node(i));
-//           std::size_t bucket_index = this->node_bucket(i);
+        inline v2_node_pointer extract_by_iterator_equiv(c_iterator n)
+        {
+          v2_node_pointer p = n.p;
+          v2_bucket_iterator itb = n.itb;
+          buckets_v2_.extract_node(itb, p);
+          --size_;
+          return p;
 
-//           link_pointer prev = this->get_previous_start(bucket_index);
-//           while (prev->next_ != i) {
-//             prev = next_node(prev);
-//           }
+          // node_pointer i = n.node_;
+          // BOOST_ASSERT(i);
+          // node_pointer j(next_node(i));
+          // std::size_t bucket_index = this->node_bucket(i);
 
-//           prev->next_ = j;
-//           if (j && i->is_first_in_group()) {
-//             j->set_first_in_group();
-//           }
-//           --this->size_;
-//           this->fix_bucket(bucket_index, prev, j);
-//           i->next_ = link_pointer();
+          // link_pointer prev = this->get_previous_start(bucket_index);
+          // while (prev->next_ != i) {
+          //   prev = next_node(prev);
+          // }
 
-//           return i;
-//         }
+          // prev->next_ = j;
+          // if (j && i->is_first_in_group()) {
+          //   j->set_first_in_group();
+          // }
+          // --this->size_;
+          // this->fix_bucket(bucket_index, prev, j);
+          // i->next_ = link_pointer();
+
+          // return i;
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Erase
