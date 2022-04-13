@@ -4215,8 +4215,8 @@ namespace boost {
               this->node_alloc(), *i));
           } else {
             // Only require basic exception safety here
-            if (this->size_ + distance > max_load_) {
-              this->rehash(this->size_ + distance);
+            if (size_ + distance > max_load_) {
+              this->rehash(size_ + distance);
             }
 
             for (; i != j; ++i) {
@@ -4448,8 +4448,9 @@ namespace boost {
       {
         std::size_t bc = (std::max)(min_buckets, size_);
         bc = static_cast<std::size_t>(1.0f + static_cast<float>(bc) / mlf_);
-
-        if (bc <= buckets_v2_.bucket_count() || bc <= max_load_) {
+        if (bc <= buckets_v2_.bucket_count() ||
+            static_cast<std::size_t>(static_cast<float>(bc) * mlf_) <=
+              max_load_) {
           return;
         }
 
