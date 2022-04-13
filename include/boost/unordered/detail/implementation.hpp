@@ -4172,30 +4172,45 @@ namespace boost {
           return result;
         }
 
-//         template <typename NodeType>
-//         iterator move_insert_node_type_with_hint_equiv(
-//           c_iterator hint, NodeType& np)
-//         {
-//           iterator result;
+        template <typename NodeType>
+        iterator move_insert_node_type_with_hint_equiv(
+          c_iterator hint, NodeType& np)
+        {
+          iterator result;
 
-//           if (np) {
-//             const_key_type& k = this->get_key(np.ptr_);
+          if (np) {
+            const_key_type& k = this->get_key(np.ptr_);
 
-//             if (hint.node_ && this->key_eq()(k, this->get_key(hint.node_))) {
-//               this->reserve_for_insert(this->size_ + 1);
-//               result =
-//                 iterator(this->add_using_hint_equiv(np.ptr_, hint.node_));
-//             } else {
-//               std::size_t key_hash = this->hash(k);
-//               node_pointer pos = this->find_node(key_hash, k);
-//               this->reserve_for_insert(this->size_ + 1);
-//               result = iterator(this->add_node_equiv(np.ptr_, key_hash, pos));
-//             }
-//             np.ptr_ = node_pointer();
-//           }
+            if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
+              // this->reserve_for_insert(this->size_ + 1);
+              if (size_ + 1 > max_load_) {
+                this->rehash(size_ + 1);
+              }
 
-//           return result;
-//         }
+              buckets_v2_.insert_node_hint(hint.itb, np.ptr_, hint.p);
+              ++size_;
+
+              result = iterator(np.ptr_, hint.itb);
+            } else {
+              std::size_t key_hash = this->hash(k);
+
+              if (size_ + 1 > max_load_) {
+                this->rehash(size_ + 1);
+              }
+
+              v2_bucket_iterator itb =
+                buckets_v2_.at(buckets_v2_.position(key_hash));
+              v2_node_pointer pos = this->v2_find_node_impl(k, itb);
+
+              buckets_v2_.insert_node_hint(itb, np.ptr_, pos);
+              ++size_;
+              result = iterator(np.ptr_, itb);
+            }
+            np.ptr_ = v2_node_pointer();
+          }
+
+          return result;
+        }
 
         ////////////////////////////////////////////////////////////////////////
         // Insert range methods
