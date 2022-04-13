@@ -101,16 +101,16 @@ UNORDERED_AUTO_TEST (simple_tests) {
   set.insert(1456);
   simple_test(set);
 
-  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
-  // boost::unordered_multiset<int> multiset;
-  // simple_test(multiset);
+  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multiset.\n";
+  boost::unordered_multiset<int> multiset;
+  simple_test(multiset);
 
-  // for (int i1 = 0; i1 < 1000; ++i1) {
-  //   int count = rand() % 10, index = rand();
-  //   for (int j = 0; j < count; ++j)
-  //     multiset.insert(index);
-  // }
-  // simple_test(multiset);
+  for (int i1 = 0; i1 < 1000; ++i1) {
+    int count = rand() % 10, index = rand();
+    for (int j = 0; j < count; ++j)
+      multiset.insert(index);
+  }
+  simple_test(multiset);
 
   BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_map.\n";
   boost::unordered_map<int, int> map;
@@ -120,15 +120,15 @@ UNORDERED_AUTO_TEST (simple_tests) {
   }
   simple_test(map);
 
-  // BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multimap.\n";
-  // boost::unordered_multimap<int, int> multimap;
+  BOOST_LIGHTWEIGHT_TEST_OSTREAM << "Test unordered_multimap.\n";
+  boost::unordered_multimap<int, int> multimap;
 
-  // for (int i3 = 0; i3 < 1000; ++i3) {
-  //   int count = rand() % 10, index = rand();
-  //   for (int j = 0; j < count; ++j)
-  //     multimap.insert(std::pair<const int, int>(index, rand()));
-  // }
-  // simple_test(multimap);
+  for (int i3 = 0; i3 < 1000; ++i3) {
+    int count = rand() % 10, index = rand();
+    for (int j = 0; j < count; ++j)
+      multimap.insert(std::pair<const int, int>(index, rand()));
+  }
+  simple_test(multimap);
 }
 
 RUN_TESTS()
