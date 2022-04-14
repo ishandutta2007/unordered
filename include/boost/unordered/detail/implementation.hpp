@@ -3464,23 +3464,20 @@ namespace boost {
         emplace_return emplace_unique(no_key, BOOST_UNORDERED_EMPLACE_ARGS)
         {
           node_tmp b(boost::unordered::detail::func::construct_node_from_args(
-                         this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
-                     this->node_alloc());
+                       this->node_alloc(), BOOST_UNORDERED_EMPLACE_FORWARD),
+            this->node_alloc());
 
-          const_key_type &k = this->get_key(b.node_);
+          const_key_type& k = this->get_key(b.node_);
           std::size_t key_hash = this->hash(k);
 
-          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
           v2_node_pointer pos = this->v2_find_node_impl(k, itb);
 
-          if (pos)
-          {
+          if (pos) {
             return emplace_return(iterator(pos, itb), false);
-          }
-          else
-          {
-            if (size_ + 1 > max_load_)
-            {
+          } else {
+            if (size_ + 1 > max_load_) {
               rehash(size_ + 1);
               itb = buckets_v2_.at(buckets_v2_.position(key_hash));
             }
@@ -3489,9 +3486,7 @@ namespace boost {
             buckets_v2_.insert_node(itb, p);
             ++size_;
 
-            return emplace_return(
-                iterator(p, itb),
-                true);
+            return emplace_return(iterator(p, itb), true);
           }
         }
 
@@ -4090,14 +4085,16 @@ namespace boost {
         iterator emplace_equiv(v2_node_pointer n)
         {
           node_tmp a(n, this->node_alloc());
-          if (size_ + 1 > max_load_) {
-            this->rehash(size_ + 1);
-          }    
-
           const_key_type& k = this->get_key(a.node_);
           std::size_t key_hash = this->hash(k);
-          v2_bucket_iterator itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          v2_bucket_iterator itb =
+            buckets_v2_.at(buckets_v2_.position(key_hash));
           v2_node_pointer hint = this->v2_find_node_impl(k, itb);
+
+          if (size_ + 1 > max_load_) {
+            this->rehash(size_ + 1);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+          }
           v2_node_pointer p = a.release();
           buckets_v2_.insert_node_hint(itb, p, hint);
           ++size_;
@@ -4119,11 +4116,15 @@ namespace boost {
             }
           } else {
             std::size_t const key_hash = this->hash(k);
+            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
+            // keep this up here because the equality predicate can throw
+            //
+            p = this->v2_find_node_impl(k, itb);
+
             if (size_ + 1 > max_load_) {
               this->rehash(size_ + 1);
+              itb = buckets_v2_.at(buckets_v2_.position(key_hash));
             }
-            itb = buckets_v2_.at(buckets_v2_.position(key_hash));
-            p = this->v2_find_node_impl(k, itb);
           }
 
           a.release();

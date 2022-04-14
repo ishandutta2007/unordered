@@ -615,7 +615,7 @@ namespace boost {
           std::size_t bitmask;
           bucket_group_pointer next, prev;
 
-          bucket_group() { bitmask = 0; }
+          bucket_group() : buckets(), bitmask(0), next(), prev() {}
           ~bucket_group() {}
         };
 
@@ -1021,7 +1021,8 @@ namespace boost {
             itb->next = p;
           }
 
-          void insert_node_hint(iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
+          void insert_node_hint(
+            iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
           {
             if (!itb->next) { // empty bucket
               typename iterator::bucket_pointer pb = itb.p;
@@ -1074,8 +1075,14 @@ namespace boost {
                             group_pointer_traits::pointer_to(groups.back());
 
             for (; pbg != last; ++pbg) {
+              if (!pbg->buckets) {
+                continue;
+              }
+
               for (std::size_t n = 0; n < N; ++n) {
-                if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
+                bucket_pointer bs = pbg->buckets;
+                bucket_type& b = bs[static_cast<std::ptrdiff_t>(n)];
+                if (!b.next)
                   pbg->bitmask &= reset_bit(n);
               }
               if (!pbg->bitmask && pbg->next)
