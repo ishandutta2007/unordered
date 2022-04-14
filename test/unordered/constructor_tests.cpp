@@ -10,13 +10,13 @@
 #include "../helpers/postfix.hpp"
 // clang-format on
 
+#include "../helpers/test.hpp"
+#include "../objects/test.hpp"
+#include "../helpers/random_values.hpp"
+#include "../helpers/tracker.hpp"
 #include "../helpers/equivalent.hpp"
 #include "../helpers/input_iterator.hpp"
 #include "../helpers/invariants.hpp"
-#include "../helpers/random_values.hpp"
-#include "../helpers/test.hpp"
-#include "../helpers/tracker.hpp"
-#include "../objects/test.hpp"
 
 namespace constructor_tests {
 
@@ -441,6 +441,6 @@ namespace constructor_tests {
   }
 
 #endif
-} // namespace constructor_tests
+}
 
 RUN_TESTS_QUIET()
