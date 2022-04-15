@@ -2139,12 +2139,12 @@ namespace boost {
       m1.swap(m2);
     }
 
-//     template <class K, class T, class H, class P, class A, class Predicate>
-//     typename unordered_map<K, T, H, P, A>::size_type erase_if(
-//       unordered_map<K, T, H, P, A>& c, Predicate pred)
-//     {
-//       return detail::erase_if(c, pred);
-//     }
+    template <class K, class T, class H, class P, class A, class Predicate>
+    typename unordered_map<K, T, H, P, A>::size_type erase_if(
+      unordered_map<K, T, H, P, A>& c, Predicate pred)
+    {
+      return detail::erase_if(c, pred);
+    }
 
     ////////////////////////////////////////////////////////////////////////////
 
