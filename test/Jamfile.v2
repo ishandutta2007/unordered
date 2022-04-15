@@ -8,7 +8,7 @@ import testing ;
 # Adding -Wundef is blocked on (at least)
 # https://github.com/boostorg/type_traits/issues/165
 
-local gcc-flags = -Wsign-promo -Wconversion -Wfloat-equal -Wshadow -Wno-variadic-macros -Wno-long-long  ;
+local gcc-flags = -Wsign-promo -Wconversion -Wfloat-equal -Wshadow -Wno-variadic-macros -Wno-long-long ;
 local clang-flags = $(gcc-flags) -Wno-c99-extensions -Wno-long-long ;
 local msvc-flags = /wd4494 ;
 
@@ -72,6 +72,7 @@ test-suite unordered
         # [ run unordered/detail_tests.cpp ]
         [ run unordered/deduction_tests.cpp ]
         [ run unordered/scoped_allocator.cpp : : : <toolset>msvc-14.0:<build>no ]
+        [ run unordered/transparent_tests.cpp ]
         # [ run unordered/reserve_tests.cpp ]
         # [ run unordered/contains_tests.cpp ]
         # [ run unordered/mix_policy.cpp ]

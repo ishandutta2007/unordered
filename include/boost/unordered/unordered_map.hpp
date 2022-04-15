@@ -432,15 +432,15 @@ namespace boost {
         return node_type(table_.extract_by_key_impl(k), table_.node_alloc());
       }
 
-//       template <class Key>
-//       typename boost::enable_if_c<
-//         detail::transparent_non_iterable<Key, unordered_map>::value,
-//         node_type>::type
-//       extract(BOOST_FWD_REF(Key) k)
-//       {
-//         return node_type(table_.extract_by_key_impl(boost::forward<Key>(k)),
-//           table_.node_alloc());
-//       }
+      template <class Key>
+      typename boost::enable_if_c<
+        detail::transparent_non_iterable<Key, unordered_map>::value,
+        node_type>::type
+      extract(BOOST_FWD_REF(Key) k)
+      {
+        return node_type(table_.extract_by_key_impl(boost::forward<Key>(k)),
+          table_.node_alloc());
+      }
 
       insert_return_type insert(BOOST_RV_REF(node_type) np)
       {
@@ -722,15 +722,14 @@ namespace boost {
       size_type erase(const key_type&);
       iterator erase(const_iterator, const_iterator);
 
-//       template <class Key>
-//       typename boost::enable_if_c<
-//         detail::transparent_non_iterable<Key, unordered_map>::value,
-//         size_type>::type
-//       erase(BOOST_FWD_REF(Key) k)
-//       {
-//         return table_.erase_key_unique_impl(
-//           this->key_eq(), boost::forward<Key>(k));
-//       }
+      template <class Key>
+      typename boost::enable_if_c<
+        detail::transparent_non_iterable<Key, unordered_map>::value,
+        size_type>::type
+      erase(BOOST_FWD_REF(Key) k)
+      {
+        return table_.erase_key_unique_impl(boost::forward<Key>(k));
+      }
 
       BOOST_UNORDERED_DEPRECATED("Use erase instead")
       void quick_erase(const_iterator it) { erase(it); }
@@ -759,7 +758,7 @@ namespace boost {
       void merge(boost::unordered_multimap<K, T, H2, P2, A>&& source);
 #endif
 
-//       // observers
+      // observers
 
       hasher hash_function() const;
       key_equal key_eq() const;
@@ -769,25 +768,21 @@ namespace boost {
       iterator find(const key_type&);
       const_iterator find(const key_type&) const;
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         iterator>::type
-//       find(const Key& key)
-//       {
-//         return iterator(table_.find_node_impl(
-//           table::policy::apply_hash(this->hash_function(), key), key,
-//           this->key_eq()));
-//       }
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        iterator>::type
+      find(const Key& key)
+      {
+        return table_.find(key);
+      }
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         const_iterator>::type
-//       find(const Key& key) const
-//       {
-//         return const_iterator(table_.find_node_impl(
-//           table::policy::apply_hash(this->hash_function(), key), key,
-//           this->key_eq()));
-//       }
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        const_iterator>::type
+      find(const Key& key) const
+      {
+        return const_iterator(table_.find(key));
+      }
 
       template <class CompatibleKey, class CompatibleHash,
         class CompatiblePredicate>
@@ -799,69 +794,60 @@ namespace boost {
       const_iterator find(CompatibleKey const&, CompatibleHash const&,
         CompatiblePredicate const&) const;
 
-//       bool contains(const key_type& k) const
-//       {
-//         return 0 != table_.find_node_impl(
-//                       table::policy::apply_hash(this->hash_function(), k), k,
-//                       this->key_eq());
-//       }
+      bool contains(const key_type& k) const
+      {
+        return table_.find(k) != this->end();
+      }
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         bool>::type
-//       contains(const Key& k) const
-//       {
-//         return 0 != table_.find_node_impl(
-//                       table::policy::apply_hash(this->hash_function(), k), k,
-//                       this->key_eq());
-//       }
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        bool>::type
+      contains(const Key& k) const
+      {
+        return table_.find(k) != this->end();
+      }
 
       size_type count(const key_type&) const;
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         size_type>::type
-//       count(const Key& k) const
-//       {
-//         std::size_t const key_hash =
-//           table::policy::apply_hash(this->hash_function(), k);
-
-//         P const& eq = this->key_eq();
-
-//         node_pointer p = table_.find_node_impl(key_hash, k, eq);
-
-//         return (p ? 1 : 0);
-//       }
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        size_type>::type
+      count(const Key& k) const
+      {
+        return (table_.find(k) != this->end() ? 1 : 0);
+      }
 
       std::pair<iterator, iterator> equal_range(const key_type&);
       std::pair<const_iterator, const_iterator> equal_range(
         const key_type&) const;
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         std::pair<iterator, iterator> >::type
-//       equal_range(const Key& key)
-//       {
-//         node_pointer p = table_.find_node_impl(
-//           table::policy::apply_hash(this->hash_function(), key), key,
-//           this->key_eq());
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        std::pair<iterator, iterator> >::type
+      equal_range(const Key& key)
+      {
+        iterator first = table_.find(key);
+        iterator last = first;
+        if (last != this->end()) {
+          ++last;
+        }
 
-//         return std::make_pair(
-//           iterator(p), iterator(p ? table::next_node(p) : p));
-//       }
+        return std::make_pair(first, last);
+      }
 
-//       template <class Key>
-//       typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
-//         std::pair<const_iterator, const_iterator> >::type
-//       equal_range(const Key& key) const
-//       {
-//         node_pointer p = table_.find_node_impl(
-//           table::policy::apply_hash(this->hash_function(), key), key,
-//           this->key_eq());
+      template <class Key>
+      typename boost::enable_if_c<detail::are_transparent<Key, H, P>::value,
+        std::pair<const_iterator, const_iterator> >::type
+      equal_range(const Key& key) const
+      {
+        iterator first = table_.find(key);
+        iterator last = first;
+        if (last != this->end()) {
+          ++last;
+        }
 
-//         return std::make_pair(
-//           const_iterator(p), const_iterator(p ? table::next_node(p) : p));
-//       }
+        return std::make_pair(first, last);
+      }
 
       mapped_type& operator[](const key_type&);
       mapped_type& operator[](BOOST_RV_REF(key_type));
@@ -1436,8 +1422,7 @@ namespace boost {
         size_type>::type
       erase(BOOST_FWD_REF(Key) k)
       {
-        return table_.erase_key_equiv_impl(
-          this->key_eq(), boost::forward<Key>(k));
+        return table_.erase_key_equiv_impl(boost::forward<Key>(k));
       }
 
       BOOST_UNORDERED_DEPRECATED("Use erase instead")
@@ -1482,9 +1467,7 @@ namespace boost {
         iterator>::type
       find(const Key& key)
       {
-        return iterator(table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), key), key,
-          this->key_eq()));
+        return table_.find(key);
       }
 
       template <class Key>
@@ -1492,9 +1475,7 @@ namespace boost {
         const_iterator>::type
       find(const Key& key) const
       {
-        return const_iterator(table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), key), key,
-          this->key_eq()));
+        return const_iterator(table_.find(key));
       }
 
       template <class CompatibleKey, class CompatibleHash,
@@ -1509,9 +1490,7 @@ namespace boost {
 
       bool contains(key_type const& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       template <class Key>
@@ -1519,9 +1498,7 @@ namespace boost {
         bool>::type
       contains(const Key& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       size_type count(const key_type&) const;
@@ -1531,11 +1508,7 @@ namespace boost {
         size_type>::type
       count(const Key& k) const
       {
-        node_pointer n = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq());
-
-        return n ? table_.group_count(n) : 0;
+        return table_.group_count(k);
       }
 
       std::pair<iterator, iterator> equal_range(const key_type&);
@@ -1547,12 +1520,8 @@ namespace boost {
         std::pair<iterator, iterator> >::type
       equal_range(const Key& key)
       {
-        node_pointer p = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), key), key,
-          this->key_eq());
-
-        return std::make_pair(
-          iterator(p), iterator(p ? table_.next_group(p) : p));
+        iterator p = table_.find(key);
+        return std::make_pair(p, table_.next_group(key, p));
       }
 
       template <class Key>
@@ -1560,12 +1529,9 @@ namespace boost {
         std::pair<const_iterator, const_iterator> >::type
       equal_range(const Key& key) const
       {
-        node_pointer p = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), key), key,
-          this->key_eq());
-
+        iterator p = table_.find(key);
         return std::make_pair(
-          const_iterator(p), const_iterator(p ? table_.next_group(p) : p));
+          const_iterator(p), const_iterator(table_.next_group(key, p)));
       }
 
       // bucket interface

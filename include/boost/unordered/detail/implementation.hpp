@@ -2486,9 +2486,9 @@ namespace boost {
         iterator next_group(Key const& k, c_iterator n) const
         {
           c_iterator last = this->end();
-          do {
+          while (n != last && this->key_eq()(k, extractor::extract(*n))) {
             ++n;
-          } while (n != last && this->key_eq()(k, extractor::extract(*n)));
+          }
           return iterator(n.p, n.itb);
         }
 
@@ -2501,9 +2501,15 @@ namespace boost {
           std::size_t const key_hash = this->hash(k);
           v2_bucket_iterator itb =
             buckets_v2_.at(buckets_v2_.position(key_hash));
+
+          bool found = false;
+
           for (v2_node_pointer pos = itb->next; pos; pos = pos->next) {
             if (this->key_eq()(k, this->get_key(pos))) {
               ++c;
+              found = true;
+            } else if (found) {
+              break;
             }
           }
           return c;
@@ -3158,7 +3164,7 @@ namespace boost {
           return this->find_node_impl(key_hash, k, this->key_eq());
         }
 
-        v2_node_pointer find_node(const_key_type& k) const
+        template <class Key> v2_node_pointer find_node(Key const& k) const
         {
           std::size_t const key_hash = this->hash(k);
           return v2_find_node_impl(
@@ -4290,8 +4296,8 @@ namespace boost {
         //
         // no throw
 
-        template <class KeyEqual, class Key>
-        std::size_t erase_key_equiv_impl(KeyEqual const& eq, Key const& k)
+        template <class Key>
+        std::size_t erase_key_equiv_impl(Key const& k)
         {
           if (!this->size_)
             return 0;
@@ -4303,7 +4309,7 @@ namespace boost {
           std::size_t deleted_count = 0;
 
           while (p) {
-            if (eq(extractor::extract(p->value()), k)) {
+            if (this->key_eq()(extractor::extract(p->value()), k)) {
               v2_node_pointer q = p;
               p = p->next;
               buckets_v2_.extract_node(itb, q);
@@ -4320,7 +4326,7 @@ namespace boost {
 
         std::size_t erase_key_equiv(const_key_type& k)
         {
-          return this->erase_key_equiv_impl(this->key_eq(), k);
+          return this->erase_key_equiv_impl(k);
         }
 
         iterator erase_nodes_equiv(c_iterator i, c_iterator j)

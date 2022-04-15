@@ -455,8 +455,7 @@ namespace boost {
         size_type>::type
       erase(BOOST_FWD_REF(Key) k)
       {
-        return table_.erase_key_unique_impl(
-          this->key_eq(), boost::forward<Key>(k));
+        return table_.erase_key_unique_impl(boost::forward<Key>(k));
       }
 
       BOOST_UNORDERED_DEPRECATED("Use erase instead")
@@ -500,9 +499,7 @@ namespace boost {
         const_iterator>::type
       find(const Key& k) const
       {
-        return const_iterator(table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq()));
+        return const_iterator(table_.find(k));
       }
 
       template <class CompatibleKey, class CompatibleHash,
@@ -512,9 +509,7 @@ namespace boost {
 
       bool contains(key_type const& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       template <class Key>
@@ -522,9 +517,7 @@ namespace boost {
         bool>::type
       contains(const Key& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       size_type count(const key_type&) const;
@@ -534,11 +527,7 @@ namespace boost {
         size_type>::type
       count(const Key& k) const
       {
-        node_pointer n = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq());
-
-        return n ? 1 : 0;
+        return table_.find(k) != this->end() ? 1 : 0;
       }
 
       std::pair<const_iterator, const_iterator> equal_range(
@@ -549,12 +538,13 @@ namespace boost {
         std::pair<const_iterator, const_iterator> >::type
       equal_range(Key const& k) const
       {
-        node_pointer n = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq());
+        iterator n = table_.find(k);
+        iterator m = n;
+        if (m != this->end()) {
+          ++m;
+        }
 
-        return std::make_pair(
-          const_iterator(n), const_iterator(n ? table::next_node(n) : n));
+        return std::make_pair(const_iterator(n), const_iterator(m));
       }
 
       // bucket interface
@@ -1076,7 +1066,7 @@ namespace boost {
         size_type>::type
       erase(const Key& k)
       {
-        return table_.erase_key_equiv_impl(this->key_eq(), k);
+        return table_.erase_key_equiv_impl(k);
       }
 
       iterator erase(const_iterator, const_iterator);
@@ -1121,9 +1111,7 @@ namespace boost {
         const_iterator>::type
       find(const Key& k) const
       {
-        return const_iterator(table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq()));
+        return table_.find(k);
       }
 
       template <class CompatibleKey, class CompatibleHash,
@@ -1133,9 +1121,7 @@ namespace boost {
 
       bool contains(const key_type& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       template <class Key>
@@ -1143,9 +1129,7 @@ namespace boost {
         bool>::type
       contains(const Key& k) const
       {
-        return 0 != table_.find_node_impl(
-                      table::policy::apply_hash(this->hash_function(), k), k,
-                      this->key_eq());
+        return table_.find(k) != this->end();
       }
 
       size_type count(const key_type&) const;
@@ -1155,11 +1139,7 @@ namespace boost {
         size_type>::type
       count(const Key& k) const
       {
-        node_pointer n = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq());
-
-        return n ? table_.group_count(n) : 0;
+        return table_.group_count(k);
       }
 
       std::pair<const_iterator, const_iterator> equal_range(
@@ -1170,12 +1150,9 @@ namespace boost {
         std::pair<const_iterator, const_iterator> >::type
       equal_range(const Key& k) const
       {
-        node_pointer n = table_.find_node_impl(
-          table::policy::apply_hash(this->hash_function(), k), k,
-          this->key_eq());
-
-        return std::make_pair(
-          const_iterator(n), const_iterator(n ? table_.next_group(n) : n));
+        iterator first = table_.find(k);
+        iterator last = table_.next_group(k, first);
+        return std::make_pair(const_iterator(first), const_iterator(last));
       }
 
       // bucket interface
