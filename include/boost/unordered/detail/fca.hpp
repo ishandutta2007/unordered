@@ -475,9 +475,15 @@ namespace boost {
           4294967291ul};
 #else
           // more than 32 bits
-          6442450939ull, 12884901893ull, 25769803751ull, 51539607551ull,
-          103079215111ull, 206158430209ull, 412316860441ull, 824633720831ull,
-          1649267441651ull};
+          boost::ulong_long_type(6442450939), 
+          boost::ulong_long_type(12884901893), 
+          boost::ulong_long_type(25769803751), 
+          boost::ulong_long_type(51539607551),
+          boost::ulong_long_type(103079215111), 
+          boost::ulong_long_type(206158430209), 
+          boost::ulong_long_type(412316860441), 
+          boost::ulong_long_type(824633720831),
+          boost::ulong_long_type(1649267441651)};
 #endif
 
         template <class T>
@@ -488,39 +494,39 @@ namespace boost {
 #if defined(FCA_FASTMOD_SUPPORT)
         template <class T>
         uint64_t prime_fmod_size<T>::inv_sizes32[] = {
-          1418980313362273202ull,
-          636094623231363849ull,
-          348051774975651918ull,
-          190172619316593316ull,
-          95578984837873325ull,
-          47420935922132524ull,
-          23987963684927896ull,
-          11955116055547344ull,
-          5991147799191151ull,
-          2998982941588287ull,
-          1501077717772769ull,
-          750081082979285ull,
-          375261795343686ull,
-          187625172388393ull,
-          93822606204624ull,
-          46909513691883ull,
-          23456218233098ull,
-          11728086747027ull,
-          5864041509391ull,
-          2932024948977ull,
-          1466014921160ull,
-          733007198436ull,
-          366503839517ull,
-          183251896093ull,
-          91625960335ull,
-          45812983922ull,
-          22906489714ull,
-          11453246088ull,
-          5726623060ull,
+          boost::ulong_long_type(1418980313362273202),
+          boost::ulong_long_type(636094623231363849),
+          boost::ulong_long_type(348051774975651918),
+          boost::ulong_long_type(190172619316593316),
+          boost::ulong_long_type(95578984837873325),
+          boost::ulong_long_type(47420935922132524),
+          boost::ulong_long_type(23987963684927896),
+          boost::ulong_long_type(11955116055547344),
+          boost::ulong_long_type(5991147799191151),
+          boost::ulong_long_type(2998982941588287),
+          boost::ulong_long_type(1501077717772769),
+          boost::ulong_long_type(750081082979285),
+          boost::ulong_long_type(375261795343686),
+          boost::ulong_long_type(187625172388393),
+          boost::ulong_long_type(93822606204624),
+          boost::ulong_long_type(46909513691883),
+          boost::ulong_long_type(23456218233098),
+          boost::ulong_long_type(11728086747027),
+          boost::ulong_long_type(5864041509391),
+          boost::ulong_long_type(2932024948977),
+          boost::ulong_long_type(1466014921160),
+          boost::ulong_long_type(733007198436),
+          boost::ulong_long_type(366503839517),
+          boost::ulong_long_type(183251896093),
+          boost::ulong_long_type(91625960335),
+          boost::ulong_long_type(45812983922),
+          boost::ulong_long_type(22906489714),
+          boost::ulong_long_type(11453246088),
+          boost::ulong_long_type(5726623060),
 #if !defined(FCA_HAS_64B_SIZE_T)
         };
 #else
-          4294967302ull};
+          boost::ulong_long_type(4294967302)};
 #endif /* !defined(FCA_HAS_64B_SIZE_T) */
 
         template <class T>
