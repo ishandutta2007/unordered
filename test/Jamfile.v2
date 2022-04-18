@@ -73,7 +73,7 @@ test-suite unordered
         [ run unordered/deduction_tests.cpp ]
         [ run unordered/scoped_allocator.cpp : : : <toolset>msvc-14.0:<build>no ]
         [ run unordered/transparent_tests.cpp ]
-        # [ run unordered/reserve_tests.cpp ]
+        [ run unordered/reserve_tests.cpp ]
         [ run unordered/contains_tests.cpp ]
         # [ run unordered/mix_policy.cpp ]
         [ run unordered/erase_if.cpp ]

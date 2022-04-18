@@ -152,9 +152,11 @@ template <class UnorderedContainer> void rehash_tests()
     // no reallocations
     //
     std::size_t prev_allocations = num_allocations;
+    std::size_t prev_total_allocation = total_allocation;
 
     s.rehash(count);
     BOOST_TEST_EQ(num_allocations, prev_allocations);
+    BOOST_TEST_EQ(total_allocation, prev_total_allocation);
 
     // prove that when we rehash, exceeding the current bucket count, that we
     // properly deallocate the current bucket array and then reallocate the
@@ -174,11 +176,15 @@ template <class UnorderedContainer> void rehash_tests()
     // note, the test is vulnerable to cases where the next calculated bucket
     // count can exceed `prev_count + count`
     //
+    std::size_t const estimated_bucket_group_size =
+      3 * sizeof(void*) + sizeof(std::size_t);
+    std::size_t const estimated_bucket_groups =
+      s.bucket_count() / (sizeof(std::size_t) * 8);
+
     BOOST_TEST_LT(s.bucket_count(), prev_count + count);
-    BOOST_TEST_LE(
-      total_allocation -
-        sizeof(boost::unordered::detail::node<std::allocator<int>, int>),
-      (prev_count + count) * sizeof(void*));
+    BOOST_TEST_LE(total_allocation,
+      (prev_count + count) * sizeof(void*) +
+        estimated_bucket_group_size * estimated_bucket_groups);
   }
 
   BOOST_TEST_GT(num_allocations, 0u);
