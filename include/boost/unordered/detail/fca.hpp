@@ -123,6 +123,7 @@ namespace boost {
                 boost::allocator_construct_n(
                   a, boost::to_address(p), other.len_, other.data());
 
+                this->deallocate();
                 p_ = p;
                 len_ = other.len_;
               }
