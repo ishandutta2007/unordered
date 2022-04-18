@@ -846,8 +846,6 @@ namespace boost {
             const_local_iterator;
 
         private:
-          static const std::size_t N;
-
           Allocator allocator;
           node_allocator_type node_allocator;
 
@@ -860,8 +858,10 @@ namespace boost {
               : allocator(al), node_allocator(al),
                 size_index_(size_policy::size_index(n)),
                 size_(size_policy::size(size_index_)), buckets(size_ + 1, al),
-                groups(size_ / N + 1, al)
+                groups(size_ / group::N + 1, al)
           {
+            std::size_t const N = group::N;
+
             group& grp = groups.back();
             group_pointer pbg =
               boost::pointer_traits<group_pointer>::pointer_to(grp);
@@ -972,6 +972,8 @@ namespace boost {
 
           iterator at(size_type n) const
           {
+            std::size_t const N = group::N;
+
             iterator pbg(bucket_pointer_traits::pointer_to(
                            const_cast<Bucket&>(buckets[n])),
               group_pointer_traits::pointer_to(
@@ -1002,6 +1004,8 @@ namespace boost {
 
           void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
           {
+            std::size_t const N = group::N;
+
             if (!itb->next) { // empty bucket
               typename iterator::bucket_pointer pb = itb.p;
               typename iterator::bucket_group_pointer pbg = itb.pbg;
@@ -1025,6 +1029,8 @@ namespace boost {
           void insert_node_hint(
             iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
           {
+            std::size_t const N = group::N;
+
             if (!itb->next) { // empty bucket
               typename iterator::bucket_pointer pb = itb.p;
               typename iterator::bucket_group_pointer pbg = itb.pbg;
@@ -1070,6 +1076,8 @@ namespace boost {
 
           void unlink_empty_buckets() BOOST_NOEXCEPT
           {
+            std::size_t const N = group::N;
+
             group_pointer pbg =
                             group_pointer_traits::pointer_to(groups.front()),
                           last =
@@ -1114,11 +1122,6 @@ namespace boost {
             pbg->prev = pbg->next = group_pointer();
           }
         };
-
-        template <class Bucket, class Allocator, class SizePolicy>
-        const std::size_t
-          grouped_bucket_array<Bucket, Allocator, SizePolicy>::N =
-            grouped_bucket_array<Bucket, Allocator, SizePolicy>::group::N;
 
         // struct grouped_buckets
         // {
