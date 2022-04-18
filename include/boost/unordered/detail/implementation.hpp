@@ -2292,41 +2292,19 @@ namespace boost {
         table& operator=(table const&);
 
       public:
-        typedef typename Types::node node;
-        typedef typename Types::bucket bucket;
         typedef typename Types::hasher hasher;
         typedef typename Types::key_equal key_equal;
         typedef typename Types::const_key_type const_key_type;
         typedef typename Types::extractor extractor;
         typedef typename Types::value_type value_type;
         typedef typename Types::table table_impl;
-        typedef typename Types::link_pointer link_pointer;
-        typedef typename Types::policy policy;
-        // typedef typename Types::iterator iterator;
-        // typedef typename Types::c_iterator c_iterator;
-        // typedef typename Types::l_iterator l_iterator;
-        // typedef typename Types::cl_iterator cl_iterator;
 
         typedef boost::unordered::detail::functions<typename Types::hasher,
           typename Types::key_equal>
           functions;
 
         typedef typename Types::value_allocator value_allocator;
-        typedef typename boost::unordered::detail::rebind_wrap<value_allocator,
-          node>::type node_allocator;
-        typedef typename boost::unordered::detail::rebind_wrap<value_allocator,
-          bucket>::type bucket_allocator;
-        typedef boost::unordered::detail::allocator_traits<node_allocator>
-          node_allocator_traits;
-        typedef boost::unordered::detail::allocator_traits<bucket_allocator>
-          bucket_allocator_traits;
-        typedef typename node_allocator_traits::pointer node_pointer;
-        typedef
-          typename node_allocator_traits::const_pointer const_node_pointer;
-        typedef typename bucket_allocator_traits::pointer bucket_pointer;
 
-        // v2
-        //
         typedef boost::unordered::detail::v2::grouped_bucket_array<
           v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
           v2_bucket_array_type;
@@ -2440,47 +2418,16 @@ namespace boost {
         ////////////////////////////////////////////////////////////////////////
         // Members
 
-        boost::unordered::detail::compressed<bucket_allocator, node_allocator>
-          allocators_;
-        std::size_t bucket_count_;
-        int bcount_log2_;
         std::size_t size_;
         float mlf_;
         std::size_t max_load_;
-
-        // TODO: replace this data member with the proper bucket array type
-        bucket_pointer buckets_;
         v2_bucket_array_type buckets_v2_;
-
-      private:
-        void init_bcount_log2()
-        {
-          BOOST_ASSERT( bucket_count_ > 0 );
-          bcount_log2_ = static_cast<int>( boost::core::bit_width( bucket_count_ ) ) - 1;
-        }
 
       public:
         ////////////////////////////////////////////////////////////////////////
         // Data access
 
         size_type bucket_count() const { return buckets_v2_.bucket_count(); }
-
-        //         static node_pointer get_node(c_iterator it) { return
-        //         it.node_; }
-
-        static node_pointer next_node(link_pointer n)
-        {
-          return static_cast<node_pointer>(n->next_);
-        }
-
-        static node_pointer next_for_find(link_pointer n)
-        {
-          node_pointer n2 = static_cast<node_pointer>(n);
-          do {
-            n2 = next_node(n2);
-          } while (n2 && !n2->is_first_in_group());
-          return n2;
-        }
 
         template <class Key>
         iterator next_group(Key const& k, c_iterator n) const
@@ -2515,16 +2462,6 @@ namespace boost {
           return c;
         }
 
-        std::size_t node_bucket(node_pointer n) const
-        {
-          return n->get_bucket();
-        }
-
-        bucket_allocator const& bucket_alloc() const
-        {
-          return allocators_.first();
-        }
-
         v2_node_allocator_type const& node_alloc() const
         {
           return buckets_v2_.get_node_allocator();
@@ -2535,32 +2472,11 @@ namespace boost {
           return buckets_v2_.get_node_allocator();
         }
 
-        bucket_allocator& bucket_alloc()
-        {
-          return buckets_v2_.get_bucket_allocatr();
-        }
-
         std::size_t max_bucket_count() const
         {
           typedef typename v2_bucket_array_type::size_policy size_policy;
           return size_policy::size(size_policy::size_index(
-            boost::allocator_max_size(this->bucket_alloc())));
-        }
-
-        bucket_pointer get_bucket_pointer(std::size_t bucket_index) const
-        {
-          BOOST_ASSERT(buckets_);
-          return buckets_ + static_cast<std::ptrdiff_t>(bucket_index);
-        }
-
-        link_pointer get_previous_start() const
-        {
-          return get_bucket_pointer(bucket_count_)->first_from_start();
-        }
-
-        link_pointer get_previous_start(std::size_t bucket_index) const
-        {
-          return get_bucket_pointer(bucket_index)->next_;
+            boost::allocator_max_size(this->node_alloc())));
         }
 
         iterator begin() const
@@ -2632,61 +2548,36 @@ namespace boost {
           recalculate_max_load();
         }
 
-        std::size_t min_buckets_for_size(std::size_t size) const
-        {
-          BOOST_ASSERT(mlf_ >= minimum_max_load_factor);
-
-          using namespace std;
-
-          // From insert/emplace requirements:
-          //
-          // size <= mlf_ * count
-          // => count >= size / mlf_
-          //
-          // Or from rehash post-condition:
-          //
-          // count >= size / mlf_
-
-          return policy::new_bucket_count(
-            boost::unordered::detail::double_to_size(
-              floor(static_cast<double>(size) / static_cast<double>(mlf_)) +
-              1));
-        }
-
         ////////////////////////////////////////////////////////////////////////
         // Constructors
 
         table(std::size_t num_buckets, hasher const& hf, key_equal const& eq,
-          node_allocator const& a)
-            : functions(hf, eq), allocators_(a, a),
-              bucket_count_(policy::new_bucket_count(num_buckets)), size_(0),
-              mlf_(1.0f), max_load_(0), buckets_(), buckets_v2_(num_buckets, a)
+          v2_node_allocator_type const& a)
+            : functions(hf, eq), size_(0), mlf_(1.0f), max_load_(0),
+              buckets_v2_(num_buckets, a)
         {
           recalculate_max_load();
         }
 
-        table(table const& x, node_allocator const& a)
-            : functions(x), allocators_(a, a),
-              bucket_count_(x.min_buckets_for_size(x.size_)), size_(0),
-              mlf_(x.mlf_), max_load_(0), buckets_(), buckets_v2_(x.size_, a)
+        table(table const& x, v2_node_allocator_type const& a)
+            : functions(x), size_(0), mlf_(x.mlf_), max_load_(0),
+              buckets_v2_(x.size_, a)
         {
           recalculate_max_load();
         }
 
         table(table& x, boost::unordered::detail::move_tag m)
-            : functions(x, m), allocators_(x.allocators_, m),
-              bucket_count_(x.bucket_count_), size_(x.size_), mlf_(x.mlf_),
-              max_load_(x.max_load_), buckets_(), buckets_v2_(boost::move(x.buckets_v2_))
+            : functions(x, m), size_(x.size_), mlf_(x.mlf_),
+              max_load_(x.max_load_), buckets_v2_(boost::move(x.buckets_v2_))
         {
           x.size_ = 0;
           x.max_load_ = 0;
         }
 
-        table(table& x, node_allocator const& a,
+        table(table& x, v2_node_allocator_type const& a,
           boost::unordered::detail::move_tag m)
-            : functions(x, m), allocators_(a, a),
-              bucket_count_(x.bucket_count_), size_(0), mlf_(x.mlf_),
-              max_load_(0), buckets_(), buckets_v2_(x.bucket_count(), a)
+            : functions(x, m), size_(0), mlf_(x.mlf_), max_load_(0),
+              buckets_v2_(x.bucket_count(), a)
         {
           recalculate_max_load();
         }
@@ -2716,50 +2607,6 @@ namespace boost {
           }
         }
 
-        // Create container buckets. If the container already contains any
-        // buckets
-        // the linked list will be transferred to the new buckets, but none
-        // of the bucket pointers will be set. See above note.
-        //
-        // Strong exception safety.
-        void create_buckets(std::size_t new_count)
-        {
-          link_pointer dummy_node;
-
-          // Construct the new buckets and dummy node, and destroy the old
-          // buckets
-          if (buckets_) {
-            dummy_node =
-              (buckets_ + static_cast<std::ptrdiff_t>(bucket_count_))->next_;
-            bucket_pointer new_buckets =
-              bucket_allocator_traits::allocate(bucket_alloc(), new_count + 1);
-            destroy_buckets();
-            buckets_ = new_buckets;
-          } else if (bucket::extra_node) {
-            node_constructor a(node_alloc());
-            a.create_node();
-            buckets_ =
-              bucket_allocator_traits::allocate(bucket_alloc(), new_count + 1);
-            dummy_node = a.release();
-          } else {
-            dummy_node = link_pointer();
-            buckets_ =
-              bucket_allocator_traits::allocate(bucket_alloc(), new_count + 1);
-          }
-
-          // nothrow from here...
-          bucket_count_ = new_count;
-          init_bcount_log2();
-          recalculate_max_load();
-
-          bucket_pointer last =
-            buckets_ + static_cast<std::ptrdiff_t>(new_count);
-          for (bucket_pointer i = buckets_; i != last; ++i) {
-            new ((void*)boost::to_address(i)) bucket();
-          }
-          new ((void*)boost::to_address(last)) bucket(dummy_node);
-        }
-
         ////////////////////////////////////////////////////////////////////////
         // Swap and Move
 
@@ -2771,11 +2618,6 @@ namespace boost {
           // false the behaviour is undefined unless the allocators
           // are equal.
           BOOST_ASSERT(node_alloc() == other.node_alloc());
-        }
-
-        void swap_allocators(table& other, true_type)
-        {
-          allocators_.swap(other.allocators_);
         }
 
         // Not nothrow swappable
@@ -2796,11 +2638,6 @@ namespace boost {
           this->switch_functions();
           x.switch_functions();
 
-          swap_allocators(
-            x, boost::unordered::detail::integral_constant<bool,
-                 allocator_traits<
-                   node_allocator>::propagate_on_container_swap::value>());
-
           buckets_v2_.swap(x.buckets_v2_);
           boost::swap(size_, x.size_);
           std::swap(mlf_, x.mlf_);
@@ -2810,11 +2647,6 @@ namespace boost {
         // Nothrow swappable
         void swap(table& x, true_type)
         {
-          swap_allocators(
-            x, boost::unordered::detail::integral_constant<bool,
-                 allocator_traits<
-                   node_allocator>::propagate_on_container_swap::value>());
-
           buckets_v2_.swap(x.buckets_v2_);
           boost::swap(size_, x.size_);
           std::swap(mlf_, x.mlf_);
@@ -2912,14 +2744,6 @@ namespace boost {
 
         ~table() { delete_buckets(); }
 
-        void destroy_node(node_pointer n)
-        {
-          BOOST_UNORDERED_CALL_DESTROY(
-            node_allocator_traits, node_alloc(), n->value_ptr());
-          boost::unordered::detail::func::destroy(boost::to_address(n));
-          node_allocator_traits::deallocate(node_alloc(), n, 1);
-        }
-
         void v2_delete_node(v2_node_pointer p)
         {
           v2_node_allocator_type alloc = this->node_alloc();
@@ -2943,50 +2767,6 @@ namespace boost {
 
           buckets_v2_.clear();
         }
-
-        void destroy_buckets()
-        {
-          bucket_pointer last = get_bucket_pointer(bucket_count_ + 1);
-          for (bucket_pointer it = buckets_; it != last; ++it) {
-            boost::unordered::detail::func::destroy(boost::to_address(it));
-          }
-
-          bucket_allocator_traits::deallocate(
-            bucket_alloc(), buckets_, bucket_count_ + 1);
-        }
-
-//         ////////////////////////////////////////////////////////////////////////
-//         // Fix buckets after delete/extract
-//         //
-//         // (prev,next) should mark an open range of nodes in a single bucket
-//         // which
-//         // have either been unlinked, or are about to be.
-
-//         std::size_t fix_bucket(
-//           std::size_t bucket_index, link_pointer prev, node_pointer next)
-//         {
-//           std::size_t bucket_index2 = bucket_index;
-
-//           if (next) {
-//             bucket_index2 = node_bucket(next);
-
-//             // If next is in the same bucket, then there's nothing to do.
-//             if (bucket_index == bucket_index2) {
-//               return bucket_index2;
-//             }
-
-//             // Update the bucket containing next.
-//             get_bucket_pointer(bucket_index2)->next_ = prev;
-//           }
-
-//           // Check if this bucket is now empty.
-//           bucket_pointer this_bucket = get_bucket_pointer(bucket_index);
-//           if (this_bucket->next_ == prev) {
-//             this_bucket->next_ = link_pointer();
-//           }
-
-//           return bucket_index2;
-//         }
 
         ////////////////////////////////////////////////////////////////////////
         // Clear
@@ -3089,7 +2869,7 @@ namespace boost {
             this->current_functions().move_assign(x.current_functions());
           }
           delete_buckets();
-          allocators_.move_assign(x.allocators_);
+
           buckets_v2_.reset_allocator(x.buckets_v2_.get_allocator());
           mlf_ = x.mlf_;
           move_buckets_from(x);
@@ -3159,11 +2939,6 @@ namespace boost {
 
         // Find Node
 
-        node_pointer find_node(std::size_t key_hash, const_key_type& k) const
-        {
-          return this->find_node_impl(key_hash, k, this->key_eq());
-        }
-
         template <class Key> v2_node_pointer find_node(Key const& k) const
         {
           std::size_t const key_hash = this->hash(k);
@@ -3175,27 +2950,6 @@ namespace boost {
           const_key_type& k, v2_bucket_iterator itb) const
         {
           return v2_find_node_impl(k, itb);
-        }
-
-        template <class Key, class Pred>
-        node_pointer find_node_impl(
-          std::size_t key_hash, Key const& k, Pred const& eq) const
-        {
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          node_pointer n = this->begin(bucket_index);
-
-          for (;;) {
-            if (!n)
-              return n;
-
-            if (eq(k, this->get_key(n))) {
-              return n;
-            } else if (this->node_bucket(n) != bucket_index) {
-              return node_pointer();
-            }
-
-            n = next_for_find(n);
-          }
         }
 
         template <class Key>
@@ -3355,43 +3109,6 @@ namespace boost {
         }
 
         // Emplace/Insert
-
-        inline node_pointer add_node_unique(
-          node_pointer n, std::size_t key_hash)
-        {
-          std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          bucket_pointer b = this->get_bucket_pointer(bucket_index);
-
-          n->bucket_info_ = bucket_index;
-          n->set_first_in_group();
-
-          if (!b->next_) {
-            link_pointer start_node = this->get_previous_start();
-
-            if (start_node->next_) {
-              this->get_bucket_pointer(node_bucket(next_node(start_node)))
-                ->next_ = n;
-            }
-
-            b->next_ = start_node;
-            n->next_ = start_node->next_;
-            start_node->next_ = n;
-          } else {
-            n->next_ = b->next_->next_;
-            b->next_->next_ = n;
-          }
-
-          ++this->size_;
-          return n;
-        }
-
-        // inline node_pointer resize_and_add_node_unique(
-        //   node_pointer n, std::size_t key_hash)
-        // {
-        //   node_tmp b(n, this->node_alloc());
-        //   this->reserve_for_insert(this->size_ + 1);
-        //   return this->add_node_unique(b.release(), key_hash);
-        // }
 
         template <BOOST_UNORDERED_EMPLACE_TEMPLATE>
         iterator emplace_hint_unique(
@@ -4448,21 +4165,6 @@ namespace boost {
       //////////////////////////////////////////////////////////////////////////
       // Reserve & Rehash
 
-      // basic exception safety
-      template <typename Types>
-      inline void table<Types>::reserve_for_insert(std::size_t size)
-      {
-        if (!buckets_) {
-          create_buckets((std::max)(bucket_count_, min_buckets_for_size(size)));
-        } else if (size > max_load_) {
-          std::size_t num_buckets =
-            min_buckets_for_size((std::max)(size, size_ + (size_ >> 1)));
-
-          if (num_buckets != bucket_count_)
-            this->rehash_impl(num_buckets);
-        }
-      }
-
       // if hash function throws, basic exception safety
       // strong otherwise.
       template <typename Types>
@@ -4517,66 +4219,9 @@ namespace boost {
         recalculate_max_load();
       }
 
-      template <typename Types>
-      inline void table<Types>::rehash_impl(std::size_t num_buckets)
-      {
-        BOOST_ASSERT(this->buckets_);
-
-        this->create_buckets(num_buckets);
-        link_pointer prev = this->get_previous_start();
-        BOOST_TRY
-        {
-          while (prev->next_) {
-            node_pointer n = next_node(prev);
-            std::size_t key_hash = this->hash(this->get_key(n));
-            std::size_t bucket_index = this->hash_to_bucket(key_hash);
-
-            n->bucket_info_ = bucket_index;
-            n->set_first_in_group();
-
-            // Iterator through the rest of the group of equal nodes,
-            // setting the bucket.
-            for (;;) {
-              node_pointer next = next_node(n);
-              if (!next || next->is_first_in_group()) {
-                break;
-              }
-              n = next;
-              n->bucket_info_ = bucket_index;
-              n->reset_first_in_group();
-            }
-
-            // n is now the last node in the group
-            bucket_pointer b = this->get_bucket_pointer(bucket_index);
-            if (!b->next_) {
-              b->next_ = prev;
-              prev = n;
-            } else {
-              link_pointer next = n->next_;
-              n->next_ = b->next_->next_;
-              b->next_->next_ = prev->next_;
-              prev->next_ = next;
-            }
-          }
-        }
-        BOOST_CATCH(...)
-        {
-          node_pointer n = next_node(prev);
-          prev->next_ = node_pointer();
-          while (n) {
-            node_pointer next = next_node(n);
-            destroy_node(n);
-            --size_;
-            n = next;
-          }
-          BOOST_RETHROW
-        }
-        BOOST_CATCH_END
-      }
-
-// #if defined(BOOST_MSVC)
-// #pragma warning(pop)
-// #endif
+#if defined(BOOST_MSVC)
+#pragma warning(pop)
+#endif
 
       ////////////////////////////////////////////////////////////////////////
       // key extractors

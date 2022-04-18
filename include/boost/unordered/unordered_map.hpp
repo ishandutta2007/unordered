@@ -57,8 +57,6 @@ namespace boost {
       typedef boost::unordered::detail::map<A, K, T, H, P> types;
       typedef typename types::value_allocator_traits value_allocator_traits;
       typedef typename types::table table;
-      typedef typename table::node_pointer node_pointer;
-      typedef typename table::link_pointer link_pointer;
 
     public:
       typedef typename value_allocator_traits::pointer pointer;
@@ -1011,8 +1009,6 @@ namespace boost {
       typedef boost::unordered::detail::map<A, K, T, H, P> types;
       typedef typename types::value_allocator_traits value_allocator_traits;
       typedef typename types::table table;
-      typedef typename table::node_pointer node_pointer;
-      typedef typename table::link_pointer link_pointer;
 
     public:
       typedef typename value_allocator_traits::pointer pointer;
