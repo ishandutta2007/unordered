@@ -24,21 +24,8 @@ namespace boost {
         typedef boost::unordered::detail::allocator_traits<value_allocator>
           value_allocator_traits;
 
-        typedef boost::unordered::detail::pick_node<A, value_type> pick;
-        typedef typename pick::node node;
-        typedef typename pick::bucket bucket;
-        typedef typename pick::link_pointer link_pointer;
-
         typedef boost::unordered::detail::table<types> table;
         typedef boost::unordered::detail::set_extractor<value_type> extractor;
-
-        typedef typename boost::unordered::detail::pick_policy<T>::type policy;
-
-        typedef boost::unordered::iterator_detail::c_iterator<node> iterator;
-        typedef boost::unordered::iterator_detail::c_iterator<node> c_iterator;
-        typedef boost::unordered::iterator_detail::cl_iterator<node> l_iterator;
-        typedef boost::unordered::iterator_detail::cl_iterator<node>
-          cl_iterator;
 
         typedef boost::unordered::detail::v2::grouped_bucket_array<
           v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >

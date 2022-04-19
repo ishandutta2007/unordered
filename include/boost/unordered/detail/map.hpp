@@ -25,21 +25,8 @@ namespace boost {
         typedef boost::unordered::detail::allocator_traits<value_allocator>
           value_allocator_traits;
 
-        typedef boost::unordered::detail::pick_node<A, value_type> pick;
-        typedef typename pick::node node;
-        typedef typename pick::bucket bucket;
-        typedef typename pick::link_pointer link_pointer;
-
         typedef boost::unordered::detail::table<types> table;
         typedef boost::unordered::detail::map_extractor<value_type> extractor;
-
-        typedef typename boost::unordered::detail::pick_policy<K>::type policy;
-
-        typedef boost::unordered::iterator_detail::iterator<node> iterator;
-        typedef boost::unordered::iterator_detail::c_iterator<node> c_iterator;
-        typedef boost::unordered::iterator_detail::l_iterator<node> l_iterator;
-        typedef boost::unordered::iterator_detail::cl_iterator<node>
-          cl_iterator;
 
         typedef boost::unordered::detail::v2::grouped_bucket_array<
           v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
@@ -49,8 +36,6 @@ namespace boost {
 
         typedef boost::unordered::node_handle_map<v2_node_type, K, M, A>
           node_type;
-        // typedef boost::unordered::insert_return_type_map<v2_node_type, K, M, A>
-        //   insert_return_type;
 
         typedef typename table::iterator v2_iterator;
         typedef boost::unordered::insert_return_type_map<v2_iterator, node_type> insert_return_type;
