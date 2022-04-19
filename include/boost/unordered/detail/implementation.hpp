@@ -1957,12 +1957,6 @@ namespace boost {
 
         void recalculate_max_load()
         {
-          // float fml = mlf_ * static_cast<float>(buckets_v2_.capacity());
-          // std::size_t res = (std::numeric_limits<std::size_t>::max)();
-          // if (res > static_cast<std::size_t>(fml))
-          //   res = static_cast<std::size_t>(fml);
-          // max_load_ = res;
-
           using namespace std;
 
           // From 6.3.1/13:
@@ -2133,34 +2127,6 @@ namespace boost {
             buckets_v2_.insert_node(itb, b.release());
             ++size_;
           }
-
-          // v2_bucket_iterator pos1 = ++buckets_v2_.at(buckets_v2_.bucket_count());
-          // v2_bucket_iterator end = src.buckets_v2_.end();
-          // for (v2_bucket_iterator pos = src.buckets_v2_.begin(); pos != end;
-          //      ++pos, ++pos1) {
-          //   for (v2_node_pointer p = pos->next; p; p = p->next) {
-          //     buckets_v2_.insert_node(
-          //       pos1, detail::func::construct_node(
-          //               this->node_alloc(), boost::move(p->value())));
-          //     ++size_;
-          //   }
-          // }
-          // this->create_buckets(this->bucket_count_);
-          // link_pointer prev = this->get_previous_start();
-          // std::size_t last_bucket = this->bucket_count_;
-          // for (node_pointer n = src.begin(); n; n = next_node(n)) {
-          //   std::size_t n_bucket = n->get_bucket();
-          //   if (n_bucket != last_bucket) {
-          //     this->get_bucket_pointer(n_bucket)->next_ = prev;
-          //   }
-          //   node_pointer n2 = boost::unordered::detail::func::construct_node(
-          //     this->node_alloc(), boost::move(n->value()));
-          //   n2->bucket_info_ = n->bucket_info_;
-          //   prev->next_ = n2;
-          //   ++size_;
-          //   prev = n2;
-          //   last_bucket = n_bucket;
-          // }
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -2416,41 +2382,6 @@ namespace boost {
           return this->end();
         }
 
-//         template <class KeyEqual, class Key>
-//         link_pointer find_previous_node_impl(
-//           KeyEqual const& eq, Key const& k, std::size_t const bucket_index)
-//         {
-//           link_pointer prev = this->get_previous_start(bucket_index);
-//           if (!prev) {
-//             return prev;
-//           }
-
-//           for (;;) {
-//             node_pointer n = next_node(prev);
-//             if (!n) {
-//               return link_pointer();
-//             } 
-//             // the `first_in_group()` checks are required for the multi-containers
-//             // for the unique containers, this condition seems to be always true
-//             //
-//             else if (n->is_first_in_group()) {
-//               if (node_bucket(n) != bucket_index) {
-//                 return link_pointer();
-//               } else if (eq(k, this->get_key(n))) {
-//                 return prev;
-//               }
-//             }
-//             prev = n;
-//           }
-//         }
-
-//         // Find the node before the key, so that it can be erased.
-//         link_pointer find_previous_node(
-//           const_key_type& k, std::size_t bucket_index)
-//         {
-//           return find_previous_node_impl(this->key_eq(), k, bucket_index);
-//         }
-
         // Extract and erase
 
         template <class Key> v2_node_pointer extract_by_key_impl(Key const& k)
@@ -2468,29 +2399,7 @@ namespace boost {
           --size_;
 
           return it.p;
-          // std::size_t bucket_index = this->hash_to_bucket(key_hash);
-          // link_pointer prev =
-          //   this->find_previous_node_impl(this->key_eq(), k, bucket_index);
-          // if (!prev) {
-          //   return node_pointer();
-          // }
-          // node_pointer n = next_node(prev);
-          // node_pointer n2 = next_node(n);
-          // if (n2) {
-          //   n2->set_first_in_group();
-          // }
-          // prev->next_ = n2;
-          // --this->size_;
-          // this->fix_bucket(bucket_index, prev, n2);
-          // n->next_ = link_pointer();
-
-          // return n;
         }
-
-//         inline node_pointer extract_by_key(const_key_type& k)
-//         {
-//           return extract_by_key_impl(k);
-//         }
 
         // Reserve and rehash
         void transfer_node(
@@ -2502,9 +2411,7 @@ namespace boost {
           new_buckets.insert_node(itnewb, p);
         }
 
-        void reserve_for_insert(std::size_t);
         void rehash(std::size_t);
-//         void reserve(std::size_t);
         void rehash_impl(std::size_t);
 
         ////////////////////////////////////////////////////////////////////////
@@ -2868,37 +2775,6 @@ namespace boost {
         // if hash function throws, or inserting > 1 element, basic exception
         // safety strong otherwise
 
-    //     template <class InputIt>
-    //     void insert_range_unique(const_key_type& k, InputIt i, InputIt j)
-    //     {
-    //       insert_range_unique2(k, i, j);
-
-    //       while (++i != j) {
-    //         // Note: can't use get_key as '*i' might not be value_type - it
-    //         // could be a pair with first_types as key_type without const or
-    //         // a different second_type.
-    //         insert_range_unique2(extractor::extract(*i), i, j);
-    //       }
-    //     }
-
-    //     template <class InputIt>
-    //     void insert_range_unique2(const_key_type& k, InputIt i, InputIt j)
-    //     {
-    //       // No side effects in this initial code
-    //       std::size_t key_hash = this->hash(k);
-    //       node_pointer pos = this->find_node(key_hash, k);
-
-    //       if (!pos) {
-    //         node_tmp b(boost::unordered::detail::func::construct_node(
-    //                      this->node_alloc(), *i),
-    //           this->node_alloc());
-    //         if (this->size_ + 1 > this->max_load_)
-    //           this->reserve_for_insert(
-    //             this->size_ + boost::unordered::detail::insert_size(i, j));
-    //         this->add_node_unique(b.release(), key_hash);
-    //       }
-    //     }
-
         template <class InputIt>
         void insert_range_unique(no_key, InputIt i, InputIt j)
         {
@@ -2941,20 +2817,6 @@ namespace boost {
           --size_;
 
           return p;
-
-          // node_pointer n = i.node_;
-          // BOOST_ASSERT(n);
-          // std::size_t bucket_index = this->node_bucket(n);
-          // link_pointer prev = this->get_previous_start(bucket_index);
-          // while (prev->next_ != n) {
-          //   prev = prev->next_;
-          // }
-          // node_pointer n2 = next_node(n);
-          // prev->next_ = n2;
-          // --this->size_;
-          // this->fix_bucket(bucket_index, prev, n2);
-          // n->next_ = link_pointer();
-          // return n;
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -3069,17 +2931,6 @@ namespace boost {
           if (this->size_ != other.size_)
             return false;
 
-          // for (node_pointer n1 = this->begin(); n1;) {
-          //   node_pointer n2 = other.find_node(other.get_key(n1));
-          //   if (!n2)
-          //     return false;
-          //   node_pointer end1 = next_group(n1);
-          //   node_pointer end2 = next_group(n2);
-          //   if (!group_equals_equiv(n1, end1, n2, end2))
-          //     return false;
-          //   n1 = end1;
-          // }
-
           iterator last = this->end();
           for (iterator n1 = this->begin(); n1 != last;) {
             const_key_type& k = extractor::extract(*n1);
@@ -3169,65 +3020,7 @@ namespace boost {
           return count;
         }
 
-//         // Emplace/Insert
-
-//         inline node_pointer add_node_equiv(
-//           node_pointer n, std::size_t key_hash, node_pointer pos)
-//         {
-//           std::size_t bucket_index = this->hash_to_bucket(key_hash);
-//           n->bucket_info_ = bucket_index;
-
-//           if (pos) {
-//             n->reset_first_in_group();
-//             n->next_ = pos->next_;
-//             pos->next_ = n;
-//             if (n->next_) {
-//               std::size_t next_bucket = this->node_bucket(next_node(n));
-//               if (next_bucket != bucket_index) {
-//                 this->get_bucket_pointer(next_bucket)->next_ = n;
-//               }
-//             }
-//           } else {
-//             n->set_first_in_group();
-//             bucket_pointer b = this->get_bucket_pointer(bucket_index);
-
-//             if (!b->next_) {
-//               link_pointer start_node = this->get_previous_start();
-
-//               if (start_node->next_) {
-//                 this
-//                   ->get_bucket_pointer(this->node_bucket(next_node(start_node)))
-//                   ->next_ = n;
-//               }
-
-//               b->next_ = start_node;
-//               n->next_ = start_node->next_;
-//               start_node->next_ = n;
-//             } else {
-//               n->next_ = b->next_->next_;
-//               b->next_->next_ = n;
-//             }
-//           }
-//           ++this->size_;
-//           return n;
-//         }
-
-//         inline node_pointer add_using_hint_equiv(
-//           node_pointer n, node_pointer hint)
-//         {
-//           n->bucket_info_ = hint->bucket_info_;
-//           n->reset_first_in_group();
-//           n->next_ = hint->next_;
-//           hint->next_ = n;
-//           if (n->next_) {
-//             std::size_t next_bucket = this->node_bucket(next_node(n));
-//             if (next_bucket != this->node_bucket(n)) {
-//               this->get_bucket_pointer(next_bucket)->next_ = n;
-//             }
-//           }
-//           ++this->size_;
-//           return n;
-//         }
+        // Emplace/Insert
 
         iterator emplace_equiv(v2_node_pointer n)
         {
@@ -3410,26 +3203,6 @@ namespace boost {
           buckets_v2_.extract_node(itb, p);
           --size_;
           return p;
-
-          // node_pointer i = n.node_;
-          // BOOST_ASSERT(i);
-          // node_pointer j(next_node(i));
-          // std::size_t bucket_index = this->node_bucket(i);
-
-          // link_pointer prev = this->get_previous_start(bucket_index);
-          // while (prev->next_ != i) {
-          //   prev = next_node(prev);
-          // }
-
-          // prev->next_ = j;
-          // if (j && i->is_first_in_group()) {
-          //   j->set_first_in_group();
-          // }
-          // --this->size_;
-          // this->fix_bucket(bucket_index, prev, j);
-          // i->next_ = link_pointer();
-
-          // return i;
         }
 
         ////////////////////////////////////////////////////////////////////////
