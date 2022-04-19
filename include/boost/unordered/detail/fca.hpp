@@ -16,6 +16,9 @@
 #include <boost/core/default_allocator.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/preprocessor/seq/enum.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/seq/size.hpp>
 
 // `iterator_facade` has transitive dependencies on Boost.MPL; one of the
 // headers is generating a `-Wsign-conversion` warning which has an open PR to
@@ -28,6 +31,7 @@
 #if defined(BOOST_GCC)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wconversion"
 #include <boost/iterator/iterator_facade.hpp>
 #pragma GCC diagnostic pop
 #else
@@ -231,165 +235,6 @@ namespace boost {
           }
         };
 
-        template <class = void> struct prime_size
-        {
-          static std::size_t sizes[];
-          static std::size_t sizes_len;
-
-          static inline std::size_t size_index(std::size_t n)
-          {
-            const std::size_t* bound =
-              std::lower_bound(sizes, sizes + sizes_len, n);
-            if (bound == sizes + sizes_len)
-              --bound;
-            return bound - sizes;
-          }
-
-          static inline std::size_t size(std::size_t size_index)
-          {
-            return sizes[size_index];
-          }
-
-          template <std::size_t Size>
-          static std::size_t position(std::size_t hash)
-          {
-            return hash % Size;
-          }
-
-          static std::size_t (*positions[])(std::size_t);
-
-          static inline std::size_t position(
-            std::size_t hash, std::size_t size_index)
-          {
-            return positions[size_index](hash);
-          }
-        }; // prime_size
-
-        template <class T>
-        std::size_t prime_size<T>::sizes[] = {
-          13ul,
-          29ul,
-          53ul,
-          97ul,
-          193ul,
-          389ul,
-          769ul,
-          1543ul,
-          3079ul,
-          6151ul,
-          12289ul,
-          24593ul,
-          49157ul,
-          98317ul,
-          196613ul,
-          393241ul,
-          786433ul,
-          1572869ul,
-          3145739ul,
-          6291469ul,
-          12582917ul,
-          25165843ul,
-          50331653ul,
-          100663319ul,
-          201326611ul,
-          402653189ul,
-          805306457ul,
-        };
-
-        template <class T>
-        std::size_t prime_size<T>::sizes_len = sizeof(prime_size<T>::sizes) /
-                                               sizeof(prime_size<T>::sizes[0]);
-
-        template <class T>
-        std::size_t (*prime_size<T>::positions[])(std::size_t) = {position<13>,
-          position<29>, position<53>, position<97>, position<193>,
-          position<389>, position<769>, position<1543>, position<3079>,
-          position<6151>, position<12289>, position<24593>, position<49157>,
-          position<98317>, position<196613>, position<393241>, position<786433>,
-          position<1572869>, position<3145739>, position<6291469>,
-          position<12582917>, position<25165843>, position<50331653>,
-          position<100663319>, position<201326611>, position<402653189>,
-          position<805306457>};
-
-        template <class T = void> struct prime_switch_size : prime_size<T>
-        {
-          static std::size_t position(std::size_t hash, std::size_t size_index)
-          {
-            switch (size_index) {
-            default:
-            case 0:
-              return prime_size<T>::position<0, prime_size<T>::sizes[0]>(hash);
-            case 1:
-              return prime_size<T>::position<1, prime_size<T>::sizes[1]>(hash);
-            case 2:
-              return prime_size<T>::position<2, prime_size<T>::sizes[2]>(hash);
-            case 3:
-              return prime_size<T>::position<3, prime_size<T>::sizes[3]>(hash);
-            case 5:
-              return prime_size<T>::position<5, prime_size<T>::sizes[5]>(hash);
-            case 6:
-              return prime_size<T>::position<6, prime_size<T>::sizes[6]>(hash);
-            case 7:
-              return prime_size<T>::position<7, prime_size<T>::sizes[7]>(hash);
-            case 8:
-              return prime_size<T>::position<8, prime_size<T>::sizes[8]>(hash);
-            case 9:
-              return prime_size<T>::position<9, prime_size<T>::sizes[9]>(hash);
-            case 10:
-              return prime_size<T>::position<10, prime_size<T>::sizes[10]>(
-                hash);
-            case 11:
-              return prime_size<T>::position<11, prime_size<T>::sizes[11]>(
-                hash);
-            case 12:
-              return prime_size<T>::position<12, prime_size<T>::sizes[12]>(
-                hash);
-            case 13:
-              return prime_size<T>::position<13, prime_size<T>::sizes[13]>(
-                hash);
-            case 14:
-              return prime_size<T>::position<14, prime_size<T>::sizes[14]>(
-                hash);
-            case 15:
-              return prime_size<T>::position<15, prime_size<T>::sizes[15]>(
-                hash);
-            case 16:
-              return prime_size<T>::position<16, prime_size<T>::sizes[16]>(
-                hash);
-            case 17:
-              return prime_size<T>::position<17, prime_size<T>::sizes[17]>(
-                hash);
-            case 18:
-              return prime_size<T>::position<18, prime_size<T>::sizes[18]>(
-                hash);
-            case 19:
-              return prime_size<T>::position<19, prime_size<T>::sizes[19]>(
-                hash);
-            case 20:
-              return prime_size<T>::position<20, prime_size<T>::sizes[20]>(
-                hash);
-            case 21:
-              return prime_size<T>::position<21, prime_size<T>::sizes[21]>(
-                hash);
-            case 22:
-              return prime_size<T>::position<22, prime_size<T>::sizes[22]>(
-                hash);
-            case 23:
-              return prime_size<T>::position<23, prime_size<T>::sizes[23]>(
-                hash);
-            case 24:
-              return prime_size<T>::position<24, prime_size<T>::sizes[24]>(
-                hash);
-            case 25:
-              return prime_size<T>::position<25, prime_size<T>::sizes[25]>(
-                hash);
-            case 26:
-              return prime_size<T>::position<26, prime_size<T>::sizes[26]>(
-                hash);
-            }
-          }
-        };
-
 #if defined(SIZE_MAX)
 #if ((((SIZE_MAX >> 16) >> 16) >> 16) >> 15) != 0
 #define FCA_HAS_64B_SIZE_T
@@ -408,12 +253,11 @@ namespace boost {
         template <class = void> struct prime_fmod_size
         {
           static std::size_t sizes[];
-          static std::size_t sizes_len;
+          static std::size_t const sizes_len;
           static std::size_t (*positions[])(std::size_t);
 
 #if defined(FCA_FASTMOD_SUPPORT)
           static uint64_t inv_sizes32[];
-          static uint64_t inv_sizes32_len;
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
           static inline std::size_t size_index(std::size_t n)
@@ -431,7 +275,7 @@ namespace boost {
           }
 
           template <std::size_t Size>
-          static std::size_t position(std::size_t hash)
+          static std::size_t modulo(std::size_t hash)
           {
             return hash % Size;
           }
@@ -448,8 +292,7 @@ namespace boost {
           static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
           {
             __extension__ typedef unsigned __int128 uint128;
-            return static_cast<uint64_t>(
-              (static_cast<uint128>(lowbits) * d) >> 64);
+            return ((uint128)lowbits * d) >> 64;
           }
 #endif /* defined(_MSC_VER) */
 
@@ -465,7 +308,8 @@ namespace boost {
           {
 #if defined(FCA_FASTMOD_SUPPORT)
 #if defined(FCA_HAS_64B_SIZE_T)
-            std::size_t sizes_under_32bit = inv_sizes32_len;
+            std::size_t sizes_under_32bit =
+              sizeof(inv_sizes32) / sizeof(inv_sizes32[0]);
             if (BOOST_LIKELY(size_index < sizes_under_32bit)) {
               return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
                 inv_sizes32[size_index], uint32_t(sizes[size_index]));
@@ -482,99 +326,101 @@ namespace boost {
           }
         }; // prime_fmod_size
 
-        template <class T>
-        std::size_t prime_fmod_size<T>::sizes[] = {13ul, 29ul, 53ul, 97ul,
-          193ul, 389ul, 769ul, 1543ul, 3079ul, 6151ul, 12289ul, 24593ul,
-          49157ul, 98317ul, 196613ul, 393241ul, 786433ul, 1572869ul, 3145739ul,
-          6291469ul, 12582917ul, 25165843ul, 50331653ul, 100663319ul,
-          201326611ul, 402653189ul, 805306457ul, 1610612741ul, 3221225473ul,
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE                      \
+  (13ul)(29ul)(53ul)(97ul)(193ul)(389ul)(769ul)(1543ul)(3079ul)(6151ul)(       \
+    12289ul)(24593ul)(49157ul)(98317ul)(196613ul)(393241ul)(786433ul)(         \
+    1572869ul)(3145739ul)(6291469ul)(12582917ul)(25165843ul)(50331653ul)(      \
+    100663319ul)(201326611ul)(402653189ul)(805306457ul)(1610612741ul)(         \
+    3221225473ul)
+
 #if !defined(FCA_HAS_64B_SIZE_T)
-          4294967291ul};
+
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT                                 \
+  BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE(4294967291ul)
+
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT
+
 #else
-          // more than 32 bits
-          boost::ulong_long_type(6442450939),
-          boost::ulong_long_type(12884901893),
-          boost::ulong_long_type(25769803751),
-          boost::ulong_long_type(51539607551),
-          boost::ulong_long_type(103079215111),
-          boost::ulong_long_type(206158430209),
-          boost::ulong_long_type(412316860441),
-          boost::ulong_long_type(824633720831),
-          boost::ulong_long_type(1649267441651)};
-#endif
+
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT                                 \
+  BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE
+
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT                                 \
+  (6442450939ul)(12884901893ul)(25769803751ul)(51539607551ul)(103079215111ul)( \
+    206158430209ul)(412316860441ul)(824633720831ul)(1649267441651ul)
+
+#endif /* FCA_HAS_64B_SIZE_T */
+
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES                                       \
+  BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT
 
         template <class T>
-        std::size_t
-          prime_fmod_size<T>::sizes_len = sizeof(prime_fmod_size<T>::sizes) /
-                                          sizeof(prime_fmod_size<T>::sizes[0]);
+        std::size_t prime_fmod_size<T>::sizes[] = {
+          BOOST_PP_SEQ_ENUM(BOOST_UNORDERED_PRIME_FMOD_SIZES)};
+
+        template <class T>
+        std::size_t const prime_fmod_size<T>::sizes_len = BOOST_PP_SEQ_SIZE(
+          BOOST_UNORDERED_PRIME_FMOD_SIZES);
 
 #if defined(FCA_FASTMOD_SUPPORT)
         template <class T>
         uint64_t prime_fmod_size<T>::inv_sizes32[] = {
-          boost::ulong_long_type(1418980313362273202),
-          boost::ulong_long_type(636094623231363849),
-          boost::ulong_long_type(348051774975651918),
-          boost::ulong_long_type(190172619316593316),
-          boost::ulong_long_type(95578984837873325),
-          boost::ulong_long_type(47420935922132524),
-          boost::ulong_long_type(23987963684927896),
-          boost::ulong_long_type(11955116055547344),
-          boost::ulong_long_type(5991147799191151),
-          boost::ulong_long_type(2998982941588287),
-          boost::ulong_long_type(1501077717772769),
-          boost::ulong_long_type(750081082979285),
-          boost::ulong_long_type(375261795343686),
-          boost::ulong_long_type(187625172388393),
-          boost::ulong_long_type(93822606204624),
-          boost::ulong_long_type(46909513691883),
-          boost::ulong_long_type(23456218233098),
-          boost::ulong_long_type(11728086747027),
-          boost::ulong_long_type(5864041509391),
-          boost::ulong_long_type(2932024948977),
-          boost::ulong_long_type(1466014921160),
-          boost::ulong_long_type(733007198436),
-          boost::ulong_long_type(366503839517),
-          boost::ulong_long_type(183251896093),
-          boost::ulong_long_type(91625960335),
-          boost::ulong_long_type(45812983922),
-          boost::ulong_long_type(22906489714),
-          boost::ulong_long_type(11453246088),
-          boost::ulong_long_type(5726623060),
+          1418980313362273202ul,
+          636094623231363849ul,
+          348051774975651918ul,
+          190172619316593316ul,
+          95578984837873325ul,
+          47420935922132524ul,
+          23987963684927896ul,
+          11955116055547344ul,
+          5991147799191151ul,
+          2998982941588287ul,
+          1501077717772769ul,
+          750081082979285ul,
+          375261795343686ul,
+          187625172388393ul,
+          93822606204624ul,
+          46909513691883ul,
+          23456218233098ul,
+          11728086747027ul,
+          5864041509391ul,
+          2932024948977ul,
+          1466014921160ul,
+          733007198436ul,
+          366503839517ul,
+          183251896093ul,
+          91625960335ul,
+          45812983922ul,
+          22906489714ul,
+          11453246088ul,
+          5726623060ul,
 #if !defined(FCA_HAS_64B_SIZE_T)
         };
 #else
-          boost::ulong_long_type(4294967302)};
+          4294967302ul};
 #endif /* !defined(FCA_HAS_64B_SIZE_T) */
-
-        template <class T>
-        uint64_t prime_fmod_size<T>::inv_sizes32_len =
-          sizeof(prime_fmod_size<T>::inv_sizes32) /
-          sizeof(prime_fmod_size<T>::inv_sizes32[0]);
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
+#define BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT(z, _, n)                  \
+  prime_fmod_size<T>::template modulo<n>,
         template <class T>
         std::size_t (*prime_fmod_size<T>::positions[])(std::size_t) = {
 #if !defined(FCA_FASTMOD_SUPPORT)
-          position<13>, position<29>, position<53>, position<97>, position<193>,
-          position<389>, position<769>, position<1543>, position<3079>,
-          position<6151>, position<12289>, position<24593>, position<49157>,
-          position<98317>, position<196613>, position<393241>, position<786433>,
-          position<1572869>, position<3145739>, position<6291469>,
-          position<12582917>, position<25165843>, position<50331653>,
-          position<100663319>, position<201326611>, position<402653189>,
-          position<805306457>, position<1610612741>, position<3221225473ul>,
-#if !defined(FCA_HAS_64B_SIZE_T)
-          position<4294967291ul>,
-#endif
+          BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
+            BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT)
 #endif
 
 #if defined(FCA_HAS_64B_SIZE_T)
-          position<6442450939>, position<12884901893>, position<25769803751>,
-          position<51539607551>, position<103079215111>, position<206158430209>,
-          position<412316860441>, position<824633720831>,
-          position<1649267441651>
+            BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT,
+              ~, BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT)
 #endif
         };
+
+#undef BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT
+#undef BOOST_UNORDERED_PRIME_FMOD_SIZES
+#undef BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT
+#undef BOOST_UNORDERED_PRIME_FMOD_SIZES_34BIT
+#undef BOOST_UNORDERED_PRIME_FMOD_SIZES_34BIT_INCOMPLETE
 
 #ifdef FCA_FASTMOD_SUPPORT
 #undef FCA_FASTMOD_SUPPORT
