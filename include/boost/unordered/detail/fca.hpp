@@ -16,7 +16,24 @@
 #include <boost/core/default_allocator.hpp>
 #include <boost/core/empty_value.hpp>
 #include <boost/cstdint.hpp>
+
+// `iterator_facade` has transitive dependencies on Boost.MPL; one of the
+// headers is generating a `-Wsign-conversion` warning which has an open PR to
+// address the issue but merging does not seem likely so for now create a rote
+// workaround.
+//
+// TODO: eventually remove this once MPL is fixed or we decide to migrate off of
+// the Boost.Iterator dependency.
+//
+#if defined(BOOST_GCC)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 #include <boost/iterator/iterator_facade.hpp>
+#pragma GCC diagnostic pop
+#else
+#include <boost/iterator/iterator_facade.hpp>
+#endif
+
 #include <boost/move/core.hpp>
 #include <boost/swap.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
@@ -475,13 +492,13 @@ namespace boost {
           4294967291ul};
 #else
           // more than 32 bits
-          boost::ulong_long_type(6442450939), 
-          boost::ulong_long_type(12884901893), 
-          boost::ulong_long_type(25769803751), 
+          boost::ulong_long_type(6442450939),
+          boost::ulong_long_type(12884901893),
+          boost::ulong_long_type(25769803751),
           boost::ulong_long_type(51539607551),
-          boost::ulong_long_type(103079215111), 
-          boost::ulong_long_type(206158430209), 
-          boost::ulong_long_type(412316860441), 
+          boost::ulong_long_type(103079215111),
+          boost::ulong_long_type(206158430209),
+          boost::ulong_long_type(412316860441),
           boost::ulong_long_type(824633720831),
           boost::ulong_long_type(1649267441651)};
 #endif
