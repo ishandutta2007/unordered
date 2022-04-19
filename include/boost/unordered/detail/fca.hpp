@@ -258,6 +258,7 @@ namespace boost {
 
 #if defined(FCA_FASTMOD_SUPPORT)
           static uint64_t inv_sizes32[];
+          static std::size_t const inv_sizes32_len;
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
           static inline std::size_t size_index(std::size_t n)
@@ -292,7 +293,7 @@ namespace boost {
           static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
           {
             __extension__ typedef unsigned __int128 uint128;
-            return ((uint128)lowbits * d) >> 64;
+            return static_cast<uint64_t>(((uint128)lowbits * d) >> 64);
           }
 #endif /* defined(_MSC_VER) */
 
@@ -308,8 +309,7 @@ namespace boost {
           {
 #if defined(FCA_FASTMOD_SUPPORT)
 #if defined(FCA_HAS_64B_SIZE_T)
-            std::size_t sizes_under_32bit =
-              sizeof(inv_sizes32) / sizeof(inv_sizes32[0]);
+            std::size_t sizes_under_32bit = inv_sizes32_len;
             if (BOOST_LIKELY(size_index < sizes_under_32bit)) {
               return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
                 inv_sizes32[size_index], uint32_t(sizes[size_index]));
@@ -399,6 +399,12 @@ namespace boost {
 #else
           4294967302ul};
 #endif /* !defined(FCA_HAS_64B_SIZE_T) */
+
+        template <class T>
+        std::size_t const
+          prime_fmod_size<T>::inv_sizes32_len = sizeof(inv_sizes32) /
+                                                sizeof(inv_sizes32[0]);
+
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
 #define BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT(z, _, n)                  \
