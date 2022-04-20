@@ -31,7 +31,7 @@
 // 2012 = VC+11 = BOOST_MSVC 1700 Hopefully!
 // I have no idea when Dinkumware added it, probably a lot
 // earlier than this check.
-#if BOOST_LIB_STD_DINKUMWARE >= BOOST_VERSION_NUMBER(6, 50, 0) ||              \
+#if BOOST_LIB_STD_DINKUMWARE >= BOOST_VERSION_NUMBER(6, 10, 0) ||              \
   BOOST_COMP_MSVC >= BOOST_VERSION_NUMBER(17, 0, 0)
 #define BOOST_UNORDERED_HAVE_PIECEWISE_CONSTRUCT 1
 #endif
