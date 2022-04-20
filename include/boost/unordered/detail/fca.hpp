@@ -346,8 +346,18 @@ namespace boost {
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT                                 \
-  (6442450939ul)(12884901893ul)(25769803751ul)(51539607551ul)(103079215111ul)( \
-    206158430209ul)(412316860441ul)(824633720831ul)(1649267441651ul)
+  ((boost::ulong_long_type(1ul) << 32) + boost::ulong_long_type(2147483643))(  \
+    (boost::ulong_long_type(3ul) << 32) + boost::ulong_long_type(5))(          \
+    (boost::ulong_long_type(5ul) << 32) + boost::ulong_long_type(4294967271))( \
+    (boost::ulong_long_type(11ul) << 32) +                                     \
+    boost::ulong_long_type(4294967295))(                                       \
+    (boost::ulong_long_type(24ul) << 32) + boost::ulong_long_type(7))(         \
+    (boost::ulong_long_type(48ul) << 32) + boost::ulong_long_type(1))(         \
+    (boost::ulong_long_type(96ul) << 32) + boost::ulong_long_type(25))(        \
+    (boost::ulong_long_type(191ul) << 32) +                                    \
+    boost::ulong_long_type(4294967295))(                                       \
+    (boost::ulong_long_type(383ul) << 32) +                                    \
+    boost::ulong_long_type(4294967283))
 
 #endif /* FCA_HAS_64B_SIZE_T */
 
@@ -366,39 +376,39 @@ namespace boost {
         // clang-format off
         template <class T>
         uint64_t prime_fmod_size<T>::inv_sizes32[] = {
-          (boost::ulong_long_type(330382099) << 32) + boost::ulong_long_type(2973438898) /* = 1418980313362273202 */,
-          (boost::ulong_long_type(148102320) << 32) + boost::ulong_long_type(2369637129) /* = 636094623231363849 */,
-          (boost::ulong_long_type(81037118) << 32)  + boost::ulong_long_type(3403558990) /* = 348051774975651918 */,
-          (boost::ulong_long_type(44278013) << 32)  + boost::ulong_long_type(1549730468) /* = 190172619316593316 */,
-          (boost::ulong_long_type(22253716) << 32)  + boost::ulong_long_type(2403401389) /* = 95578984837873325 */,
-          (boost::ulong_long_type(11041047) << 32)  + boost::ulong_long_type(143533612)  /* = 47420935922132524 */,
-          (boost::ulong_long_type(5585133) << 32)   + boost::ulong_long_type(106117528)  /* = 23987963684927896 */,
-          (boost::ulong_long_type(2783517) << 32)   + boost::ulong_long_type(1572687312) /* = 11955116055547344 */,
-          (boost::ulong_long_type(1394922) << 32)   + boost::ulong_long_type(3428720239) /* = 5991147799191151 */,
-          (boost::ulong_long_type(698255) << 32)    + boost::ulong_long_type(552319807)  /* = 2998982941588287 */,
-          (boost::ulong_long_type(349496) << 32)    + boost::ulong_long_type(3827689953) /* = 1501077717772769 */,
-          (boost::ulong_long_type(174641) << 32)    + boost::ulong_long_type(3699438549) /* = 750081082979285 */,
-          (boost::ulong_long_type(87372) << 32)     + boost::ulong_long_type(1912757574) /* = 375261795343686 */,
-          (boost::ulong_long_type(43684) << 32)     + boost::ulong_long_type(3821029929) /* = 187625172388393 */,
-          (boost::ulong_long_type(21844) << 32)     + boost::ulong_long_type(3340590800) /* = 93822606204624 */,
-          (boost::ulong_long_type(10921) << 32)     + boost::ulong_long_type(4175852267) /* = 46909513691883 */,
-          (boost::ulong_long_type(5461) << 32)      + boost::ulong_long_type(1401829642) /* = 23456218233098 */,
-          (boost::ulong_long_type(2730) << 32)      + boost::ulong_long_type(2826028947) /* = 11728086747027 */,
-          (boost::ulong_long_type(1365) << 32)      + boost::ulong_long_type(1411150351) /* = 5864041509391 */,
-          (boost::ulong_long_type(682) << 32)       + boost::ulong_long_type(2857253105) /* = 2932024948977 */,
-          (boost::ulong_long_type(341) << 32)       + boost::ulong_long_type(1431073224) /* = 1466014921160 */,
-          (boost::ulong_long_type(170) << 32)       + boost::ulong_long_type(2862758116) /* = 733007198436 */,
-          (boost::ulong_long_type(85) << 32)        + boost::ulong_long_type(1431619357) /* = 366503839517 */,
-          (boost::ulong_long_type(42) << 32)        + boost::ulong_long_type(2863269661) /* = 183251896093 */,
-          (boost::ulong_long_type(21) << 32)        + boost::ulong_long_type(1431647119) /* = 91625960335 */,
-          (boost::ulong_long_type(10) << 32)        + boost::ulong_long_type(2863310962) /* = 45812983922 */,
-          (boost::ulong_long_type(5) << 32)         + boost::ulong_long_type(1431653234) /* = 22906489714 */,
-          (boost::ulong_long_type(2) << 32)         + boost::ulong_long_type(2863311496) /* = 11453246088 */,
-          (boost::ulong_long_type(1) << 32)         + boost::ulong_long_type(1431655764) /* = 5726623060 */,
+          (boost::ulong_long_type(330382099ul) << 32) + boost::ulong_long_type(2973438898ul) /* = 1418980313362273202 */,
+          (boost::ulong_long_type(148102320ul) << 32) + boost::ulong_long_type(2369637129ul) /* = 636094623231363849 */,
+          (boost::ulong_long_type(81037118ul) << 32)  + boost::ulong_long_type(3403558990ul) /* = 348051774975651918 */,
+          (boost::ulong_long_type(44278013ul) << 32)  + boost::ulong_long_type(1549730468ul) /* = 190172619316593316 */,
+          (boost::ulong_long_type(22253716ul) << 32)  + boost::ulong_long_type(2403401389ul) /* = 95578984837873325 */,
+          (boost::ulong_long_type(11041047ul) << 32)  + boost::ulong_long_type(143533612ul)  /* = 47420935922132524 */,
+          (boost::ulong_long_type(5585133ul) << 32)   + boost::ulong_long_type(106117528ul)  /* = 23987963684927896 */,
+          (boost::ulong_long_type(2783517ul) << 32)   + boost::ulong_long_type(1572687312ul) /* = 11955116055547344 */,
+          (boost::ulong_long_type(1394922ul) << 32)   + boost::ulong_long_type(3428720239ul) /* = 5991147799191151 */,
+          (boost::ulong_long_type(698255ul) << 32)    + boost::ulong_long_type(552319807ul)  /* = 2998982941588287 */,
+          (boost::ulong_long_type(349496ul) << 32)    + boost::ulong_long_type(3827689953ul) /* = 1501077717772769 */,
+          (boost::ulong_long_type(174641ul) << 32)    + boost::ulong_long_type(3699438549ul) /* = 750081082979285 */,
+          (boost::ulong_long_type(87372ul) << 32)     + boost::ulong_long_type(1912757574ul) /* = 375261795343686 */,
+          (boost::ulong_long_type(43684ul) << 32)     + boost::ulong_long_type(3821029929ul) /* = 187625172388393 */,
+          (boost::ulong_long_type(21844ul) << 32)     + boost::ulong_long_type(3340590800ul) /* = 93822606204624 */,
+          (boost::ulong_long_type(10921ul) << 32)     + boost::ulong_long_type(4175852267ul) /* = 46909513691883 */,
+          (boost::ulong_long_type(5461ul) << 32)      + boost::ulong_long_type(1401829642ul) /* = 23456218233098 */,
+          (boost::ulong_long_type(2730ul) << 32)      + boost::ulong_long_type(2826028947ul) /* = 11728086747027 */,
+          (boost::ulong_long_type(1365ul) << 32)      + boost::ulong_long_type(1411150351ul) /* = 5864041509391 */,
+          (boost::ulong_long_type(682ul) << 32)       + boost::ulong_long_type(2857253105ul) /* = 2932024948977 */,
+          (boost::ulong_long_type(341ul) << 32)       + boost::ulong_long_type(1431073224ul) /* = 1466014921160 */,
+          (boost::ulong_long_type(170ul) << 32)       + boost::ulong_long_type(2862758116ul) /* = 733007198436 */,
+          (boost::ulong_long_type(85ul) << 32)        + boost::ulong_long_type(1431619357ul) /* = 366503839517 */,
+          (boost::ulong_long_type(42ul) << 32)        + boost::ulong_long_type(2863269661ul) /* = 183251896093 */,
+          (boost::ulong_long_type(21ul) << 32)        + boost::ulong_long_type(1431647119ul) /* = 91625960335 */,
+          (boost::ulong_long_type(10ul) << 32)        + boost::ulong_long_type(2863310962ul) /* = 45812983922 */,
+          (boost::ulong_long_type(5ul) << 32)         + boost::ulong_long_type(1431653234ul) /* = 22906489714 */,
+          (boost::ulong_long_type(2ul) << 32)         + boost::ulong_long_type(2863311496ul) /* = 11453246088 */,
+          (boost::ulong_long_type(1ul) << 32)         + boost::ulong_long_type(1431655764ul) /* = 5726623060 */,
 #if !defined(FCA_HAS_64B_SIZE_T)
         };
 #else
-          (boost::ulong_long_type(1) << 32)         + boost::ulong_long_type(6)          /* 4294967302 */
+          (boost::ulong_long_type(1ul) << 32)         + boost::ulong_long_type(6ul)          /* 4294967302 */
         };
         // clang-format off
 #endif /* !defined(FCA_HAS_64B_SIZE_T) */
@@ -412,6 +422,7 @@ namespace boost {
 
 #define BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT(z, _, n)                  \
   prime_fmod_size<T>::template modulo<n>,
+
         template <class T>
         std::size_t (*prime_fmod_size<T>::positions[])(std::size_t) = {
 #if !defined(FCA_FASTMOD_SUPPORT)
