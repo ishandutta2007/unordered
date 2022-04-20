@@ -346,18 +346,20 @@ namespace boost {
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT                                 \
-  ((boost::ulong_long_type(1ul) << 32) + boost::ulong_long_type(2147483643))(  \
-    (boost::ulong_long_type(3ul) << 32) + boost::ulong_long_type(5))(          \
-    (boost::ulong_long_type(5ul) << 32) + boost::ulong_long_type(4294967271))( \
+  ((boost::ulong_long_type(1ul) << 32) +                                       \
+    boost::ulong_long_type(2147483643ul))(                                     \
+    (boost::ulong_long_type(3ul) << 32) + boost::ulong_long_type(5ul))(        \
+    (boost::ulong_long_type(5ul) << 32) +                                      \
+    boost::ulong_long_type(4294967271ul))(                                     \
     (boost::ulong_long_type(11ul) << 32) +                                     \
-    boost::ulong_long_type(4294967295))(                                       \
-    (boost::ulong_long_type(24ul) << 32) + boost::ulong_long_type(7))(         \
-    (boost::ulong_long_type(48ul) << 32) + boost::ulong_long_type(1))(         \
-    (boost::ulong_long_type(96ul) << 32) + boost::ulong_long_type(25))(        \
+    boost::ulong_long_type(4294967295ul))(                                     \
+    (boost::ulong_long_type(24ul) << 32) + boost::ulong_long_type(7ul))(       \
+    (boost::ulong_long_type(48ul) << 32) + boost::ulong_long_type(1ul))(       \
+    (boost::ulong_long_type(96ul) << 32) + boost::ulong_long_type(25ul))(      \
     (boost::ulong_long_type(191ul) << 32) +                                    \
-    boost::ulong_long_type(4294967295))(                                       \
+    boost::ulong_long_type(4294967295ul))(                                     \
     (boost::ulong_long_type(383ul) << 32) +                                    \
-    boost::ulong_long_type(4294967283))
+    boost::ulong_long_type(4294967283ul))
 
 #endif /* FCA_HAS_64B_SIZE_T */
 
