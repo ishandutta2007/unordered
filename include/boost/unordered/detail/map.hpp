@@ -28,17 +28,16 @@ namespace boost {
         typedef boost::unordered::detail::table<types> table;
         typedef boost::unordered::detail::map_extractor<value_type> extractor;
 
-        typedef boost::unordered::detail::v2::grouped_bucket_array<
-          v2::bucket<value_allocator>, value_allocator, v2::prime_fmod_size<> >
-          v2_bucket_array_type;
+        typedef boost::unordered::detail::grouped_bucket_array<
+          bucket<value_allocator>, value_allocator, prime_fmod_size<> >
+          bucket_array_type;
 
-        typedef typename v2_bucket_array_type::node_type v2_node_type;
-
-        typedef boost::unordered::node_handle_map<v2_node_type, K, M, A>
+        typedef boost::unordered::node_handle_map<
+          typename bucket_array_type::node_type, K, M, A>
           node_type;
 
-        typedef typename table::iterator v2_iterator;
-        typedef boost::unordered::insert_return_type_map<v2_iterator, node_type> insert_return_type;
+        typedef typename table::iterator iterator;
+        typedef boost::unordered::insert_return_type_map<iterator, node_type> insert_return_type;
       };
 
       template <typename K, typename M, typename H, typename P, typename A>

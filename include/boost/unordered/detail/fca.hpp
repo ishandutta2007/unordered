@@ -49,193 +49,187 @@
 namespace boost {
   namespace unordered {
     namespace detail {
-      namespace v2 {
+      template <class T, class Allocator = boost::default_allocator<T> >
+      struct dynamic_array
+          : boost::empty_value<
+              typename boost::allocator_rebind<Allocator, T>::type>
+      {
+      private:
+        BOOST_COPYABLE_AND_MOVABLE(dynamic_array)
 
-        template <class T, class Allocator = boost::default_allocator<T> >
-        struct dynamic_array
-            : boost::empty_value<
-                typename boost::allocator_rebind<Allocator, T>::type>
+      public:
+        typedef
+          typename boost::allocator_rebind<Allocator, T>::type allocator_type;
+        typedef
+          typename boost::allocator_size_type<allocator_type>::type size_type;
+        typedef T value_type;
+
+      private:
+        typedef typename boost::allocator_pointer<allocator_type>::type pointer;
+
+        pointer p_;
+        size_type len_;
+
+      public:
+        dynamic_array(size_type n, allocator_type a = allocator_type())
+            : empty_value<allocator_type>(boost::empty_init_t(), a), p_(),
+              len_(n)
         {
-        private:
-          BOOST_COPYABLE_AND_MOVABLE(dynamic_array)
-
-        public:
-          typedef
-            typename boost::allocator_rebind<Allocator, T>::type allocator_type;
-          typedef
-            typename boost::allocator_size_type<allocator_type>::type size_type;
-          typedef T value_type;
-
-        private:
-          typedef
-            typename boost::allocator_pointer<allocator_type>::type pointer;
-
-          pointer p_;
-          size_type len_;
-
-        public:
-          dynamic_array(size_type n, allocator_type a = allocator_type())
-              : empty_value<allocator_type>(boost::empty_init_t(), a), p_(),
-                len_(n)
+          p_ = boost::allocator_allocate(a, len_);
+          BOOST_TRY
           {
-            p_ = boost::allocator_allocate(a, len_);
-            BOOST_TRY
-            {
-              boost::allocator_construct_n(a, boost::to_address(p_), len_);
-            }
-            BOOST_CATCH(...)
-            {
-              boost::allocator_deallocate(a, p_, n);
-              BOOST_RETHROW
-            }
-            BOOST_CATCH_END
+            boost::allocator_construct_n(a, boost::to_address(p_), len_);
           }
-
-          dynamic_array(dynamic_array const& other)
-              : empty_value<allocator_type>(
-                  boost::empty_init_t(), other.allocator()),
-                p_(), len_(0)
+          BOOST_CATCH(...)
           {
-            size_type len = other.size();
-            allocator_type a = allocator();
-            p_ = boost::allocator_allocate(a, len);
-            boost::allocator_construct_n(a, data(), len, other.data());
-            len_ = len;
+            boost::allocator_deallocate(a, p_, n);
+            BOOST_RETHROW
           }
+          BOOST_CATCH_END
+        }
 
-          dynamic_array(BOOST_RV_REF(dynamic_array) other) BOOST_NOEXCEPT
-              : boost::empty_value<allocator_type>(boost::empty_init_t(),
-                  boost::move(
-                    static_cast<boost::empty_value<allocator_type> >(other)
-                      .get()))
-          {
+        dynamic_array(dynamic_array const& other)
+            : empty_value<allocator_type>(
+                boost::empty_init_t(), other.allocator()),
+              p_(), len_(0)
+        {
+          size_type len = other.size();
+          allocator_type a = allocator();
+          p_ = boost::allocator_allocate(a, len);
+          boost::allocator_construct_n(a, data(), len, other.data());
+          len_ = len;
+        }
+
+        dynamic_array(BOOST_RV_REF(dynamic_array) other) BOOST_NOEXCEPT
+            : boost::empty_value<allocator_type>(boost::empty_init_t(),
+                boost::move(
+                  static_cast<boost::empty_value<allocator_type> >(other)
+                    .get()))
+        {
+          p_ = other.p_;
+          len_ = other.len_;
+
+          other.p_ = pointer();
+          other.len_ = 0;
+        }
+
+        ~dynamic_array() { deallocate(); }
+
+        dynamic_array& operator=(BOOST_RV_REF(dynamic_array) other)
+        {
+          typedef
+            typename boost::allocator_propagate_on_container_move_assignment<
+              allocator_type>::type propagate;
+
+          bool prop = propagate::value;
+          if ((allocator() == other.allocator()) || prop) {
+
+            deallocate();
+            allocator_type* ap = boost::addressof(this->allocator());
+            ap->~allocator_type();
+            new (ap) allocator_type(other.allocator());
+
             p_ = other.p_;
             len_ = other.len_;
 
             other.p_ = pointer();
             other.len_ = 0;
-          }
-
-          ~dynamic_array() { deallocate(); }
-
-          dynamic_array& operator=(BOOST_RV_REF(dynamic_array) other)
-          {
-            typedef
-              typename boost::allocator_propagate_on_container_move_assignment<
-                allocator_type>::type propagate;
-
-            bool prop = propagate::value;
-            if ((allocator() == other.allocator()) || prop) {
-
-              deallocate();
-              allocator_type* ap = boost::addressof(this->allocator());
-              ap->~allocator_type();
-              new (ap) allocator_type(other.allocator());
-
-              p_ = other.p_;
-              len_ = other.len_;
-
-              other.p_ = pointer();
-              other.len_ = 0;
-            } else {
-              allocator_type a = allocator();
-              pointer p = boost::allocator_allocate(a, other.len_);
-
-              BOOST_TRY
-              {
-                boost::allocator_construct_n(
-                  a, boost::to_address(p), other.len_, other.data());
-
-                this->deallocate();
-                p_ = p;
-                len_ = other.len_;
-              }
-              BOOST_CATCH(...)
-              {
-                boost::allocator_deallocate(a, p, other.len_);
-                BOOST_RETHROW;
-              }
-              BOOST_CATCH_END
-            }
-
-            return *this;
-          }
-
-          size_type size() const BOOST_NOEXCEPT { return len_; }
-
-          allocator_type& allocator() BOOST_NOEXCEPT
-          {
-            return boost::empty_value<allocator_type>::get();
-          }
-
-          allocator_type const& allocator() const BOOST_NOEXCEPT
-          {
-            return boost::empty_value<allocator_type>::get();
-          }
-
-          value_type& operator[](size_type idx) BOOST_NOEXCEPT
-          {
-            BOOST_ASSERT(idx < len_);
-            return data()[idx];
-          }
-
-          value_type const& operator[](size_type idx) const BOOST_NOEXCEPT
-          {
-            BOOST_ASSERT(idx < len_);
-            return data()[idx];
-          }
-
-          value_type& front() BOOST_NOEXCEPT { return this->operator[](0); }
-
-          value_type& back() BOOST_NOEXCEPT
-          {
-            return this->operator[](len_ - 1);
-          }
-
-          value_type const& front() const BOOST_NOEXCEPT
-          {
-            return this->operator[](0);
-          }
-
-          value_type const& back() const BOOST_NOEXCEPT
-          {
-            return this->operator[](len_ - 1);
-          }
-
-          value_type* data() const BOOST_NOEXCEPT
-          {
-            return boost::to_address(p_);
-          }
-
-          void clear() BOOST_NOEXCEPT { deallocate(); }
-
-          void swap(dynamic_array& other)
-          {
-            bool b = boost::allocator_propagate_on_container_swap<
-              allocator_type>::type::value;
-            if (b) {
-              boost::swap(this->allocator(), other.allocator());
-            }
-            std::swap(p_, other.p_);
-            std::swap(len_, other.len_);
-          }
-
-        private:
-          void deallocate() BOOST_NOEXCEPT
-          {
-            if (!p_) {
-              BOOST_ASSERT(len_ == 0);
-              return;
-            }
-
+          } else {
             allocator_type a = allocator();
-            boost::allocator_destroy_n(a, data(), len_);
-            boost::allocator_deallocate(a, p_, len_);
+            pointer p = boost::allocator_allocate(a, other.len_);
 
-            len_ = 0;
-            p_ = pointer();
+            BOOST_TRY
+            {
+              boost::allocator_construct_n(
+                a, boost::to_address(p), other.len_, other.data());
+
+              this->deallocate();
+              p_ = p;
+              len_ = other.len_;
+            }
+            BOOST_CATCH(...)
+            {
+              boost::allocator_deallocate(a, p, other.len_);
+              BOOST_RETHROW;
+            }
+            BOOST_CATCH_END
           }
-        };
+
+          return *this;
+        }
+
+        size_type size() const BOOST_NOEXCEPT { return len_; }
+
+        allocator_type& allocator() BOOST_NOEXCEPT
+        {
+          return boost::empty_value<allocator_type>::get();
+        }
+
+        allocator_type const& allocator() const BOOST_NOEXCEPT
+        {
+          return boost::empty_value<allocator_type>::get();
+        }
+
+        value_type& operator[](size_type idx) BOOST_NOEXCEPT
+        {
+          BOOST_ASSERT(idx < len_);
+          return data()[idx];
+        }
+
+        value_type const& operator[](size_type idx) const BOOST_NOEXCEPT
+        {
+          BOOST_ASSERT(idx < len_);
+          return data()[idx];
+        }
+
+        value_type& front() BOOST_NOEXCEPT { return this->operator[](0); }
+
+        value_type& back() BOOST_NOEXCEPT { return this->operator[](len_ - 1); }
+
+        value_type const& front() const BOOST_NOEXCEPT
+        {
+          return this->operator[](0);
+        }
+
+        value_type const& back() const BOOST_NOEXCEPT
+        {
+          return this->operator[](len_ - 1);
+        }
+
+        value_type* data() const BOOST_NOEXCEPT
+        {
+          return boost::to_address(p_);
+        }
+
+        void clear() BOOST_NOEXCEPT { deallocate(); }
+
+        void swap(dynamic_array& other)
+        {
+          bool b = boost::allocator_propagate_on_container_swap<
+            allocator_type>::type::value;
+          if (b) {
+            boost::swap(this->allocator(), other.allocator());
+          }
+          std::swap(p_, other.p_);
+          std::swap(len_, other.len_);
+        }
+
+      private:
+        void deallocate() BOOST_NOEXCEPT
+        {
+          if (!p_) {
+            BOOST_ASSERT(len_ == 0);
+            return;
+          }
+
+          allocator_type a = allocator();
+          boost::allocator_destroy_n(a, data(), len_);
+          boost::allocator_deallocate(a, p_, len_);
+
+          len_ = 0;
+          p_ = pointer();
+        }
+      };
 
 #if defined(SIZE_MAX)
 #if ((((SIZE_MAX >> 16) >> 16) >> 16) >> 15) != 0
@@ -252,81 +246,80 @@ namespace boost {
 #define FCA_FASTMOD_SUPPORT
 #endif
 
-        template <class = void> struct prime_fmod_size
-        {
-          static std::size_t sizes[];
-          static std::size_t const sizes_len;
-          static std::size_t (*positions[])(std::size_t);
+      template <class = void> struct prime_fmod_size
+      {
+        static std::size_t sizes[];
+        static std::size_t const sizes_len;
+        static std::size_t (*positions[])(std::size_t);
 
 #if defined(FCA_FASTMOD_SUPPORT)
-          static uint64_t inv_sizes32[];
-          static std::size_t const inv_sizes32_len;
+        static uint64_t inv_sizes32[];
+        static std::size_t const inv_sizes32_len;
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
-          static inline std::size_t size_index(std::size_t n)
-          {
-            const std::size_t* bound =
-              std::lower_bound(sizes, sizes + sizes_len, n);
-            if (bound == sizes + sizes_len)
-              --bound;
-            return static_cast<std::size_t>(bound - sizes);
-          }
+        static inline std::size_t size_index(std::size_t n)
+        {
+          const std::size_t* bound =
+            std::lower_bound(sizes, sizes + sizes_len, n);
+          if (bound == sizes + sizes_len)
+            --bound;
+          return static_cast<std::size_t>(bound - sizes);
+        }
 
-          static inline std::size_t size(std::size_t size_index)
-          {
-            return sizes[size_index];
-          }
+        static inline std::size_t size(std::size_t size_index)
+        {
+          return sizes[size_index];
+        }
 
-          template <std::size_t Size>
-          static std::size_t modulo(std::size_t hash)
-          {
-            return hash % Size;
-          }
+        template <std::size_t Size> static std::size_t modulo(std::size_t hash)
+        {
+          return hash % Size;
+        }
 
 #if defined(FCA_FASTMOD_SUPPORT)
-          // https://github.com/lemire/fastmod
+        // https://github.com/lemire/fastmod
 
 #if defined(_MSC_VER)
-          static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
-          {
-            return __umulh(lowbits, d);
-          }
+        static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
+        {
+          return __umulh(lowbits, d);
+        }
 #else
-          static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
-          {
-            __extension__ typedef unsigned __int128 uint128;
-            return static_cast<uint64_t>(((uint128)lowbits * d) >> 64);
-          }
+        static inline uint64_t mul128_u32(uint64_t lowbits, uint32_t d)
+        {
+          __extension__ typedef unsigned __int128 uint128;
+          return static_cast<uint64_t>(((uint128)lowbits * d) >> 64);
+        }
 #endif /* defined(_MSC_VER) */
 
-          static inline uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d)
-          {
-            uint64_t lowbits = M * a;
-            return (uint32_t)(mul128_u32(lowbits, d));
-          }
+        static inline uint32_t fastmod_u32(uint32_t a, uint64_t M, uint32_t d)
+        {
+          uint64_t lowbits = M * a;
+          return (uint32_t)(mul128_u32(lowbits, d));
+        }
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
-          static inline std::size_t position(
-            std::size_t hash, std::size_t size_index)
-          {
+        static inline std::size_t position(
+          std::size_t hash, std::size_t size_index)
+        {
 #if defined(FCA_FASTMOD_SUPPORT)
 #if defined(FCA_HAS_64B_SIZE_T)
-            std::size_t sizes_under_32bit = inv_sizes32_len;
-            if (BOOST_LIKELY(size_index < sizes_under_32bit)) {
-              return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
-                inv_sizes32[size_index], uint32_t(sizes[size_index]));
-            } else {
-              return positions[size_index - sizes_under_32bit](hash);
-            }
+          std::size_t sizes_under_32bit = inv_sizes32_len;
+          if (BOOST_LIKELY(size_index < sizes_under_32bit)) {
+            return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
+              inv_sizes32[size_index], uint32_t(sizes[size_index]));
+          } else {
+            return positions[size_index - sizes_under_32bit](hash);
+          }
 #else
-            return fastmod_u32(
-              hash, inv_sizes32[size_index], uint32_t(sizes[size_index]));
+          return fastmod_u32(
+            hash, inv_sizes32[size_index], uint32_t(sizes[size_index]));
 #endif /* defined(FCA_HAS_64B_SIZE_T) */
 #else
-            return positions[size_index](hash);
+          return positions[size_index](hash);
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
-          }
-        }; // prime_fmod_size
+        }
+      }; // prime_fmod_size
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE                      \
   (13ul)(29ul)(53ul)(97ul)(193ul)(389ul)(769ul)(1543ul)(3079ul)(6151ul)(       \
@@ -374,26 +367,26 @@ namespace boost {
   ((boost::ulong_long_type(96ul) << 32)  + boost::ulong_long_type(25ul))         \
   ((boost::ulong_long_type(191ul) << 32) + boost::ulong_long_type(4294967295ul)) \
   ((boost::ulong_long_type(383ul) << 32) + boost::ulong_long_type(4294967283ul))
-        // clang-format on
+      // clang-format on
 
 #endif /* FCA_HAS_64B_SIZE_T */
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES                                       \
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT
 
-        template <class T>
-        std::size_t prime_fmod_size<T>::sizes[] = {
-          BOOST_PP_SEQ_ENUM(BOOST_UNORDERED_PRIME_FMOD_SIZES)};
+      template <class T>
+      std::size_t prime_fmod_size<T>::sizes[] = {
+        BOOST_PP_SEQ_ENUM(BOOST_UNORDERED_PRIME_FMOD_SIZES)};
 
-        template <class T>
-        std::size_t const prime_fmod_size<T>::sizes_len = BOOST_PP_SEQ_SIZE(
-          BOOST_UNORDERED_PRIME_FMOD_SIZES);
+      template <class T>
+      std::size_t const prime_fmod_size<T>::sizes_len = BOOST_PP_SEQ_SIZE(
+        BOOST_UNORDERED_PRIME_FMOD_SIZES);
 
 // Similarly here, we have to re-express the integer initialization using
 // arithmetic such that each literal can fit in a 32-bit value.
 //
 #if defined(FCA_FASTMOD_SUPPORT)
-        // clang-format off
+      // clang-format off
         template <class T>
         uint64_t prime_fmod_size<T>::inv_sizes32[] = {
           (boost::ulong_long_type(330382099ul) << 32) + boost::ulong_long_type(2973438898ul) /* = 1418980313362273202 */,
@@ -1031,16 +1024,6 @@ namespace boost {
             pbg->prev = pbg->next = group_pointer();
           }
         };
-
-        // struct grouped_buckets
-        // {
-        //   static constexpr bool has_constant_iterator_increment = true;
-
-        //   template <typename Allocator, typename SizePolicy, typename
-        //   Payload> using array_type =
-        //     grouped_bucket_array<Allocator, SizePolicy, Payload>;
-        // };
-      } // namespace v2
     }   // namespace detail
   }     // namespace unordered
 } // namespace boost

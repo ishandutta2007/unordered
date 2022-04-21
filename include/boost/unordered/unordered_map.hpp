@@ -2032,10 +2032,10 @@ namespace boost {
     typename unordered_map<K, T, H, P, A>::mapped_type&
     unordered_map<K, T, H, P, A>::at(const key_type& k)
     {
-      typedef typename table::v2_node_pointer v2_node_pointer;
+      typedef typename table::node_pointer node_pointer;
 
       if (table_.size_) {
-        v2_node_pointer p = table_.find_node(k);
+        node_pointer p = table_.find_node(k);
         if (p)
           return p->value().second;
       }
@@ -2048,10 +2048,10 @@ namespace boost {
     typename unordered_map<K, T, H, P, A>::mapped_type const&
     unordered_map<K, T, H, P, A>::at(const key_type& k) const
     {
-      typedef typename table::v2_node_pointer v2_node_pointer;
+      typedef typename table::node_pointer node_pointer;
 
       if (table_.size_) {
-        v2_node_pointer p = table_.find_node(k);
+        node_pointer p = table_.find_node(k);
         if (p)
           return p->value().second;
       }
