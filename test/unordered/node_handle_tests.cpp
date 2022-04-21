@@ -315,7 +315,6 @@ void insert_node_handle_unique(Container1& c1, Container2& c2)
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count + 1);
       BOOST_TEST(r.position != c2.end());
       BOOST_TEST(r.position == c2.find(test::get_key<Container1>(v)));
-      // BOOST_TEST(r.position == v_ptr);
       BOOST_TEST(!r.node);
     } else {
       BOOST_TEST(!r.inserted);
@@ -349,7 +348,6 @@ void insert_node_handle_unique2(Container1& c1, Container2& c2)
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count + 1);
       BOOST_TEST(r.position != c2.end());
       BOOST_TEST(r.position == c2.find(test::get_key<Container1>(v)));
-      // BOOST_TEST(r.position == v_ptr);
       BOOST_TEST(!r.node);
     } else {
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count);

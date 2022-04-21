@@ -376,12 +376,6 @@ namespace test {
 
     ~allocator1() { detail::tracker.allocator_unref(); }
 
-    allocator1& operator=(allocator1 const& other)
-    {
-      tag_ = other.tag_;
-      return *this;
-    }
-
     T* allocate(std::size_t n)
     {
       T* ptr(static_cast<T*>(::operator new(n * sizeof(T))));
@@ -510,19 +504,8 @@ namespace test {
     ptr(T* x) : ptr_(x) {}
 
   public:
-    typedef std::ptrdiff_t difference_type;
-    typedef T value_type;
-    typedef T* pointer;
-    typedef T& reference;
-    typedef std::random_access_iterator_tag iterator_category;
-
-
     ptr() : ptr_(0) {}
     explicit ptr(void_ptr const& x) : ptr_((T*)x.ptr_) {}
-
-    ~ptr() {
-      (void) ptr_;
-    }
 
     T& operator*() const { return *ptr_; }
     T* operator->() const { return ptr_; }
@@ -537,15 +520,20 @@ namespace test {
       ++ptr_;
       return tmp;
     }
+
     ptr operator+(std::ptrdiff_t s) const { return ptr<T>(ptr_ + s); }
-    friend ptr operator+(std::ptrdiff_t s, ptr p) { return ptr<T>(s + p.ptr_); }
     ptr operator+(std::size_t s) const { return ptr<T>(ptr_ + s); }
+
+    friend ptr operator+(std::ptrdiff_t s, ptr p) { return ptr<T>(s + p.ptr_); }
     friend ptr operator+(std::size_t s, ptr p) { return ptr<T>(s + p.ptr_); }
+
     std::ptrdiff_t operator-(ptr p) const { return ptr_ - p.ptr_; }
     ptr operator-(std::ptrdiff_t s) const { return ptr(ptr_ - s); }
     ptr operator-(std::size_t s) const { return ptr(ptr_ - s); }
+
     ptr& operator+=(std::size_t s) { ptr_ += s; }
     ptr& operator+=(std::ptrdiff_t s) { ptr_ += s; return *this; }
+
     T& operator[](std::ptrdiff_t s) const { return ptr_[s]; }
     bool operator!() const { return !ptr_; }
 
@@ -649,12 +637,6 @@ namespace test {
     }
 
     ~allocator2() { detail::tracker.allocator_unref(); }
-
-    allocator2& operator=(allocator2 const& other)
-    {
-      tag_ = other.tag_;
-      return *this;
-    }
 
     pointer address(reference r) { return pointer(&r); }
 

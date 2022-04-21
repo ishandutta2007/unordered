@@ -654,13 +654,7 @@ namespace test {
         }
       }
 
-      void construct(pointer p) const
-      {
-        new (p) T();
-        test::detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      }
-
-      void construct(pointer p, T const& t) const
+      void construct(pointer p, T const& t)
       {
         UNORDERED_SCOPE(allocator2::construct(T*, T))
         {
@@ -671,7 +665,7 @@ namespace test {
       }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-      template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args) const
+      template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
       {
         UNORDERED_SCOPE(allocator2::construct(pointer, BOOST_FWD_REF(Args)...))
         {
