@@ -15,7 +15,9 @@
 #include <boost/core/bit.hpp>
 #include <boost/core/default_allocator.hpp>
 #include <boost/core/empty_value.hpp>
+#include <boost/core/no_exceptions_support.hpp>
 #include <boost/cstdint.hpp>
+#include <boost/move/utility_core.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
 #include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/seq/size.hpp>

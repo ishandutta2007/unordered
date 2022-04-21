@@ -35,8 +35,8 @@ test-suite unordered
     :
         [ run unordered/fwd_set_test.cpp ]
         [ run unordered/fwd_map_test.cpp ]
-        # [ run unordered/allocator_traits.cpp ]
-        # [ run unordered/minimal_allocator.cpp ]
+        [ run unordered/allocator_traits.cpp ]
+        [ run unordered/minimal_allocator.cpp ]
         [ run unordered/compile_set.cpp ]
         [ run unordered/compile_map.cpp ]
         [ run unordered/noexcept_tests.cpp ]
