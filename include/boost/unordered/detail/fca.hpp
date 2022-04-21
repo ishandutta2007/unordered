@@ -345,21 +345,34 @@ namespace boost {
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT                                 \
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE
 
-#define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT                                 \
-  ((boost::ulong_long_type(1ul) << 32) +                                       \
-    boost::ulong_long_type(2147483643ul))(                                     \
-    (boost::ulong_long_type(3ul) << 32) + boost::ulong_long_type(5ul))(        \
-    (boost::ulong_long_type(5ul) << 32) +                                      \
-    boost::ulong_long_type(4294967271ul))(                                     \
-    (boost::ulong_long_type(11ul) << 32) +                                     \
-    boost::ulong_long_type(4294967295ul))(                                     \
-    (boost::ulong_long_type(24ul) << 32) + boost::ulong_long_type(7ul))(       \
-    (boost::ulong_long_type(48ul) << 32) + boost::ulong_long_type(1ul))(       \
-    (boost::ulong_long_type(96ul) << 32) + boost::ulong_long_type(25ul))(      \
-    (boost::ulong_long_type(191ul) << 32) +                                    \
-    boost::ulong_long_type(4294967295ul))(                                     \
-    (boost::ulong_long_type(383ul) << 32) +                                    \
-    boost::ulong_long_type(4294967283ul))
+// The original sequence here is this:
+// (6442450939ul)
+// (12884901893ul)
+// (25769803751ul)
+// (51539607551ul)
+// (103079215111ul)
+// (206158430209ul)
+// (412316860441ul)
+// (824633720831ul)
+// (1649267441651ul)
+//
+// but this causes problems on versions of mingw where the `long` type is 32
+// bits, even for 64-bit targets. We work around this by replacing the literals
+// with compile-time arithmetic, using bitshifts to reconstruct the number.
+//
+
+// clang-format off
+#define BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT                                   \
+  ((boost::ulong_long_type(1ul) << 32)   + boost::ulong_long_type(2147483643ul)) \
+  ((boost::ulong_long_type(3ul) << 32)   + boost::ulong_long_type(5ul))          \
+  ((boost::ulong_long_type(5ul) << 32)   + boost::ulong_long_type(4294967271ul)) \
+  ((boost::ulong_long_type(11ul) << 32)  + boost::ulong_long_type(4294967295ul)) \
+  ((boost::ulong_long_type(24ul) << 32)  + boost::ulong_long_type(7ul))          \
+  ((boost::ulong_long_type(48ul) << 32)  + boost::ulong_long_type(1ul))          \
+  ((boost::ulong_long_type(96ul) << 32)  + boost::ulong_long_type(25ul))         \
+  ((boost::ulong_long_type(191ul) << 32) + boost::ulong_long_type(4294967295ul)) \
+  ((boost::ulong_long_type(383ul) << 32) + boost::ulong_long_type(4294967283ul))
+        // clang-format on
 
 #endif /* FCA_HAS_64B_SIZE_T */
 
@@ -374,6 +387,9 @@ namespace boost {
         std::size_t const prime_fmod_size<T>::sizes_len = BOOST_PP_SEQ_SIZE(
           BOOST_UNORDERED_PRIME_FMOD_SIZES);
 
+// Similarly here, we have to re-express the integer initialization using
+// arithmetic such that each literal can fit in a 32-bit value.
+//
 #if defined(FCA_FASTMOD_SUPPORT)
         // clang-format off
         template <class T>
