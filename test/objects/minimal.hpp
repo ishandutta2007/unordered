@@ -10,6 +10,8 @@
 #if !defined(BOOST_UNORDERED_OBJECTS_MINIMAL_HEADER)
 #define BOOST_UNORDERED_OBJECTS_MINIMAL_HEADER
 
+#include <boost/core/lightweight_test.hpp>
+#include <boost/core/pointer_traits.hpp>
 #include <boost/move/move.hpp>
 #include <cstddef>
 #include <utility>
@@ -631,5 +633,13 @@ namespace test {
 #if defined(BOOST_MSVC)
 #pragma warning(pop)
 #endif
+
+template <>
+struct boost::pointer_traits<test::minimal::void_ptr> {
+  template <class U>
+  struct rebind_to {
+    typedef test::minimal::ptr<U> type;
+  };
+};
 
 #endif

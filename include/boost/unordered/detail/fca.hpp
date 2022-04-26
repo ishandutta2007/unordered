@@ -423,31 +423,31 @@ namespace boost {
 #else
           (boost::ulong_long_type(1ul) << 32)         + boost::ulong_long_type(6ul)          /* 4294967302 */
         };
-        // clang-format off
+      // clang-format on
 #endif /* !defined(FCA_HAS_64B_SIZE_T) */
 
-        template <class T>
-        std::size_t const
-          prime_fmod_size<T>::inv_sizes32_len = sizeof(inv_sizes32) /
-                                                sizeof(inv_sizes32[0]);
+      template <class T>
+      std::size_t const
+        prime_fmod_size<T>::inv_sizes32_len = sizeof(inv_sizes32) /
+                                              sizeof(inv_sizes32[0]);
 
 #endif /* defined(FCA_FASTMOD_SUPPORT) */
 
 #define BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT(z, _, n)                  \
   prime_fmod_size<T>::template modulo<n>,
 
-        template <class T>
-        std::size_t (*prime_fmod_size<T>::positions[])(std::size_t) = {
+      template <class T>
+      std::size_t (*prime_fmod_size<T>::positions[])(std::size_t) = {
 #if !defined(FCA_FASTMOD_SUPPORT)
-          BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
-            BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT)
+        BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
+          BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT)
 #endif
 
 #if defined(FCA_HAS_64B_SIZE_T)
-            BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT,
-              ~, BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT)
+          BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
+            BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT)
 #endif
-        };
+      };
 
 #undef BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT
 #undef BOOST_UNORDERED_PRIME_FMOD_SIZES
@@ -463,569 +463,549 @@ namespace boost {
 #undef FCA_HAS_64B_SIZE_T
 #endif
 
-        template <class Allocator> struct node
+      template <class ValueType, class VoidPtr> struct node
+      {
+        typedef ValueType value_type;
+        typedef typename boost::pointer_traits<VoidPtr>::template rebind_to<
+          node>::type node_pointer;
+
+        node_pointer next;
+        typename boost::aligned_storage<sizeof(value_type),
+          boost::alignment_of<value_type>::value>::type buf;
+
+        node() : next() {}
+
+        value_type* value_ptr() BOOST_NOEXCEPT
         {
-          typedef
-            typename boost::allocator_value_type<Allocator>::type value_type;
-          typedef typename boost::allocator_rebind<Allocator, node>::type
-            node_allocator_type;
-          typedef typename boost::allocator_pointer<node_allocator_type>::type
-            pointer;
-
-          pointer next;
-          typename boost::aligned_storage<sizeof(value_type),
-            boost::alignment_of<value_type>::value>::type buf;
-
-          node() : next() {}
-
-          value_type* value_ptr() BOOST_NOEXCEPT
-          {
-            return reinterpret_cast<value_type*>(buf.address());
-          }
-
-          value_type& value() BOOST_NOEXCEPT
-          {
-            return *reinterpret_cast<value_type*>(buf.address());
-          }
-        };
-
-        template <class Allocator> struct bucket
-        {
-          typedef typename node<Allocator>::pointer node_pointer;
-
-          node_pointer next;
-
-          bucket() : next() {}
-        };
-
-        template <class Bucket, class Allocator> struct bucket_group
-        {
-          typedef typename boost::allocator_rebind<Allocator, Bucket>::type
-            bucket_allocator_type;
-          typedef typename boost::allocator_pointer<bucket_allocator_type>::type
-            bucket_pointer;
-
-          typedef
-            typename boost::allocator_rebind<Allocator, bucket_group>::type
-              bucket_group_allocator_type;
-          typedef
-            typename boost::allocator_pointer<bucket_group_allocator_type>::type
-              bucket_group_pointer;
-
-          static const std::size_t N;
-
-          bucket_pointer buckets;
-          std::size_t bitmask;
-          bucket_group_pointer next, prev;
-
-          bucket_group() : buckets(), bitmask(0), next(), prev() {}
-          ~bucket_group() {}
-        };
-
-        template <class Bucket, class Allocator>
-        const std::size_t
-          bucket_group<Bucket, Allocator>::N = sizeof(std::size_t) * 8;
-
-        inline std::size_t set_bit(std::size_t n)
-        {
-          return std::size_t(1) << n;
+          return reinterpret_cast<value_type*>(buf.address());
         }
 
-        inline std::size_t reset_bit(std::size_t n)
+        value_type& value() BOOST_NOEXCEPT
         {
-          return ~(std::size_t(1) << n);
+          return *reinterpret_cast<value_type*>(buf.address());
+        }
+      };
+
+      template <class Node> struct bucket
+      {
+        typedef typename Node::node_pointer node_pointer;
+        typedef typename boost::pointer_traits<
+          node_pointer>::template rebind_to<bucket>::type bucket_pointer;
+
+        node_pointer next;
+
+        bucket() : next() {}
+      };
+
+      template <class Bucket> struct bucket_group
+      {
+        typedef typename Bucket::bucket_pointer bucket_pointer;
+        typedef
+          typename boost::pointer_traits<bucket_pointer>::template rebind_to<
+            bucket_group>::type bucket_group_pointer;
+
+        static const std::size_t N;
+
+        bucket_pointer buckets;
+        std::size_t bitmask;
+        bucket_group_pointer next, prev;
+
+        bucket_group() : buckets(), bitmask(0), next(), prev() {}
+        ~bucket_group() {}
+      };
+
+      template <class Bucket>
+      const std::size_t bucket_group<Bucket>::N = sizeof(std::size_t) * 8;
+
+      inline std::size_t set_bit(std::size_t n) { return std::size_t(1) << n; }
+
+      inline std::size_t reset_bit(std::size_t n)
+      {
+        return ~(std::size_t(1) << n);
+      }
+
+      inline std::size_t reset_first_bits(std::size_t n) // n>0
+      {
+        return ~(~(std::size_t(0)) >> (sizeof(std::size_t) * 8 - n));
+      }
+
+      template <class Bucket>
+      struct grouped_bucket_iterator
+          : public boost::iterator_facade<grouped_bucket_iterator<Bucket>,
+              Bucket, boost::forward_traversal_tag>
+      {
+      public:
+        typedef typename Bucket::bucket_pointer bucket_pointer;
+        typedef
+          typename boost::pointer_traits<bucket_pointer>::template rebind_to<
+            bucket_group<Bucket> >::type bucket_group_pointer;
+
+      private:
+        bucket_pointer p;
+        bucket_group_pointer pbg;
+
+      public:
+        grouped_bucket_iterator() : p(), pbg() {}
+
+      private:
+        friend class boost::iterator_core_access;
+
+        template <typename, typename, typename>
+        friend class grouped_bucket_array;
+
+        static const std::size_t N;
+
+        grouped_bucket_iterator(bucket_pointer p_, bucket_group_pointer pbg_)
+            : p(p_), pbg(pbg_)
+        {
         }
 
-        inline std::size_t reset_first_bits(std::size_t n) // n>0
+        Bucket& dereference() const BOOST_NOEXCEPT { return *p; }
+
+        bool equal(const grouped_bucket_iterator& x) const BOOST_NOEXCEPT
         {
-          return ~(~(std::size_t(0)) >> (sizeof(std::size_t) * 8 - n));
+          return p == x.p;
         }
 
-        template <class Bucket, class Allocator>
-        struct grouped_bucket_iterator
-            : public boost::iterator_facade<
-                grouped_bucket_iterator<Bucket, Allocator>, Bucket,
-                boost::forward_traversal_tag>
+        void increment() BOOST_NOEXCEPT
         {
-        public:
-          typedef typename boost::allocator_rebind<Allocator, Bucket>::type
-            bucket_allocator_type;
-          typedef typename boost::allocator_pointer<bucket_allocator_type>::type
-            bucket_pointer;
+          std::size_t const offset = static_cast<std::size_t>(p - pbg->buckets);
 
-          typedef typename boost::allocator_rebind<Allocator,
-            bucket_group<Bucket, Allocator> >::type bucket_group_allocator_type;
-          typedef
-            typename boost::allocator_pointer<bucket_group_allocator_type>::type
-              bucket_group_pointer;
+          std::size_t n = std::size_t(boost::core::countr_zero(
+            pbg->bitmask & reset_first_bits(offset + 1)));
 
-        private:
-          bucket_pointer p;
-          bucket_group_pointer pbg;
-
-        public:
-          grouped_bucket_iterator() : p(), pbg() {}
-
-        private:
-          friend class boost::iterator_core_access;
-
-          template <typename, typename, typename>
-          friend class grouped_bucket_array;
-
-          static const std::size_t N;
-
-          grouped_bucket_iterator(bucket_pointer p_, bucket_group_pointer pbg_)
-              : p(p_), pbg(pbg_)
-          {
+          if (n < N) {
+            p = pbg->buckets + n;
+          } else {
+            pbg = pbg->next;
+            p = pbg->buckets + static_cast<std::ptrdiff_t>(
+                                 boost::core::countr_zero(pbg->bitmask));
           }
+        }
+      };
 
-          Bucket& dereference() const BOOST_NOEXCEPT { return *p; }
+      template <class Bucket>
+      const std::size_t grouped_bucket_iterator<Bucket>::N =
+        bucket_group<Bucket>::N;
 
-          bool equal(const grouped_bucket_iterator& x) const BOOST_NOEXCEPT
-          {
-            return p == x.p;
-          }
+      template <class Node> struct const_grouped_local_bucket_iterator;
 
-          void increment() BOOST_NOEXCEPT
-          {
-            std::size_t const offset =
-              static_cast<std::size_t>(p - pbg->buckets);
+      template <class Node>
+      struct grouped_local_bucket_iterator
+          : public boost::iterator_facade<grouped_local_bucket_iterator<Node>,
+              typename Node::value_type, boost::forward_traversal_tag>
+      {
 
-            std::size_t n = std::size_t(boost::core::countr_zero(
-              pbg->bitmask & reset_first_bits(offset + 1)));
+        typedef typename Node::node_pointer node_pointer;
 
-            if (n < N) {
-              p = pbg->buckets + n;
-            } else {
-              pbg = pbg->next;
-              p = pbg->buckets + static_cast<std::ptrdiff_t>(
-                                   boost::core::countr_zero(pbg->bitmask));
-            }
-          }
+      public:
+        typedef typename Node::value_type value_type;
+        typedef value_type element_type;
+        typedef value_type* pointer;
+        typedef value_type& reference;
+        typedef std::ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        grouped_local_bucket_iterator() : p() {}
+
+      private:
+        friend class boost::iterator_core_access;
+
+        template <typename, typename, typename>
+        friend class grouped_bucket_array;
+
+        template <class> friend struct const_grouped_local_bucket_iterator;
+
+        grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
+
+        value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
+
+        bool equal(const grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
+        {
+          return p == x.p;
+        }
+
+        void increment() BOOST_NOEXCEPT { p = p->next; }
+
+        node_pointer p;
+      };
+
+      template <class Node>
+      struct const_grouped_local_bucket_iterator
+          : public boost::iterator_facade<
+              const_grouped_local_bucket_iterator<Node>,
+              typename Node::value_type const, boost::forward_traversal_tag>
+      {
+        typedef typename Node::node_pointer node_pointer;
+
+      public:
+        typedef typename Node::value_type const value_type;
+        typedef value_type const element_type;
+        typedef value_type const* pointer;
+        typedef value_type const& reference;
+        typedef std::ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        const_grouped_local_bucket_iterator() : p() {}
+        const_grouped_local_bucket_iterator(
+          grouped_local_bucket_iterator<Node> it)
+            : p(it.p)
+        {
+        }
+
+      private:
+        friend class boost::iterator_core_access;
+
+        template <typename, typename, typename>
+        friend class grouped_bucket_array;
+
+        const_grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
+
+        value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
+
+        bool equal(
+          const const_grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
+        {
+          return p == x.p;
+        }
+
+        void increment() BOOST_NOEXCEPT { p = p->next; }
+
+        node_pointer p;
+      };
+
+      template <class T> struct span
+      {
+        T* begin() const BOOST_NOEXCEPT { return data; }
+        T* end() const BOOST_NOEXCEPT { return data + size; }
+
+        T* data;
+        std::size_t size;
+
+        span(T* data_, std::size_t size_) : data(data_), size(size_) {}
+      };
+
+      template <class Bucket, class Allocator, class SizePolicy>
+      class grouped_bucket_array
+      {
+        BOOST_MOVABLE_BUT_NOT_COPYABLE(grouped_bucket_array)
+
+        typedef typename boost::allocator_value_type<Allocator>::type
+          allocator_value_type;
+        typedef
+          typename boost::allocator_void_pointer<Allocator>::type void_pointer;
+
+      public:
+        typedef typename boost::allocator_rebind<Allocator,
+          node<allocator_value_type, void_pointer> >::type node_allocator_type;
+
+        typedef node<allocator_value_type, void_pointer> node_type;
+        typedef typename boost::allocator_pointer<node_allocator_type>::type
+          node_pointer;
+        typedef SizePolicy size_policy;
+
+      private:
+        typedef typename boost::allocator_rebind<Allocator, Bucket>::type
+          bucket_allocator_type;
+        typedef typename boost::allocator_pointer<bucket_allocator_type>::type
+          bucket_pointer;
+        typedef boost::pointer_traits<bucket_pointer> bucket_pointer_traits;
+
+        typedef bucket_group<Bucket> group;
+        typedef typename boost::allocator_rebind<Allocator, group>::type
+          group_allocator_type;
+        typedef typename boost::allocator_pointer<group_allocator_type>::type
+          group_pointer;
+        typedef typename boost::pointer_traits<group_pointer>
+          group_pointer_traits;
+
+      public:
+        typedef Bucket value_type;
+        typedef Bucket bucket_type;
+        typedef std::size_t size_type;
+        typedef Allocator allocator_type;
+        typedef grouped_bucket_iterator<Bucket> iterator;
+        typedef grouped_local_bucket_iterator<node_type> local_iterator;
+        typedef const_grouped_local_bucket_iterator<node_type>
+          const_local_iterator;
+
+      private:
+        Allocator allocator;
+        node_allocator_type node_allocator;
+
+        std::size_t size_index_, size_;
+        dynamic_array<Bucket, bucket_allocator_type> buckets;
+        dynamic_array<group, group_allocator_type> groups;
+
+      public:
+        grouped_bucket_array(size_type n, const Allocator& al)
+            : allocator(al), node_allocator(al),
+              size_index_(size_policy::size_index(n)),
+              size_(size_policy::size(size_index_)), buckets(size_ + 1, al),
+              groups(size_ / group::N + 1, al)
+        {
+          std::size_t const N = group::N;
+
+          group& grp = groups.back();
+          group_pointer pbg =
+            boost::pointer_traits<group_pointer>::pointer_to(grp);
+
+          pbg->buckets = boost::pointer_traits<bucket_pointer>::pointer_to(
+            buckets[N * (size_ / N)]);
+          pbg->bitmask = set_bit(size_ % N);
+          pbg->next = pbg->prev = pbg;
+        }
+
+        ~grouped_bucket_array() {}
+
+        grouped_bucket_array(
+          BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
+            : allocator(boost::move(other.allocator)),
+              node_allocator(boost::move(other.node_allocator)),
+              size_index_(other.size_index_),
+              size_(other.size_),
+              buckets(boost::move(other.buckets)),
+              groups(boost::move(other.groups))
+        {
+          other.size_ = 0;
+          other.size_index_ = 0;
+        }
+
+        grouped_bucket_array& operator=(
+          BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
+        {
+          size_index_ = other.size_index_;
+          size_ = other.size_;
+
+          buckets = boost::move(other.buckets);
+          groups = boost::move(other.groups);
+
+          other.size_index_ = 0;
+          other.size_ = 0;
+          return *this;
         };
 
-        template <class Bucket, class Allocator>
-        const std::size_t grouped_bucket_iterator<Bucket, Allocator>::N =
-          bucket_group<Bucket, Allocator>::N;
-
-        template <class Allocator> struct const_grouped_local_bucket_iterator;
-
-        template <class Allocator>
-        struct grouped_local_bucket_iterator
-            : public boost::iterator_facade<
-                grouped_local_bucket_iterator<Allocator>,
-                typename boost::allocator_value_type<Allocator>::type,
-                boost::forward_traversal_tag>
+        void swap(grouped_bucket_array& other)
         {
-          typedef typename node<Allocator>::pointer node_pointer;
+          std::swap(size_index_, other.size_index_);
+          std::swap(size_, other.size_);
+          buckets.swap(other.buckets);
+          groups.swap(other.groups);
 
-        public:
-          typedef typename node<Allocator>::value_type value_type;
-          typedef value_type element_type;
-          typedef value_type* pointer;
-          typedef value_type& reference;
-          typedef std::ptrdiff_t difference_type;
-          typedef std::forward_iterator_tag iterator_category;
-
-          grouped_local_bucket_iterator() : p() {}
-
-        private:
-          friend class boost::iterator_core_access;
-
-          template <typename, typename, typename>
-          friend class grouped_bucket_array;
-
-          template <class> friend struct const_grouped_local_bucket_iterator;
-
-          grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
-
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
-
-          bool equal(
-            const grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
-          {
-            return p == x.p;
+          bool b = boost::allocator_propagate_on_container_swap<
+            allocator_type>::type::value;
+          if (b) {
+            boost::swap(allocator, other.allocator);
+            boost::swap(node_allocator, other.node_allocator);
           }
+        }
 
-          void increment() BOOST_NOEXCEPT { p = p->next; }
+        Allocator get_allocator() const { return allocator; }
 
-          node_pointer p;
-        };
-
-        template <class Allocator>
-        struct const_grouped_local_bucket_iterator
-            : public boost::iterator_facade<
-                const_grouped_local_bucket_iterator<Allocator>,
-                typename boost::allocator_value_type<Allocator>::type const,
-                boost::forward_traversal_tag>
+        node_allocator_type const& get_node_allocator() const
         {
-          typedef typename node<Allocator>::pointer node_pointer;
+          return node_allocator;
+        }
 
-        public:
-          typedef typename node<Allocator>::value_type const value_type;
-          typedef value_type const element_type;
-          typedef value_type const* pointer;
-          typedef value_type const& reference;
-          typedef std::ptrdiff_t difference_type;
-          typedef std::forward_iterator_tag iterator_category;
-
-          const_grouped_local_bucket_iterator() : p() {}
-          const_grouped_local_bucket_iterator(
-            grouped_local_bucket_iterator<Allocator> it)
-              : p(it.p)
-          {
-          }
-
-        private:
-          friend class boost::iterator_core_access;
-
-          template <typename, typename, typename>
-          friend class grouped_bucket_array;
-
-          const_grouped_local_bucket_iterator(node_pointer p_) : p(p_) {}
-
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
-
-          bool equal(
-            const const_grouped_local_bucket_iterator& x) const BOOST_NOEXCEPT
-          {
-            return p == x.p;
-          }
-
-          void increment() BOOST_NOEXCEPT { p = p->next; }
-
-          node_pointer p;
-        };
-
-        template <class T> struct span
+        node_allocator_type& get_node_allocator() { return node_allocator; }
+        bucket_allocator_type& get_bucket_allocatr()
         {
-          T* begin() const BOOST_NOEXCEPT { return data; }
-          T* end() const BOOST_NOEXCEPT { return data + size; }
+          return buckets.allocator();
+        }
 
-          T* data;
-          std::size_t size;
-
-          span(T* data_, std::size_t size_) : data(data_), size(size_) {}
-        };
-
-        template <class Bucket, class Allocator, class SizePolicy>
-        class grouped_bucket_array
+        void reset_allocator(Allocator const& allocator_)
         {
-          BOOST_MOVABLE_BUT_NOT_COPYABLE(grouped_bucket_array)
+          allocator = allocator_;
+          node_allocator = node_allocator_type(allocator);
 
-        public:
-          typedef node<Allocator> node_type;
-          typedef typename boost::allocator_rebind<Allocator, node_type>::type
-            node_allocator_type;
-          typedef typename boost::allocator_pointer<node_allocator_type>::type
-            node_pointer;
+          groups.allocator() = group_allocator_type(allocator);
+          buckets.allocator() = bucket_allocator_type(allocator);
+        }
 
-          typedef SizePolicy size_policy;
+        size_type bucket_count() const { return size_; }
 
-        private:
-          typedef typename boost::allocator_rebind<Allocator, Bucket>::type
-            bucket_allocator_type;
-          typedef typename boost::allocator_pointer<bucket_allocator_type>::type
-            bucket_pointer;
-          typedef boost::pointer_traits<bucket_pointer> bucket_pointer_traits;
+        iterator begin() const
+        {
+          if (size_ == 0) {
+            return end();
+          }
+          return ++at(size_);
+        }
 
-          typedef bucket_group<Bucket, Allocator> group;
-          typedef typename boost::allocator_rebind<Allocator, group>::type
-            group_allocator_type;
-          typedef typename boost::allocator_pointer<group_allocator_type>::type
-            group_pointer;
-          typedef typename boost::pointer_traits<group_pointer>
-            group_pointer_traits;
-
-        public:
-          typedef Bucket value_type;
-          typedef Bucket bucket_type;
-          typedef std::size_t size_type;
-          typedef Allocator allocator_type;
-          typedef grouped_bucket_iterator<Bucket, Allocator> iterator;
-          typedef grouped_local_bucket_iterator<Allocator> local_iterator;
-          typedef const_grouped_local_bucket_iterator<Allocator>
-            const_local_iterator;
-
-        private:
-          Allocator allocator;
-          node_allocator_type node_allocator;
-
-          std::size_t size_index_, size_;
-          dynamic_array<Bucket, bucket_allocator_type> buckets;
-          dynamic_array<group, group_allocator_type> groups;
-
-        public:
-          grouped_bucket_array(size_type n, const Allocator& al)
-              : allocator(al), node_allocator(al),
-                size_index_(size_policy::size_index(n)),
-                size_(size_policy::size(size_index_)), buckets(size_ + 1, al),
-                groups(size_ / group::N + 1, al)
-          {
-            std::size_t const N = group::N;
-
-            group& grp = groups.back();
-            group_pointer pbg =
-              boost::pointer_traits<group_pointer>::pointer_to(grp);
-
-            pbg->buckets = boost::pointer_traits<bucket_pointer>::pointer_to(
-              buckets[N * (size_ / N)]);
-            pbg->bitmask = set_bit(size_ % N);
-            pbg->next = pbg->prev = pbg;
+        iterator end() const
+        {
+          // micro optimization: no need to return the bucket group
+          // as end() is not incrementable
+          iterator pbg;
+          if (size_) {
+            pbg.p = bucket_pointer_traits::pointer_to(
+              const_cast<Bucket&>(buckets.back()));
           }
 
-          ~grouped_bucket_array() {}
+          return pbg;
+        }
 
-          grouped_bucket_array(
-            BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
-              : allocator(boost::move(other.allocator)),
-                node_allocator(boost::move(other.node_allocator)),
-                size_index_(other.size_index_),
-                size_(other.size_),
-                buckets(boost::move(other.buckets)),
-                groups(boost::move(other.groups))
-          {
-            other.size_ = 0;
-            other.size_index_ = 0;
-          }
+        local_iterator begin(size_type n) const
+        {
+          return local_iterator(buckets[n].next);
+        }
 
-          grouped_bucket_array& operator=(
-            BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
-          {
-            size_index_ = other.size_index_;
-            size_ = other.size_;
+        local_iterator end(size_type) const { return local_iterator(); }
 
-            buckets = boost::move(other.buckets);
-            groups = boost::move(other.groups);
+        size_type capacity() const BOOST_NOEXCEPT { return size_; }
 
-            other.size_index_ = 0;
-            other.size_ = 0;
-            return *this;
-          };
+        iterator at(size_type n) const
+        {
+          std::size_t const N = group::N;
 
-          void swap(grouped_bucket_array& other)
-          {
-            std::swap(size_index_, other.size_index_);
-            std::swap(size_, other.size_);
-            buckets.swap(other.buckets);
-            groups.swap(other.groups);
+          iterator pbg(
+            bucket_pointer_traits::pointer_to(const_cast<Bucket&>(buckets[n])),
+            group_pointer_traits::pointer_to(
+              const_cast<group&>(groups[static_cast<std::size_t>(n / N)])));
 
-            bool b = boost::allocator_propagate_on_container_swap<
-              allocator_type>::type::value;
-            if (b) {
-              boost::swap(allocator, other.allocator);
-              boost::swap(node_allocator, other.node_allocator);
+          return pbg;
+        }
+
+        span<Bucket> raw()
+        {
+          BOOST_ASSERT(size_ == 0 || size_ < buckets.size());
+          return span<Bucket>(buckets.data(), size_);
+        }
+
+        size_type position(std::size_t hash) const
+        {
+          return size_policy::position(hash, size_index_);
+        }
+
+        void clear()
+        {
+          size_index_ = 0;
+          size_ = 0;
+
+          buckets.clear();
+          groups.clear();
+        }
+
+        void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
+        {
+          std::size_t const N = group::N;
+
+          if (!itb->next) { // empty bucket
+            typename iterator::bucket_pointer pb = itb.p;
+            typename iterator::bucket_group_pointer pbg = itb.pbg;
+
+            std::size_t n =
+              static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
+            if (!pbg->bitmask) { // empty group
+              pbg->buckets =
+                bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
+              pbg->next = groups.back().next;
+              pbg->next->prev = pbg;
+              pbg->prev = group_pointer_traits::pointer_to(groups.back());
+              pbg->prev->next = pbg;
             }
+            pbg->bitmask |= set_bit(n % N);
           }
+          p->next = itb->next;
+          itb->next = p;
+        }
 
-          Allocator get_allocator() const { return allocator; }
+        void insert_node_hint(
+          iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
+        {
+          std::size_t const N = group::N;
 
-          node_allocator_type const& get_node_allocator() const
-          {
-            return node_allocator;
-          }
+          if (!itb->next) { // empty bucket
+            typename iterator::bucket_pointer pb = itb.p;
+            typename iterator::bucket_group_pointer pbg = itb.pbg;
 
-          node_allocator_type& get_node_allocator() { return node_allocator; }
-          bucket_allocator_type& get_bucket_allocatr()
-          {
-            return buckets.allocator();
-          }
-
-          void reset_allocator(Allocator const& allocator_)
-          {
-            allocator = allocator_;
-            node_allocator = node_allocator_type(allocator);
-
-            groups.allocator() = group_allocator_type(allocator);
-            buckets.allocator() = bucket_allocator_type(allocator);
-          }
-
-          size_type bucket_count() const { return size_; }
-
-          iterator begin() const
-          {
-            if (size_ == 0) {
-              return end();
+            std::size_t n =
+              static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
+            if (!pbg->bitmask) { // empty group
+              pbg->buckets =
+                bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
+              pbg->next = groups.back().next;
+              pbg->next->prev = pbg;
+              pbg->prev = group_pointer_traits::pointer_to(groups.back());
+              pbg->prev->next = pbg;
             }
-            return ++at(size_);
+            pbg->bitmask |= set_bit(n % N);
           }
 
-          iterator end() const
-          {
-            // micro optimization: no need to return the bucket group
-            // as end() is not incrementable
-            iterator pbg;
-            if (size_) {
-              pbg.p = bucket_pointer_traits::pointer_to(
-                const_cast<Bucket&>(buckets.back()));
-            }
-
-            return pbg;
-          }
-
-          local_iterator begin(size_type n) const
-          {
-            return local_iterator(buckets[n].next);
-          }
-
-          local_iterator end(size_type) const { return local_iterator(); }
-
-          size_type capacity() const BOOST_NOEXCEPT { return size_; }
-
-          iterator at(size_type n) const
-          {
-            std::size_t const N = group::N;
-
-            iterator pbg(bucket_pointer_traits::pointer_to(
-                           const_cast<Bucket&>(buckets[n])),
-              group_pointer_traits::pointer_to(
-                const_cast<group&>(groups[static_cast<std::size_t>(n / N)])));
-
-            return pbg;
-          }
-
-          span<Bucket> raw()
-          {
-            BOOST_ASSERT(size_ == 0 || size_ < buckets.size());
-            return span<Bucket>(buckets.data(), size_);
-          }
-
-          size_type position(std::size_t hash) const
-          {
-            return size_policy::position(hash, size_index_);
-          }
-
-          void clear()
-          {
-            size_index_ = 0;
-            size_ = 0;
-
-            buckets.clear();
-            groups.clear();
-          }
-
-          void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
-          {
-            std::size_t const N = group::N;
-
-            if (!itb->next) { // empty bucket
-              typename iterator::bucket_pointer pb = itb.p;
-              typename iterator::bucket_group_pointer pbg = itb.pbg;
-
-              std::size_t n =
-                static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
-              if (!pbg->bitmask) { // empty group
-                pbg->buckets =
-                  bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
-                pbg->next = groups.back().next;
-                pbg->next->prev = pbg;
-                pbg->prev = group_pointer_traits::pointer_to(groups.back());
-                pbg->prev->next = pbg;
-              }
-              pbg->bitmask |= set_bit(n % N);
-            }
+          if (hint) {
+            p->next = hint->next;
+            hint->next = p;
+          } else {
             p->next = itb->next;
             itb->next = p;
           }
+        }
 
-          void insert_node_hint(
-            iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
-          {
-            std::size_t const N = group::N;
+        void extract_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
+        {
+          node_pointer* pp = boost::addressof(itb->next);
+          while ((*pp) != p)
+            pp = boost::addressof((*pp)->next);
+          *pp = p->next;
+          if (!itb->next)
+            unlink_bucket(itb);
+        }
 
-            if (!itb->next) { // empty bucket
-              typename iterator::bucket_pointer pb = itb.p;
-              typename iterator::bucket_group_pointer pbg = itb.pbg;
+        void extract_node_after(iterator itb, node_pointer* pp) BOOST_NOEXCEPT
+        {
+          *pp = (*pp)->next;
+          if (!itb->next)
+            unlink_bucket(itb);
+        }
 
-              std::size_t n =
-                static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
-              if (!pbg->bitmask) { // empty group
-                pbg->buckets =
-                  bucket_pointer_traits::pointer_to(buckets[N * (n / N)]);
-                pbg->next = groups.back().next;
-                pbg->next->prev = pbg;
-                pbg->prev = group_pointer_traits::pointer_to(groups.back());
-                pbg->prev->next = pbg;
-              }
-              pbg->bitmask |= set_bit(n % N);
+        void unlink_empty_buckets() BOOST_NOEXCEPT
+        {
+          std::size_t const N = group::N;
+
+          group_pointer pbg = group_pointer_traits::pointer_to(groups.front()),
+                        last = group_pointer_traits::pointer_to(groups.back());
+
+          for (; pbg != last; ++pbg) {
+            if (!pbg->buckets) {
+              continue;
             }
 
-            if (hint) {
-              p->next = hint->next;
-              hint->next = p;
-            } else {
-              p->next = itb->next;
-              itb->next = p;
-            }
-          }
-
-          void extract_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
-          {
-            node_pointer* pp = boost::addressof(itb->next);
-            while ((*pp) != p)
-              pp = boost::addressof((*pp)->next);
-            *pp = p->next;
-            if (!itb->next)
-              unlink_bucket(itb);
-          }
-
-          void extract_node_after(iterator itb, node_pointer* pp) BOOST_NOEXCEPT
-          {
-            *pp = (*pp)->next;
-            if (!itb->next)
-              unlink_bucket(itb);
-          }
-
-          void unlink_empty_buckets() BOOST_NOEXCEPT
-          {
-            std::size_t const N = group::N;
-
-            group_pointer pbg =
-                            group_pointer_traits::pointer_to(groups.front()),
-                          last =
-                            group_pointer_traits::pointer_to(groups.back());
-
-            for (; pbg != last; ++pbg) {
-              if (!pbg->buckets) {
-                continue;
-              }
-
-              for (std::size_t n = 0; n < N; ++n) {
-                bucket_pointer bs = pbg->buckets;
-                bucket_type& b = bs[static_cast<std::ptrdiff_t>(n)];
-                if (!b.next)
-                  pbg->bitmask &= reset_bit(n);
-              }
-              if (!pbg->bitmask && pbg->next)
-                unlink_group(pbg);
-            }
-
-            // do not check end bucket
-            for (std::size_t n = 0; n < size_ % N; ++n) {
-              if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
+            for (std::size_t n = 0; n < N; ++n) {
+              bucket_pointer bs = pbg->buckets;
+              bucket_type& b = bs[static_cast<std::ptrdiff_t>(n)];
+              if (!b.next)
                 pbg->bitmask &= reset_bit(n);
             }
-          }
-
-        private:
-          void unlink_bucket(iterator itb)
-          {
-            typename iterator::bucket_pointer p = itb.p;
-            typename iterator::bucket_group_pointer pbg = itb.pbg;
-            if (!(pbg->bitmask &=
-                  reset_bit(static_cast<std::size_t>(p - pbg->buckets))))
+            if (!pbg->bitmask && pbg->next)
               unlink_group(pbg);
           }
 
-          void unlink_group(group_pointer pbg)
-          {
-            pbg->next->prev = pbg->prev;
-            pbg->prev->next = pbg->next;
-            pbg->prev = pbg->next = group_pointer();
+          // do not check end bucket
+          for (std::size_t n = 0; n < size_ % N; ++n) {
+            if (!pbg->buckets[static_cast<std::ptrdiff_t>(n)].next)
+              pbg->bitmask &= reset_bit(n);
           }
-        };
-    }   // namespace detail
-  }     // namespace unordered
+        }
+
+      private:
+        void unlink_bucket(iterator itb)
+        {
+          typename iterator::bucket_pointer p = itb.p;
+          typename iterator::bucket_group_pointer pbg = itb.pbg;
+          if (!(pbg->bitmask &=
+                reset_bit(static_cast<std::size_t>(p - pbg->buckets))))
+            unlink_group(pbg);
+        }
+
+        void unlink_group(group_pointer pbg)
+        {
+          pbg->next->prev = pbg->prev;
+          pbg->prev->next = pbg->next;
+          pbg->prev = pbg->next = group_pointer();
+        }
+      };
+    } // namespace detail
+  }   // namespace unordered
 } // namespace boost
 
 #endif // BOOST_UNORDERED_DETAIL_FCA_HPP

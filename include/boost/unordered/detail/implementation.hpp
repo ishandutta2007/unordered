@@ -1714,6 +1714,107 @@ namespace boost {
                  : static_cast<std::size_t>(f);
       }
 
+      //////////////////////////////////////////////////////////////////////////
+      // iterator definitions
+      template <class Node, class Bucket>
+      class c_iterator;
+
+      template <class Node, class Bucket>
+      class iterator
+          : public boost::iterator_facade<iterator<Node, Bucket>, typename Node::value_type,
+              boost::forward_traversal_tag>
+      {
+      public:
+        typedef typename Node::value_type value_type;
+        typedef value_type element_type;
+        typedef value_type* pointer;
+        typedef value_type& reference;
+        typedef std::ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        iterator() : p(), itb(){};
+
+      private:
+        typedef typename Node::node_pointer node_pointer;
+        typedef grouped_bucket_iterator<Bucket> bucket_iterator;
+
+        node_pointer p;
+        bucket_iterator itb;
+
+        template <class Types>
+        friend struct table;
+        template <class N, class B>
+        friend class c_iterator;
+        friend class boost::iterator_core_access;
+
+        iterator(node_pointer p_, bucket_iterator itb_) : p(p_), itb(itb_) {}
+
+        value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
+
+        bool equal(const iterator& x) const BOOST_NOEXCEPT
+        {
+          return (p == x.p);
+        }
+
+        void increment() BOOST_NOEXCEPT
+        {
+          p = p->next;
+          if (!p) {
+            p = (++itb)->next;
+          }
+        }
+      };
+
+      template <class Node, class Bucket>
+      class c_iterator
+          : public boost::iterator_facade<c_iterator<Node, Bucket>,
+              typename Node::value_type const, boost::forward_traversal_tag>
+      {
+      public:
+        typedef typename Node::value_type value_type;
+        typedef value_type const element_type;
+        typedef value_type const* pointer;
+        typedef value_type const& reference;
+        typedef std::ptrdiff_t difference_type;
+        typedef std::forward_iterator_tag iterator_category;
+
+        c_iterator() : p(), itb(){};
+        c_iterator(iterator<Node, Bucket> it) : p(it.p), itb(it.itb){};
+
+      private:
+        typedef typename Node::node_pointer node_pointer;
+        typedef grouped_bucket_iterator<Bucket> bucket_iterator;
+
+        node_pointer p;
+        bucket_iterator itb;
+
+        template <class Types>
+        friend struct table;
+        friend class boost::iterator_core_access;
+
+        c_iterator(node_pointer p_, bucket_iterator itb_) : p(p_), itb(itb_) {}
+
+        value_type const& dereference() const BOOST_NOEXCEPT
+        {
+          return p->value();
+        }
+
+        bool equal(const c_iterator& x) const BOOST_NOEXCEPT
+        {
+          return (p == x.p);
+        }
+
+        void increment() BOOST_NOEXCEPT
+        {
+          p = p->next;
+          if (!p) {
+            p = (++itb)->next;
+          }
+        }
+      };
+
+      //////////////////////////////////////////////////////////////////////////
+      // table structure used by the containers
       template <typename Types>
       struct table : boost::unordered::detail::functions<typename Types::hasher,
                        typename Types::key_equal>
@@ -1735,12 +1836,13 @@ namespace boost {
           functions;
 
         typedef typename Types::value_allocator value_allocator;
+        typedef typename boost::allocator_void_pointer<value_allocator>::type void_pointer;
+        typedef node<value_type, void_pointer> node_type;
 
         typedef boost::unordered::detail::grouped_bucket_array<
-          bucket<value_allocator>, value_allocator, prime_fmod_size<> >
+          bucket<node_type>, value_allocator, prime_fmod_size<> >
           bucket_array_type;
 
-        typedef typename bucket_array_type::node_type node_type;
         typedef typename bucket_array_type::node_allocator_type
           node_allocator_type;
         typedef typename boost::allocator_pointer<node_allocator_type>::type node_pointer;
@@ -1758,91 +1860,8 @@ namespace boost {
 
         typedef std::size_t size_type;
 
-        class iterator : public boost::iterator_facade<iterator, value_type,
-                           boost::forward_traversal_tag>
-        {
-        public:
-          typedef typename Types::value_type value_type;
-          typedef value_type element_type;
-          typedef value_type* pointer;
-          typedef value_type& reference;
-          typedef std::ptrdiff_t difference_type;
-          typedef std::forward_iterator_tag iterator_category;
-
-          iterator() : p(), itb(){};
-
-        private:
-          node_pointer p;
-          bucket_iterator itb;
-
-          friend struct table;
-          friend class boost::iterator_core_access;
-
-          iterator(node_pointer p_, bucket_iterator itb_)
-              : p(p_), itb(itb_)
-          {
-          }
-
-          value_type& dereference() const BOOST_NOEXCEPT { return p->value(); }
-
-          bool equal(const iterator& x) const BOOST_NOEXCEPT
-          {
-            return (p == x.p);
-          }
-
-          void increment() BOOST_NOEXCEPT
-          {
-            p = p->next;
-            if (!p) {
-              p = (++itb)->next;
-            }
-          }
-        };
-
-        class c_iterator : public boost::iterator_facade<c_iterator,
-                                 value_type const, boost::forward_traversal_tag>
-        {
-        public:
-          typedef typename Types::value_type value_type;
-          typedef value_type const element_type;
-          typedef value_type const* pointer;
-          typedef value_type const& reference;
-          typedef std::ptrdiff_t difference_type;
-          typedef std::forward_iterator_tag iterator_category;
-
-          c_iterator() : p(), itb(){};
-          c_iterator(iterator it) : p(it.p), itb(it.itb){};
-
-        private:
-          node_pointer p;
-          bucket_iterator itb;
-
-          friend struct table;
-          friend class boost::iterator_core_access;
-
-          c_iterator(node_pointer p_, bucket_iterator itb_)
-              : p(p_), itb(itb_)
-          {
-          }
-
-          value_type const& dereference() const BOOST_NOEXCEPT
-          {
-            return p->value();
-          }
-
-          bool equal(const c_iterator& x) const BOOST_NOEXCEPT
-          {
-            return (p == x.p);
-          }
-
-          void increment() BOOST_NOEXCEPT
-          {
-            p = p->next;
-            if (!p) {
-              p = (++itb)->next;
-            }
-          }
-        };
+        typedef iterator<node_type, bucket<node_type> > iterator;
+        typedef c_iterator<node_type, bucket<node_type> > c_iterator;
 
         typedef std::pair<iterator, bool> emplace_return;
 
@@ -2342,8 +2361,8 @@ namespace boost {
           return find_node_impl(k, itb);
         }
 
-        template <class Key>
-        iterator find(Key const& k) const {
+        template <class Key> BOOST_FORCEINLINE iterator find(Key const& k) const
+        {
           std::size_t const key_hash = this->hash(k);
           bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
           node_pointer pos = this->find_node_impl(k, itb);

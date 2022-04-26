@@ -289,7 +289,7 @@ namespace test {
       }
     }
 
-    std::size_t operator()(int x1, int x2) const { return x1 < x2; }
+    bool operator()(int x1, int x2) const { return x1 < x2; }
 
     friend bool operator==(less const& x1, less const& x2)
     {
@@ -330,7 +330,7 @@ namespace test {
       }
     }
 
-    std::size_t operator()(int x1, int x2) const { return x1 == x2; }
+    bool operator()(int x1, int x2) const { return x1 == x2; }
 
     friend bool operator==(equal_to const& x1, equal_to const& x2)
     {
@@ -714,5 +714,13 @@ namespace test {
     return x == y;
   }
 }
+
+template <>
+struct boost::pointer_traits<test::void_ptr> {
+  template <class U>
+  struct rebind_to {
+    typedef test::ptr<U> type;
+  };
+};
 
 #endif
