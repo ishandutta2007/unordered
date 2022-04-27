@@ -233,17 +233,17 @@ namespace boost {
 
 #if defined(SIZE_MAX)
 #if ((((SIZE_MAX >> 16) >> 16) >> 16) >> 15) != 0
-#define FCA_HAS_64B_SIZE_T
+#define BOOST_UNORDERED_FCA_HAS_64B_SIZE_T
 #endif
 #elif defined(UINTPTR_MAX) /* used as proxy for std::size_t */
 #if ((((UINTPTR_MAX >> 16) >> 16) >> 16) >> 15) != 0
-#define FCA_HAS_64B_SIZE_T
+#define BOOST_UNORDERED_FCA_HAS_64B_SIZE_T
 #endif
 #endif
 
 #if !defined(BOOST_NO_INT64_T) &&                                              \
   (defined(BOOST_HAS_INT128) || (defined(BOOST_MSVC) && defined(_WIN64)))
-#define FCA_FASTMOD_SUPPORT
+#define BOOST_UNORDERED_FCA_FASTMOD_SUPPORT
 #endif
 
       template <class = void> struct prime_fmod_size
@@ -252,10 +252,10 @@ namespace boost {
         static std::size_t const sizes_len;
         static std::size_t (*positions[])(std::size_t);
 
-#if defined(FCA_FASTMOD_SUPPORT)
+#if defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT)
         static uint64_t inv_sizes32[];
         static std::size_t const inv_sizes32_len;
-#endif /* defined(FCA_FASTMOD_SUPPORT) */
+#endif /* defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT) */
 
         static inline std::size_t size_index(std::size_t n)
         {
@@ -276,7 +276,7 @@ namespace boost {
           return hash % Size;
         }
 
-#if defined(FCA_FASTMOD_SUPPORT)
+#if defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT)
         // https://github.com/lemire/fastmod
 
 #if defined(_MSC_VER)
@@ -297,13 +297,13 @@ namespace boost {
           uint64_t lowbits = M * a;
           return (uint32_t)(mul128_u32(lowbits, d));
         }
-#endif /* defined(FCA_FASTMOD_SUPPORT) */
+#endif /* defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT) */
 
         static inline std::size_t position(
           std::size_t hash, std::size_t size_index)
         {
-#if defined(FCA_FASTMOD_SUPPORT)
-#if defined(FCA_HAS_64B_SIZE_T)
+#if defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT)
+#if defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T)
           std::size_t sizes_under_32bit = inv_sizes32_len;
           if (BOOST_LIKELY(size_index < sizes_under_32bit)) {
             return fastmod_u32(uint32_t(hash) + uint32_t(hash >> 32),
@@ -314,10 +314,10 @@ namespace boost {
 #else
           return fastmod_u32(
             hash, inv_sizes32[size_index], uint32_t(sizes[size_index]));
-#endif /* defined(FCA_HAS_64B_SIZE_T) */
+#endif /* defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T) */
 #else
           return positions[size_index](hash);
-#endif /* defined(FCA_FASTMOD_SUPPORT) */
+#endif /* defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT) */
         }
       }; // prime_fmod_size
 
@@ -328,7 +328,7 @@ namespace boost {
     100663319ul)(201326611ul)(402653189ul)(805306457ul)(1610612741ul)(         \
     3221225473ul)
 
-#if !defined(FCA_HAS_64B_SIZE_T)
+#if !defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T)
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT                                 \
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT_INCOMPLETE(4294967291ul)
@@ -369,7 +369,7 @@ namespace boost {
   ((boost::ulong_long_type(383ul) << 32) + boost::ulong_long_type(4294967283ul))
       // clang-format on
 
-#endif /* FCA_HAS_64B_SIZE_T */
+#endif /* BOOST_UNORDERED_FCA_HAS_64B_SIZE_T */
 
 #define BOOST_UNORDERED_PRIME_FMOD_SIZES                                       \
   BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT
@@ -385,7 +385,7 @@ namespace boost {
 // Similarly here, we have to re-express the integer initialization using
 // arithmetic such that each literal can fit in a 32-bit value.
 //
-#if defined(FCA_FASTMOD_SUPPORT)
+#if defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT)
       // clang-format off
         template <class T>
         uint64_t prime_fmod_size<T>::inv_sizes32[] = {
@@ -418,32 +418,32 @@ namespace boost {
           (boost::ulong_long_type(5ul) << 32)         + boost::ulong_long_type(1431653234ul) /* = 22906489714 */,
           (boost::ulong_long_type(2ul) << 32)         + boost::ulong_long_type(2863311496ul) /* = 11453246088 */,
           (boost::ulong_long_type(1ul) << 32)         + boost::ulong_long_type(1431655764ul) /* = 5726623060 */,
-#if !defined(FCA_HAS_64B_SIZE_T)
+#if !defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T)
         };
 #else
           (boost::ulong_long_type(1ul) << 32)         + boost::ulong_long_type(6ul)          /* 4294967302 */
         };
       // clang-format on
-#endif /* !defined(FCA_HAS_64B_SIZE_T) */
+#endif /* !defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T) */
 
       template <class T>
       std::size_t const
         prime_fmod_size<T>::inv_sizes32_len = sizeof(inv_sizes32) /
                                               sizeof(inv_sizes32[0]);
 
-#endif /* defined(FCA_FASTMOD_SUPPORT) */
+#endif /* defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT) */
 
 #define BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT(z, _, n)                  \
   prime_fmod_size<T>::template modulo<n>,
 
       template <class T>
       std::size_t (*prime_fmod_size<T>::positions[])(std::size_t) = {
-#if !defined(FCA_FASTMOD_SUPPORT)
+#if !defined(BOOST_UNORDERED_FCA_FASTMOD_SUPPORT)
         BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
           BOOST_UNORDERED_PRIME_FMOD_SIZES_32BIT)
 #endif
 
-#if defined(FCA_HAS_64B_SIZE_T)
+#if defined(BOOST_UNORDERED_FCA_HAS_64B_SIZE_T)
           BOOST_PP_SEQ_FOR_EACH(BOOST_UNORDERED_PRIME_FMOD_POSITIONS_ELEMENT, ~,
             BOOST_UNORDERED_PRIME_FMOD_SIZES_64BIT)
 #endif
@@ -455,12 +455,12 @@ namespace boost {
 #undef BOOST_UNORDERED_PRIME_FMOD_SIZES_34BIT
 #undef BOOST_UNORDERED_PRIME_FMOD_SIZES_34BIT_INCOMPLETE
 
-#ifdef FCA_FASTMOD_SUPPORT
-#undef FCA_FASTMOD_SUPPORT
+#ifdef BOOST_UNORDERED_FCA_FASTMOD_SUPPORT
+#undef BOOST_UNORDERED_FCA_FASTMOD_SUPPORT
 #endif
 
-#ifdef FCA_HAS_64B_SIZE_T
-#undef FCA_HAS_64B_SIZE_T
+#ifdef BOOST_UNORDERED_FCA_HAS_64B_SIZE_T
+#undef BOOST_UNORDERED_FCA_HAS_64B_SIZE_T
 #endif
 
       template <class ValueType, class VoidPtr> struct node
