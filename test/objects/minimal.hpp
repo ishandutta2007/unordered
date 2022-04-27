@@ -634,12 +634,14 @@ namespace test {
 #pragma warning(pop)
 #endif
 
-template <>
-struct boost::pointer_traits<test::minimal::void_ptr> {
-  template <class U>
-  struct rebind_to {
-    typedef test::minimal::ptr<U> type;
+namespace boost {
+  template <> struct pointer_traits< ::test::minimal::void_ptr>
+  {
+    template <class U> struct rebind_to
+    {
+      typedef ::test::minimal::ptr<U> type;
+    };
   };
-};
+}
 
 #endif

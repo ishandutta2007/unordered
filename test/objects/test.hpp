@@ -715,12 +715,14 @@ namespace test {
   }
 }
 
-template <>
-struct boost::pointer_traits<test::void_ptr> {
-  template <class U>
-  struct rebind_to {
-    typedef test::ptr<U> type;
+namespace boost {
+  template <> struct pointer_traits< ::test::void_ptr>
+  {
+    template <class U> struct rebind_to
+    {
+      typedef ::test::ptr<U> type;
+    };
   };
-};
+} // namespace boost
 
 #endif
