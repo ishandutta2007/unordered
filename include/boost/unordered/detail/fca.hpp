@@ -246,6 +246,9 @@ namespace boost {
 #define BOOST_UNORDERED_FCA_FASTMOD_SUPPORT
 #endif
 
+      // `prime_fmod_size` here has to be a template here so that the static
+      // data members can be duplicated in multiple TUs
+      //
       template <class = void> struct prime_fmod_size
       {
         static std::size_t sizes[];
