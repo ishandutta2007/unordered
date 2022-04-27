@@ -44,8 +44,6 @@
 #include <boost/swap.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
 
-#include <algorithm>
-
 namespace boost {
   namespace unordered {
     namespace detail {
@@ -262,11 +260,11 @@ namespace boost {
 
         static inline std::size_t size_index(std::size_t n)
         {
-          const std::size_t* bound =
-            std::lower_bound(sizes, sizes + sizes_len, n);
-          if (bound == sizes + sizes_len)
-            --bound;
-          return static_cast<std::size_t>(bound - sizes);
+          std::size_t i = 0;
+          for (; i < (sizes_len - 1); ++i) {
+            if (sizes[i] >= n) { break; }
+          }
+          return i;
         }
 
         static inline std::size_t size(std::size_t size_index)
