@@ -102,7 +102,15 @@ public:
   }
 #endif
 
-  void destroy(T* p) { p->~T(); }
+  // msvc-12.0 and msvc-14.0 seem to eliminate the destructor call as we're only
+  // ever using it with an int with has a trivial destructor so it eliminates
+  // the code and generates a warning about an unused variable
+  //
+  void destroy(T* p)
+  {
+    (void)p;
+    p->~T();
+  }
 
   size_type max_size() const { return (std::numeric_limits<size_type>::max)(); }
 
@@ -177,7 +185,15 @@ public:
   }
 #endif
 
-  void destroy(T* p) { p->~T(); }
+  // msvc-12.0 and msvc-14.0 seem to eliminate the destructor call as we're only
+  // ever using it with an int with has a trivial destructor so it eliminates
+  // the code and generates a warning about an unused variable
+  //
+  void destroy(T* p)
+  {
+    (void)p;
+    p->~T();
+  }
 
   size_type max_size() const { return (std::numeric_limits<size_type>::max)(); }
 
