@@ -44,6 +44,8 @@
 #include <boost/swap.hpp>
 #include <boost/type_traits/aligned_storage.hpp>
 
+#include <climits>
+
 namespace boost {
   namespace unordered {
     namespace detail {
@@ -510,7 +512,7 @@ namespace boost {
           typename boost::pointer_traits<bucket_pointer>::template rebind_to<
             bucket_group>::type bucket_group_pointer;
 
-        static const std::size_t N;
+        BOOST_STATIC_CONSTANT(std::size_t, N = sizeof(std::size_t) * CHAR_BIT);
 
         bucket_pointer buckets;
         std::size_t bitmask;
@@ -519,9 +521,6 @@ namespace boost {
         bucket_group() : buckets(), bitmask(0), next(), prev() {}
         ~bucket_group() {}
       };
-
-      template <class Bucket>
-      const std::size_t bucket_group<Bucket>::N = sizeof(std::size_t) * 8;
 
       inline std::size_t set_bit(std::size_t n) { return std::size_t(1) << n; }
 
@@ -559,7 +558,7 @@ namespace boost {
         template <typename, typename, typename>
         friend class grouped_bucket_array;
 
-        static const std::size_t N;
+        BOOST_STATIC_CONSTANT(std::size_t, N = bucket_group<Bucket>::N);
 
         grouped_bucket_iterator(bucket_pointer p_, bucket_group_pointer pbg_)
             : p(p_), pbg(pbg_)
@@ -589,10 +588,6 @@ namespace boost {
           }
         }
       };
-
-      template <class Bucket>
-      const std::size_t grouped_bucket_iterator<Bucket>::N =
-        bucket_group<Bucket>::N;
 
       template <class Node> struct const_grouped_local_bucket_iterator;
 
