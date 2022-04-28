@@ -244,11 +244,14 @@ namespace boost {
 #define BOOST_UNORDERED_FCA_FASTMOD_SUPPORT
 #endif
 
-      // `prime_fmod_size` here has to be a template here so that the static
-      // data members can be duplicated in multiple TUs
-      //
       template <class = void> struct prime_fmod_size
       {
+        // Because we compile for C++03, we don't have access to any inline
+        // initialization for array data members so the definitions must exist
+        // out-of-line. To keep the library header-only, we introduce a dummy
+        // template parameter which permits the definition to be included in
+        // multiple TUs without conflict.
+        //
         static std::size_t sizes[];
         static std::size_t const sizes_len;
         static std::size_t (*positions[])(std::size_t);
@@ -262,7 +265,9 @@ namespace boost {
         {
           std::size_t i = 0;
           for (; i < (sizes_len - 1); ++i) {
-            if (sizes[i] >= n) { break; }
+            if (sizes[i] >= n) {
+              break;
+            }
           }
           return i;
         }
