@@ -12,12 +12,11 @@
 #pragma once
 #endif
 
-#include <boost/unordered/detail/fca.hpp>
 #include <boost/assert.hpp>
 #include <boost/core/allocator_traits.hpp>
+#include <boost/core/bit.hpp>
 #include <boost/core/no_exceptions_support.hpp>
 #include <boost/core/pointer_traits.hpp>
-#include <boost/core/bit.hpp>
 #include <boost/detail/select_type.hpp>
 #include <boost/limits.hpp>
 #include <boost/move/move.hpp>
@@ -46,6 +45,7 @@
 #include <boost/type_traits/is_same.hpp>
 #include <boost/type_traits/make_void.hpp>
 #include <boost/type_traits/remove_const.hpp>
+#include <boost/unordered/detail/fca.hpp>
 #include <boost/unordered/detail/fwd.hpp>
 #include <boost/utility/addressof.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -2282,7 +2282,7 @@ namespace boost {
           }
           delete_buckets();
 
-          buckets_.reset_allocator(x.buckets_.get_allocator());
+          buckets_.reset_allocator(x.buckets_.get_node_allocator());
           mlf_ = x.mlf_;
           move_buckets_from(x);
         }
@@ -3374,7 +3374,7 @@ namespace boost {
           return;
         }
 
-        bucket_array_type new_buckets(bc, buckets_.get_allocator());
+        bucket_array_type new_buckets(bc, buckets_.get_node_allocator());
         BOOST_TRY
         {
           boost::unordered::detail::span<bucket_type> bspan =

@@ -506,6 +506,10 @@ namespace boost {
 
       template <class Bucket, class Allocator, class SizePolicy>
       class grouped_bucket_array
+          : boost::empty_value<typename boost::allocator_rebind<Allocator,
+              node<typename boost::allocator_value_type<Allocator>::type,
+                typename boost::allocator_void_pointer<Allocator>::type> >::
+                type>
       {
         BOOST_MOVABLE_BUT_NOT_COPYABLE(grouped_bucket_array)
 
@@ -549,16 +553,13 @@ namespace boost {
           const_local_iterator;
 
       private:
-        Allocator allocator;
-        node_allocator_type node_allocator;
-
         std::size_t size_index_, size_;
         bucket_pointer buckets;
         group_pointer groups;
 
       public:
         grouped_bucket_array(size_type n, const Allocator& al)
-            : allocator(al), node_allocator(al),
+            : empty_value<node_allocator_type>(empty_init_t(), al),
               size_index_(size_policy::size_index(n)),
               size_(size_policy::size(size_index_)), buckets(), groups()
         {
@@ -602,8 +603,8 @@ namespace boost {
 
         grouped_bucket_array(
           BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
-            : allocator(boost::move(other.allocator)),
-              node_allocator(boost::move(other.node_allocator)),
+            : empty_value<node_allocator_type>(
+                empty_init_t(), other.get_node_allocator()),
               size_index_(other.size_index_),
               size_(other.size_),
               buckets(other.buckets),
@@ -618,9 +619,9 @@ namespace boost {
         grouped_bucket_array& operator=(
           BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
         {
-          BOOST_ASSERT(this->get_allocator() == other.get_allocator());
+          BOOST_ASSERT(this->get_node_allocator() == other.get_node_allocator());
 
-          if (this == &other) {
+          if (this == boost::addressof(other)) {
             return *this;
           }
 
@@ -668,32 +669,28 @@ namespace boost {
           bool b = boost::allocator_propagate_on_container_swap<
             allocator_type>::type::value;
           if (b) {
-            boost::swap(allocator, other.allocator);
-            boost::swap(node_allocator, other.node_allocator);
+            boost::swap(get_node_allocator(), other.get_node_allocator());
           }
-        }
-
-        Allocator& get_allocator() BOOST_NOEXCEPT { return allocator; }
-        Allocator const& get_const_allocator() const BOOST_NOEXCEPT
-        {
-          return allocator;
         }
 
         node_allocator_type const& get_node_allocator() const
         {
-          return node_allocator;
+          return empty_value<node_allocator_type>::get();
         }
 
-        node_allocator_type& get_node_allocator() { return node_allocator; }
+        node_allocator_type& get_node_allocator()
+        {
+          return empty_value<node_allocator_type>::get();
+        }
 
         bucket_allocator_type get_bucket_allocator() const
         {
-          return this->get_const_allocator();
+          return this->get_node_allocator();
         }
 
         group_allocator_type get_group_allocator() const
         {
-          return this->get_const_allocator();
+          return this->get_node_allocator();
         }
 
         size_type buckets_len() const BOOST_NOEXCEPT { return size_ + 1; }
@@ -705,8 +702,7 @@ namespace boost {
 
         void reset_allocator(Allocator const& allocator_)
         {
-          allocator = allocator_;
-          node_allocator = node_allocator_type(allocator);
+          this->get_node_allocator() = node_allocator_type(allocator_);
         }
 
         size_type bucket_count() const { return size_; }
