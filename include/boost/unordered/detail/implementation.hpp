@@ -1930,16 +1930,11 @@ namespace boost {
         {
           bucket_iterator itb = buckets_.at(index);
           node_pointer n = itb->next;
-
-          if (!n)
-            return 0;
-
           std::size_t count = 0;
           while (n) {
             ++count;
             n = n->next;
           }
-
           return count;
         }
 
