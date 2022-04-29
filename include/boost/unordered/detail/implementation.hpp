@@ -808,10 +808,6 @@ namespace boost {
 
 #if BOOST_UNORDERED_CXX11_CONSTRUCTION
 
-#define BOOST_UNORDERED_CALL_CONSTRUCT1(Traits, alloc, address, a0)            \
-  Traits::construct(alloc, address, a0)
-#define BOOST_UNORDERED_CALL_DESTROY(Traits, alloc, x) Traits::destroy(alloc, x)
-
 #elif !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
 namespace boost {
@@ -827,11 +823,6 @@ namespace boost {
     }
   }
 }
-
-#define BOOST_UNORDERED_CALL_CONSTRUCT1(Traits, alloc, address, a0)            \
-  boost::unordered::detail::func::construct_value(address, a0)
-#define BOOST_UNORDERED_CALL_DESTROY(Traits, alloc, x)                         \
-  boost::unordered::detail::func::destroy(x)
 
 #else
 
@@ -853,11 +844,6 @@ namespace boost {
     }
   }
 }
-
-#define BOOST_UNORDERED_CALL_CONSTRUCT1(Traits, alloc, address, a0)            \
-  boost::unordered::detail::func::construct_value(address, a0)
-#define BOOST_UNORDERED_CALL_DESTROY(Traits, alloc, x)                         \
-  boost::unordered::detail::func::destroy(x)
 
 #endif
 
@@ -1246,14 +1232,6 @@ namespace boost {
           node_pointer p = node_;
           node_ = node_pointer();
           return p;
-        }
-
-        void reclaim(node_pointer p)
-        {
-          BOOST_ASSERT(!node_);
-          node_ = p;
-          BOOST_UNORDERED_CALL_DESTROY(
-            node_allocator_traits, alloc_, node_->value_ptr());
         }
 
       private:
@@ -3606,7 +3584,5 @@ namespace boost {
 #undef BOOST_UNORDERED_EMPLACE_TEMPLATE
 #undef BOOST_UNORDERED_EMPLACE_ARGS
 #undef BOOST_UNORDERED_EMPLACE_FORWARD
-#undef BOOST_UNORDERED_CALL_CONSTRUCT1
-#undef BOOST_UNORDERED_CALL_DESTROY
 
 #endif
