@@ -275,34 +275,25 @@ namespace boost {
       //////////////////////////////////////////////////////////////////////////
       // compressed
 
-      template <typename T, int Index> struct compressed_base : private T
+      template <typename T, int Index>
+      struct compressed_base : boost::empty_value<T>
       {
-        compressed_base(T const& x) : T(x) {}
-        compressed_base(T& x, move_tag) : T(boost::move(x)) {}
+        compressed_base(T const& x) : empty_value<T>(boost::empty_init_t(), x)
+        {
+        }
+        compressed_base(T& x, move_tag)
+            : empty_value<T>(boost::empty_init_t(), boost::move(x))
+        {
+        }
 
-        T& get() { return *this; }
-        T const& get() const { return *this; }
-      };
-
-      template <typename T, int Index> struct uncompressed_base
-      {
-        uncompressed_base(T const& x) : value_(x) {}
-        uncompressed_base(T& x, move_tag) : value_(boost::move(x)) {}
-
-        T& get() { return value_; }
-        T const& get() const { return value_; }
-
-      private:
-        T value_;
+        T& get() { return empty_value<T>::get(); }
+        T const& get() const { return empty_value<T>::get(); }
       };
 
       template <typename T, int Index>
-      struct generate_base
-        : boost::detail::if_true<
-            boost::is_empty<T>::value>::BOOST_NESTED_TEMPLATE
-            then<boost::unordered::detail::compressed_base<T, Index>,
-              boost::unordered::detail::uncompressed_base<T, Index> >
+      struct generate_base : boost::unordered::detail::compressed_base<T, Index>
       {
+        typedef compressed_base<T, Index> type;
       };
 
       template <typename T1, typename T2>
