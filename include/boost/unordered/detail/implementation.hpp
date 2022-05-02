@@ -294,6 +294,8 @@ namespace boost {
       struct generate_base : boost::unordered::detail::compressed_base<T, Index>
       {
         typedef compressed_base<T, Index> type;
+
+        generate_base() : type() {}
       };
 
       template <typename T1, typename T2>
