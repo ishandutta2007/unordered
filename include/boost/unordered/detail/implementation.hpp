@@ -2350,10 +2350,6 @@ namespace boost {
 
         template <class Key> node_pointer extract_by_key_impl(Key const& k)
         {
-          if (!this->size_) {
-            return node_pointer();
-          }
-
           iterator it = this->find(k);
           if (it == this->end()) {
             return node_pointer();
