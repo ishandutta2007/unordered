@@ -2390,7 +2390,7 @@ namespace boost {
           while (pos != last) {
             node_pointer p = pos.p;
             node_pointer p2 = other.find_node(this->get_key(p));
-            if (!p2 || p->value() != p2->value()) {
+            if (!p2 || !(p->value() == p2->value())) {
               return false;
             }
             ++pos;
