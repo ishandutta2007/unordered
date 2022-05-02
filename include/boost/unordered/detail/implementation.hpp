@@ -2337,10 +2337,6 @@ namespace boost {
         template <class Key, class Hash, class Pred>
         iterator transparent_find(Key const& k, Hash const& h, Pred const& pred) const
         {
-          if (size_ == 0) {
-            return this->end();
-          }
-
           std::size_t const key_hash = h(k);
           bucket_iterator itb =
             buckets_.at(buckets_.position(key_hash));
