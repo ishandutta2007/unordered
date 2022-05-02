@@ -2325,12 +2325,13 @@ namespace boost {
           Key const& x, bucket_iterator itb) const
         {
           key_equal const& pred = this->key_eq();
-          for (node_pointer p = itb->next; p; p = p->next) {
+          node_pointer p = itb->next;
+          for (; p; p = p->next) {
             if (pred(x, extractor::extract(p->value()))) {
-              return p;
+              break;
             }
           }
-          return node_pointer();
+          return p;
         }
 
         template <class Key, class Hash, class Pred>
@@ -3308,7 +3309,7 @@ namespace boost {
         bucket_iterator itb = buckets_.begin(), last = buckets_.end();
         for (; itb != last; ++itb) {
           node_pointer* pp = boost::addressof(itb->next);
-          
+
           while (*pp) {
             node_pointer p = *pp;
             buckets_.extract_node_after(itb, pp);
