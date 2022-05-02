@@ -401,8 +401,9 @@ namespace boost {
             p = pbg->buckets + n;
           } else {
             pbg = pbg->next;
-            p = pbg->buckets + static_cast<std::ptrdiff_t>(
-                                 boost::core::countr_zero(pbg->bitmask));
+
+            std::ptrdiff_t x = boost::core::countr_zero(pbg->bitmask);
+            p = pbg->buckets + x;
           }
         }
       };
@@ -880,7 +881,6 @@ namespace boost {
         {
           pbg->next->prev = pbg->prev;
           pbg->prev->next = pbg->next;
-          pbg->prev = pbg->next = group_pointer();
         }
       };
     } // namespace detail

@@ -1996,24 +1996,6 @@ namespace boost {
         }
 
         ////////////////////////////////////////////////////////////////////////
-        // Clear buckets and Create buckets
-        //
-
-        // Clear the bucket pointers.
-        void clear_buckets()
-        {
-          iterator pos = begin(), last = this->end();
-          for (; pos != last;) {
-            node_pointer p = pos.p;
-            bucket_iterator itb = pos.itb;
-            ++pos;
-            buckets_.extract_node(itb, p);
-            delete_node(p);
-            --size_;
-          }
-        }
-
-        ////////////////////////////////////////////////////////////////////////
         // Swap and Move
 
         void swap_allocators(table& other, false_type)
@@ -2181,7 +2163,7 @@ namespace boost {
               rehash(x.size_);
             }
 
-            clear_buckets();
+            this->clear_impl();
           }
           BOOST_CATCH(...)
           {
@@ -2288,9 +2270,9 @@ namespace boost {
             recalculate_max_load();
             if (x.size_ > max_load_) {
               rehash(x.size_);
-            } 
+            }
 
-            clear_buckets();
+            this->clear_impl();
           }
           BOOST_CATCH(...)
           {
@@ -3319,8 +3301,20 @@ namespace boost {
 
       template <typename Types> inline void table<Types>::clear_impl()
       {
-        if (size_) {
-          this->clear_buckets();
+        if (size_ == 0) {
+          return;
+        }
+
+        bucket_iterator itb = buckets_.begin(), last = buckets_.end();
+        for (; itb != last; ++itb) {
+          node_pointer* pp = boost::addressof(itb->next);
+          
+          while (*pp) {
+            node_pointer p = *pp;
+            buckets_.extract_node_after(itb, pp);
+            delete_node(p);
+            --size_;
+          }
         }
       }
 
