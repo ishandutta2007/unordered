@@ -881,6 +881,7 @@ namespace boost {
         {
           pbg->next->prev = pbg->prev;
           pbg->prev->next = pbg->next;
+          pbg->prev = pbg->next = group_pointer();
         }
       };
     } // namespace detail

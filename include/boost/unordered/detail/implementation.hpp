@@ -3300,20 +3300,18 @@ namespace boost {
 
       template <typename Types> inline void table<Types>::clear_impl()
       {
-        if (size_ == 0) {
-          return;
-        }
-
         bucket_iterator itb = buckets_.begin(), last = buckets_.end();
-        for (; itb != last; ++itb) {
+        for (; itb != last;) {
+          bucket_iterator next_itb = itb;
+          ++next_itb;
           node_pointer* pp = boost::addressof(itb->next);
-
           while (*pp) {
             node_pointer p = *pp;
             buckets_.extract_node_after(itb, pp);
-            delete_node(p);
+            this->delete_node(p);
             --size_;
           }
+          itb = next_itb;
         }
       }
 
