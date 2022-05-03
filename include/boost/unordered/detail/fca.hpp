@@ -867,7 +867,6 @@ namespace boost {
           }
         }
 
-      private:
         void unlink_bucket(iterator itb)
         {
           typename iterator::bucket_pointer p = itb.p;
@@ -876,7 +875,7 @@ namespace boost {
                 reset_bit(static_cast<std::size_t>(p - pbg->buckets))))
             unlink_group(pbg);
         }
-
+      private:
         void unlink_group(group_pointer pbg)
         {
           pbg->next->prev = pbg->prev;

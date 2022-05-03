@@ -2814,15 +2814,37 @@ namespace boost {
 
         iterator erase_nodes_unique(c_iterator first, c_iterator last)
         {
-          while (first != last) {
-            bucket_iterator itb = first.itb;
-            node_pointer p = first.p;
-            ++first;
-
-            buckets_.extract_node(itb, p);
-            delete_node(p);
-            --size_;
+          if (first == last) {
+            return iterator(last.p, last.itb);
           }
+
+          // though `first` stores of a copy of a pointer to a node, we wish to
+          // mutate the pointers stored internally by the singly-linked list in
+          // each bucket group so we have to retrieve it manually by iterating
+          //
+          bucket_iterator itb = first.itb;
+          node_pointer* pp = boost::addressof(itb->next);
+          while (*pp != first.p) {
+            pp = boost::addressof((*pp)->next);
+          }
+
+          while (*pp != last.p) {
+            node_pointer p = *pp;
+            *pp = (*pp)->next;
+
+            this->delete_node(p);
+            --size_;
+
+            if (!(*pp)) {       // we've hit the end of the list
+              if (!itb->next) { // the bucket group is now empty
+                buckets_.unlink_bucket(itb++);
+              } else { // non-empty bucket group remaining, just increment
+                ++itb;
+              }
+              pp = boost::addressof(itb->next);
+            }
+          }
+
           return iterator(last.p, last.itb);
         }
 
