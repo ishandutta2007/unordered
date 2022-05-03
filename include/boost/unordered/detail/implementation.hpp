@@ -2853,11 +2853,11 @@ namespace boost {
 
         void copy_buckets(table const& src, true_type)
         {
-          for (iterator pos = src.begin(); pos != src.end(); ++pos) {
-            if (size_ + 1 > max_load_) {
-              rehash(size_ + 1);
-            }
+          if (size_ + src.size_ > max_load_) {
+            this->rehash(size_ + src.size_);
+          }
 
+          for (iterator pos = src.begin(); pos != src.end(); ++pos) {
             value_type const& value = *pos;
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
