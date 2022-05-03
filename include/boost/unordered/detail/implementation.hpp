@@ -2346,6 +2346,20 @@ namespace boost {
           return this->end();
         }
 
+        template <class Key>
+        node_pointer* find_prev(Key const& key, bucket_iterator itb)
+        {
+          key_equal pred = this->key_eq();
+          for (node_pointer* pp = boost::addressof(itb->next); *pp;
+               pp = boost::addressof((*pp)->next)) {
+            if (pred(key, extractor::extract((*pp)->value()))) {
+              return pp;
+            }
+          }
+          typedef node_pointer* node_pointer_pointer;
+          return node_pointer_pointer();
+        }
+
         // Extract and erase
 
         template <class Key> node_pointer extract_by_key_impl(Key const& k)
@@ -2782,22 +2796,17 @@ namespace boost {
         ////////////////////////////////////////////////////////////////////////
         // Erase
         //
-        // no throw
 
         template <class Key> std::size_t erase_key_unique_impl(Key const& k)
         {
-          if (!this->size_)
-            return 0;
-
-          iterator it = this->find(k);
-          if (it == this->end()) {
+          bucket_iterator itb = buckets_.at(buckets_.position(this->hash(k)));
+          node_pointer* pp = this->find_prev(k, itb);
+          if (!pp) {
             return 0;
           }
 
-          bucket_iterator itb = it.itb;
-          node_pointer p = it.p;
-
-          buckets_.extract_node(itb, p);
+          node_pointer p = *pp;
+          buckets_.extract_node_after(itb, pp);
           this->delete_node(p);
           --size_;
           return 1;
