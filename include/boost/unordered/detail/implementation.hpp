@@ -2172,7 +2172,7 @@ namespace boost {
           }
           BOOST_CATCH_END
           this->switch_functions();
-          assign_buckets(x, is_unique);
+          copy_buckets(x, is_unique);
         }
 
         template <typename UniqueType>
@@ -2202,7 +2202,7 @@ namespace boost {
             // Finally copy the elements.
             if (x.size_)
             {
-              assign_buckets(x, is_unique);
+              copy_buckets(x, is_unique);
             }
           }
         }
@@ -2857,8 +2857,10 @@ namespace boost {
 
         void copy_buckets(table const& src, true_type)
         {
-          if (size_ + src.size_ > max_load_) {
-            this->rehash(size_ + src.size_);
+          BOOST_ASSERT(size_ == 0);
+
+          if (src.size_ > max_load_) {
+            this->rehash(src.size_);
           }
 
           for (iterator pos = src.begin(); pos != src.end(); ++pos) {
@@ -2866,28 +2868,9 @@ namespace boost {
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
+            bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
+
             node_allocator_type alloc = this->node_alloc();
-            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
-            bucket_iterator itb =
-              buckets_.at(buckets_.position(key_hash));
-            buckets_.insert_node(itb, tmp.release());
-            ++size_;
-          }
-        }
-
-        void assign_buckets(table const& src, true_type)
-        {
-          iterator last = src.end();
-          node_allocator_type alloc = this->node_alloc();
-
-          for (iterator pos = src.begin(); pos != last; ++pos) {
-            value_type const& value = *pos;
-            const_key_type& key = extractor::extract(value);
-            std::size_t const key_hash = this->hash(key);
-
-            bucket_iterator itb =
-              buckets_.at(buckets_.position(key_hash));
-
             node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
 
             buckets_.insert_node(itb, tmp.release());
@@ -3258,40 +3241,21 @@ namespace boost {
 
         void copy_buckets(table const& src, false_type)
         {
-          if (size_ + src.size_ > max_load_) {
-            this->rehash(size_ + src.size_);
+          BOOST_ASSERT(size_ == 0);
+
+          if (src.size_ > max_load_) {
+            this->rehash(src.size_);
           }
 
           iterator last = src.end();
-          for (iterator pos = src.begin(); pos != last; ++pos) {
-            value_type const& value = *pos;
-            const_key_type& key = extractor::extract(value);
-            std::size_t const key_hash = this->hash(key);
-
-            node_allocator_type alloc = this->node_alloc();
-            node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
-            bucket_iterator itb =
-              buckets_.at(buckets_.position(key_hash));
-            node_pointer hint = this->find_node_impl(key, itb);
-            buckets_.insert_node_hint(itb, tmp.release(), hint);
-            ++size_;
-          }
-        }
-
-        void assign_buckets(table const& src, false_type)
-        {
-          iterator last = src.end();
-          node_allocator_type alloc = this->node_alloc();
-
           for (iterator pos = src.begin(); pos != last; ++pos) {
             value_type const& value = *pos;
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
             bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
-
+            node_allocator_type alloc = this->node_alloc();
             node_tmp tmp(detail::func::construct_node(alloc, value), alloc);
-
             node_pointer hint = this->find_node_impl(key, itb);
             buckets_.insert_node_hint(itb, tmp.release(), hint);
             ++size_;
