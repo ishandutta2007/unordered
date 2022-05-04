@@ -3028,23 +3028,22 @@ namespace boost {
           bucket_iterator itb = hint.itb;
           node_pointer p = hint.p;
 
-          if (p && this->key_eq()(k, this->get_key(p))) {
-            if (size_ + 1 > max_load_) {
-              std::size_t const key_hash = this->hash(k);
-              this->rehash(size_ + 1);
-              itb = buckets_.at(buckets_.position(key_hash));
-            }
-          } else {
-            std::size_t const key_hash = this->hash(k);
-            itb = buckets_.at(buckets_.position(key_hash));
-            // keep this up here because the equality predicate can throw
-            //
-            p = this->find_node_impl(k, itb);
+          std::size_t key_hash = 0u;
 
-            if (size_ + 1 > max_load_) {
-              this->rehash(size_ + 1);
-              itb = buckets_.at(buckets_.position(key_hash));
-            }
+          bool const needs_rehash = (size_ + 1 > max_load_);
+          bool const usable_hint = (p && this->key_eq()(k, this->get_key(p)));
+
+          if (!usable_hint) {
+            key_hash = this->hash(k);
+            itb = buckets_.at(buckets_.position(key_hash));
+            p = this->find_node_impl(k, itb);
+          } else if (usable_hint && needs_rehash) {
+            key_hash = this->hash(k);
+          }
+
+          if (needs_rehash) {
+            this->rehash(size_ + 1);
+            itb = buckets_.at(buckets_.position(key_hash));
           }
 
           a.release();
