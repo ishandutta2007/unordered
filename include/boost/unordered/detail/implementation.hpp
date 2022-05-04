@@ -2386,7 +2386,6 @@ namespace boost {
         }
 
         void rehash(std::size_t);
-        void rehash_impl(std::size_t);
 
         ////////////////////////////////////////////////////////////////////////
         // Unique keys
