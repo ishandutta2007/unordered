@@ -3189,31 +3189,26 @@ namespace boost {
         //
         // no throw
 
-        template <class Key>
-        std::size_t erase_key_equiv_impl(Key const& k)
+        template <class Key> std::size_t erase_key_equiv_impl(Key const& k)
         {
-          if (!this->size_)
-            return 0;
-
-          std::size_t const key_hash = this->hash(k);
-          bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
-          node_pointer p = itb->next;
-
           std::size_t deleted_count = 0;
 
-          while (p) {
-            if (this->key_eq()(extractor::extract(p->value()), k)) {
-              node_pointer q = p;
-              p = p->next;
-              buckets_.extract_node(itb, q);
-              this->delete_node(q);
+          bucket_iterator itb = buckets_.at(buckets_.position(this->hash(k)));
+          node_pointer* pp = this->find_prev(k, itb);
+          if (pp) {
+            while (*pp && this->key_eq()(this->get_key(*pp), k)) {
+              node_pointer p = *pp;
+              *pp = (*pp)->next;
+
+              this->delete_node(p);
               --size_;
               ++deleted_count;
-            } else {
-              p = p->next;
+            }
+
+            if (!itb->next) {
+              buckets_.unlink_bucket(itb);
             }
           }
-
           return deleted_count;
         }
 
