@@ -2880,6 +2880,9 @@ namespace boost {
 
         void move_assign_buckets(table& src, true_type)
         {
+          BOOST_ASSERT(size_ == 0);
+          BOOST_ASSERT(max_load_ >= src.size_);
+
           iterator last = src.end();
           node_allocator_type alloc = this->node_alloc();
 
@@ -2888,8 +2891,7 @@ namespace boost {
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
-            bucket_iterator itb =
-              buckets_.at(buckets_.position(key_hash));
+            bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
 
             node_tmp tmp(
               detail::func::construct_node(alloc, boost::move(value)), alloc);
@@ -3264,6 +3266,9 @@ namespace boost {
 
         void move_assign_buckets(table& src, false_type)
         {
+          BOOST_ASSERT(size_ == 0);
+          BOOST_ASSERT(max_load_ >= src.size_);
+
           iterator last = src.end();
           node_allocator_type alloc = this->node_alloc();
 
@@ -3272,8 +3277,7 @@ namespace boost {
             const_key_type& key = extractor::extract(value);
             std::size_t const key_hash = this->hash(key);
 
-            bucket_iterator itb =
-              buckets_.at(buckets_.position(key_hash));
+            bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
 
             node_pointer hint = this->find_node_impl(key, itb);
             node_tmp tmp(
