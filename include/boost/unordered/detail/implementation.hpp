@@ -2812,7 +2812,7 @@ namespace boost {
           return 1;
         }
 
-        iterator erase_nodes_unique(c_iterator first, c_iterator last)
+        iterator erase_nodes_range(c_iterator first, c_iterator last)
         {
           if (first == last) {
             return iterator(last.p, last.itb);
@@ -3215,21 +3215,6 @@ namespace boost {
         std::size_t erase_key_equiv(const_key_type& k)
         {
           return this->erase_key_equiv_impl(k);
-        }
-
-        iterator erase_nodes_equiv(c_iterator i, c_iterator j)
-        {
-          while (i != j) {
-            bucket_iterator itb = i.itb;
-            node_pointer p = i.p;
-            ++i;
-
-            buckets_.extract_node(itb, p);
-            this->delete_node(p);
-            --size_;
-          }
-
-          return iterator(j.p, j.itb);
         }
 
         ////////////////////////////////////////////////////////////////////////
