@@ -2835,10 +2835,14 @@ namespace boost {
             this->delete_node(p);
             --size_;
 
-            if (!(*pp)) {       // we've hit the end of the list
-              if (!itb->next) { // the bucket group is now empty
+
+            bool const at_end = !(*pp);
+            bool const is_empty_bucket = !itb->next;
+
+            if (at_end) {
+              if (is_empty_bucket) {
                 buckets_.unlink_bucket(itb++);
-              } else { // non-empty bucket group remaining, just increment
+              } else {
                 ++itb;
               }
               pp = boost::addressof(itb->next);
