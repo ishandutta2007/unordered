@@ -109,6 +109,7 @@ Otherwise, usage of the data structure is relatively straight-forward compared
 to normal separate chaining implementations.
 
 */
+
 #include <boost/config.hpp>
 #if defined(BOOST_HAS_PRAGMA_ONCE)
 #pragma once
@@ -725,7 +726,8 @@ namespace boost {
         grouped_bucket_array& operator=(
           BOOST_RV_REF(grouped_bucket_array) other) BOOST_NOEXCEPT
         {
-          BOOST_ASSERT(this->get_node_allocator() == other.get_node_allocator());
+          BOOST_ASSERT(
+            this->get_node_allocator() == other.get_node_allocator());
 
           if (this == boost::addressof(other)) {
             return *this;
@@ -813,23 +815,14 @@ namespace boost {
 
         size_type bucket_count() const { return size_; }
 
-        iterator begin() const
-        {
-          if (size_ == 0) {
-            return end();
-          }
-          return ++at(size_);
-        }
+        iterator begin() const { return ++at(size_); }
 
         iterator end() const
         {
           // micro optimization: no need to return the bucket group
           // as end() is not incrementable
           iterator pbg;
-          if (size_) {
-            pbg.p = buckets + (this->buckets_len() - 1);
-          }
-
+          pbg.p = buckets + (this->buckets_len() - 1);
           return pbg;
         }
 
@@ -980,6 +973,7 @@ namespace boost {
                 reset_bit(static_cast<std::size_t>(p - pbg->buckets))))
             unlink_group(pbg);
         }
+
       private:
         void unlink_group(group_pointer pbg)
         {
