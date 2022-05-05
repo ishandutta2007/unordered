@@ -3098,35 +3098,25 @@ namespace boost {
           c_iterator hint, NodeType& np)
         {
           iterator result;
-
           if (np) {
+            bucket_iterator itb = hint.itb;
+            node_pointer pos = hint.p;
             const_key_type& k = this->get_key(np.ptr_);
+            std::size_t key_hash = this->hash(k);
+            if (size_ + 1 > max_load_) {
+              this->reserve(size_ + 1);
+              itb = buckets_.at(buckets_.position(key_hash));
+            }
 
             if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
-              // this->reserve_for_insert(this->size_ + 1);
-              if (size_ + 1 > max_load_) {
-                this->reserve(size_ + 1);
-              }
-
-              buckets_.insert_node_hint(hint.itb, np.ptr_, hint.p);
-              ++size_;
-
-              result = iterator(np.ptr_, hint.itb);
             } else {
-              std::size_t key_hash = this->hash(k);
-
-              if (size_ + 1 > max_load_) {
-                this->reserve(size_ + 1);
-              }
-
-              bucket_iterator itb =
-                buckets_.at(buckets_.position(key_hash));
-              node_pointer pos = this->find_node_impl(k, itb);
-
-              buckets_.insert_node_hint(itb, np.ptr_, pos);
-              ++size_;
-              result = iterator(np.ptr_, itb);
+              itb = buckets_.at(buckets_.position(key_hash));
+              pos = this->find_node_impl(k, itb);
             }
+            buckets_.insert_node_hint(itb, np.ptr_, pos);
+            ++size_;
+            result = iterator(np.ptr_, itb);
+
             np.ptr_ = node_pointer();
           }
 
