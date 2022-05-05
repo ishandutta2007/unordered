@@ -2092,7 +2092,7 @@ namespace boost {
     template <class K, class T, class H, class P, class A>
     void unordered_map<K, T, H, P, A>::reserve(size_type n)
     {
-      table_.rehash(n);
+      table_.reserve(n);
     }
 
     template <class K, class T, class H, class P, class A>
@@ -2534,7 +2534,7 @@ namespace boost {
     template <class K, class T, class H, class P, class A>
     void unordered_multimap<K, T, H, P, A>::reserve(size_type n)
     {
-      table_.rehash(n);
+      table_.reserve(n);
     }
 
     template <class K, class T, class H, class P, class A>

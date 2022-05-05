@@ -2083,7 +2083,7 @@ namespace boost {
           BOOST_ASSERT(
             buckets_.bucket_count() == src.buckets_.bucket_count());
 
-          this->rehash(src.size_);
+          this->reserve(src.size_);
           for (iterator pos = src.begin(); pos != src.end(); ++pos) {
             node_tmp b(detail::func::construct_node(
                          this->node_alloc(), boost::move(pos.p->value())),
@@ -2160,7 +2160,7 @@ namespace boost {
 
             if (x.size_ > max_load_)
             {
-              rehash(x.size_);
+              reserve(x.size_);
             }
 
             this->clear_impl();
@@ -2197,7 +2197,7 @@ namespace boost {
 
             // Copy over other data, all no throw.
             mlf_ = x.mlf_;
-            rehash(x.size_);
+            reserve(x.size_);
 
             // Finally copy the elements.
             if (x.size_)
@@ -2239,7 +2239,7 @@ namespace boost {
         template <typename UniqueType>
         void move_assign(table& x, UniqueType is_unique, false_type)
         {
-          rehash(x.size_);
+          reserve(x.size_);
           if (node_alloc() == x.node_alloc()) {
             move_assign_equal_alloc(x);
           } else {
@@ -2269,7 +2269,7 @@ namespace boost {
             mlf_ = x.mlf_;
             recalculate_max_load();
             if (x.size_ > max_load_) {
-              rehash(x.size_);
+              reserve(x.size_);
             }
 
             this->clear_impl();
@@ -2386,6 +2386,8 @@ namespace boost {
         }
 
         void rehash(std::size_t);
+        void reserve(std::size_t);
+        void rehash_impl(std::size_t);
 
         ////////////////////////////////////////////////////////////////////////
         // Unique keys
@@ -2442,7 +2444,7 @@ namespace boost {
               this->node_alloc());
 
             if (size_ + 1 > max_load_) {
-              rehash(size_ + 1);
+              reserve(size_ + 1);
               itb = buckets_.at(buckets_.position(key_hash));
             }
 
@@ -2477,7 +2479,7 @@ namespace boost {
           }
 
           if (size_ + 1 > max_load_) {
-            this->rehash(size_ + 1);
+            this->reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
 
@@ -2505,7 +2507,7 @@ namespace boost {
             return emplace_return(iterator(pos, itb), false);
           } else {
             if (size_ + 1 > max_load_) {
-              rehash(size_ + 1);
+              reserve(size_ + 1);
               itb = buckets_.at(buckets_.position(key_hash));
             }
 
@@ -2536,7 +2538,7 @@ namespace boost {
               alloc);
 
             if (size_ + 1 > max_load_) {
-              rehash(size_ + 1);
+              reserve(size_ + 1);
               itb = buckets_.at(buckets_.position(key_hash));
             }
 
@@ -2578,7 +2580,7 @@ namespace boost {
             this->node_alloc());
 
           if (size_ + 1 > max_load_) {
-            rehash(size_ + 1);
+            reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
 
@@ -2620,7 +2622,7 @@ namespace boost {
             node_alloc());
 
           if (size_ + 1 > max_load_) {
-            rehash(size_ + 1);
+            reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
 
@@ -2656,7 +2658,7 @@ namespace boost {
           }
 
           if (size_ + 1 > max_load_) {
-            this->rehash(size_ + 1);
+            this->reserve(size_ + 1);
           }
 
           p = np.ptr_;
@@ -2694,7 +2696,7 @@ namespace boost {
           p = np.ptr_;
 
           if (size_ + 1 > max_load_) {
-            this->rehash(size_ + 1);
+            this->reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
 
@@ -2717,7 +2719,7 @@ namespace boost {
           }
 
           if (size_ + other.size_ > max_load_) {
-            this->rehash(size_ + other.size_);
+            this->reserve(size_ + other.size_);
           }
 
           iterator last = other.end();
@@ -2768,7 +2770,7 @@ namespace boost {
             }
 
             if (size_ + 1 > max_load_) {
-              rehash(size_ + 1);
+              reserve(size_ + 1);
               itb = buckets_.at(buckets_.position(h));
             }
 
@@ -2859,7 +2861,7 @@ namespace boost {
           BOOST_ASSERT(size_ == 0);
 
           if (src.size_ > max_load_) {
-            this->rehash(src.size_);
+            this->reserve(src.size_);
           }
 
           for (iterator pos = src.begin(); pos != src.end(); ++pos) {
@@ -3011,7 +3013,7 @@ namespace boost {
           node_pointer hint = this->find_node_impl(k, itb);
 
           if (size_ + 1 > max_load_) {
-            this->rehash(size_ + 1);
+            this->reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
           node_pointer p = a.release();
@@ -3041,7 +3043,7 @@ namespace boost {
           }
 
           if (needs_rehash) {
-            this->rehash(size_ + 1);
+            this->reserve(size_ + 1);
             itb = buckets_.at(buckets_.position(key_hash));
           }
 
@@ -3071,7 +3073,7 @@ namespace boost {
 
           if (np) {
             if (size_ + 1 > max_load_) {
-              this->rehash(size_ + 1);
+              this->reserve(size_ + 1);
             }
 
             const_key_type& k = this->get_key(np.ptr_);
@@ -3103,7 +3105,7 @@ namespace boost {
             if (hint.p && this->key_eq()(k, this->get_key(hint.p))) {
               // this->reserve_for_insert(this->size_ + 1);
               if (size_ + 1 > max_load_) {
-                this->rehash(size_ + 1);
+                this->reserve(size_ + 1);
               }
 
               buckets_.insert_node_hint(hint.itb, np.ptr_, hint.p);
@@ -3114,7 +3116,7 @@ namespace boost {
               std::size_t key_hash = this->hash(k);
 
               if (size_ + 1 > max_load_) {
-                this->rehash(size_ + 1);
+                this->reserve(size_ + 1);
               }
 
               bucket_iterator itb =
@@ -3150,7 +3152,7 @@ namespace boost {
           } else {
             // Only require basic exception safety here
             if (size_ + distance > max_load_) {
-              this->rehash(size_ + distance);
+              this->reserve(size_ + distance);
             }
 
             for (; i != j; ++i) {
@@ -3224,7 +3226,7 @@ namespace boost {
           BOOST_ASSERT(size_ == 0);
 
           if (src.size_ > max_load_) {
-            this->rehash(src.size_);
+            this->reserve(src.size_);
           }
 
           iterator last = src.end();
@@ -3293,21 +3295,36 @@ namespace boost {
       // if hash function throws, basic exception safety
       // strong otherwise.
       template <typename Types>
-      inline void table<Types>::rehash(std::size_t min_buckets)
+      inline void table<Types>::rehash(std::size_t num_buckets)
       {
-        std::size_t bc = (std::max)(min_buckets, size_);
-        bc = static_cast<std::size_t>(1.0f + static_cast<float>(bc) / mlf_);
-        if (bc <= buckets_.bucket_count() ||
-            static_cast<std::size_t>(static_cast<float>(bc) * mlf_) <=
-              max_load_) {
+        std::size_t bc = (std::max)(num_buckets,
+          static_cast<std::size_t>(1.0f + static_cast<float>(size_) / mlf_));
+
+        if (bc != 0 && bc <= buckets_.bucket_count()) {
           return;
         }
 
-        bucket_array_type new_buckets(bc, buckets_.get_node_allocator());
+        this->rehash_impl(bc);
+      }
+
+      template <class Types>
+      inline void table<Types>::reserve(std::size_t num_elements)
+      {
+        std::size_t const num_buckets = static_cast<std::size_t>(
+          1.0f + static_cast<float>(num_elements) / mlf_);
+
+        this->rehash(num_buckets);
+      }
+
+      template <class Types>
+      inline void table<Types>::rehash_impl(std::size_t num_buckets)
+      {
+        bucket_array_type new_buckets(
+          num_buckets, buckets_.get_node_allocator());
+
         BOOST_TRY
         {
-          boost::unordered::detail::span<bucket_type> bspan =
-            buckets_.raw();
+          boost::unordered::detail::span<bucket_type> bspan = buckets_.raw();
 
           bucket_type* pos = bspan.data;
           std::size_t size = bspan.size;

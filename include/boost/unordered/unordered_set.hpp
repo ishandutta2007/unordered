@@ -1607,7 +1607,7 @@ namespace boost {
     template <class T, class H, class P, class A>
     void unordered_set<T, H, P, A>::reserve(size_type n)
     {
-      table_.rehash(n);
+      table_.reserve(n);
     }
 
     template <class T, class H, class P, class A>
@@ -2010,7 +2010,7 @@ namespace boost {
     template <class T, class H, class P, class A>
     void unordered_multiset<T, H, P, A>::reserve(size_type n)
     {
-      table_.rehash(n);
+      table_.reserve(n);
     }
 
     template <class T, class H, class P, class A>
