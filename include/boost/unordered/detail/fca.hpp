@@ -4,6 +4,111 @@
 #ifndef BOOST_UNORDERED_DETAIL_FCA_HPP
 #define BOOST_UNORDERED_DETAIL_FCA_HPP
 
+/*
+
+The general structure of the fast closed addressing implementation is that we
+use straight-forward separate chaining (i.e. each bucket contains its own linked
+list) and then improve iteration time by adding an array of "bucket groups".
+
+A bucket group is a constant-width view into a subsection of the buckets array,
+containing a bitmask that indicates which one of the buckets in the subsection
+contains a list of nodes. This allows the code to test N buckets for occupancy
+in a single operation. Additional speed can be found by inter-linking occupied
+bucket groups with one another in a doubly-linked list. To this end, large
+swathes of the bucket groups array no longer need to be iterated and have their
+bitmasks examined for occupancy.
+
+A bucket group iterator contains a pointer to a bucket group along with a
+pointer into the buckets array. The iterator's bucket pointer is guaranteed to
+point to a bucket within the bucket group's view of the array. To advance the
+iterator, we need to determine if we need to skip to the next bucket group or
+simply move to the next occupied bucket as denoted by the bitmask.
+
+To accomplish this, we perform something roughly equivalent to this:
+```
+bucket_iterator itb = ...
+bucket_pointer p = itb.p
+bucket_group_pointer pbg = itb.pbg
+
+offset = p - pbg->buckets
+// because we wish to see if the _next_ bit in the mask is occupied, we'll
+// generate a testing mask from the current offset + 1
+//
+testing_mask = reset_first_bits(offset + 1)
+n = ctz(pbg->bitmask & testing_mask)
+
+if (n < N) {
+  p = pbg->buckets + n
+} else {
+  pbg = pbg->next
+  p = pbg->buckets + ctz(pbg->bitmask)
+}
+```
+
+`reset_first_bits` yields an unsigned integral with the first n bits set to 0
+and then by counting the number of traling zeroes when AND'd against the bucket
+group's bitmask, we can derive the offset into the buckets array. When the
+calculated offset is equal to N, we know we've reached the end of a bucket group
+and we can advance to the next one.
+
+This is a rough explanation for how iterator incrementation should work for a
+fixed width size of N as 3 for the bucket groups
+```
+N = 3
+p = buckets
+pbg->bitmask = 0b101
+pbg->buckets = buckets
+
+offset = p - pbg->buckets // => 0
+testing_mask = reset_first_bits(offset + 1) // reset_first_bits(1) => 0b110
+
+x = bitmask & testing_mask // => 0b101 & 0b110 => 0b100
+ctz(x) // ctz(0b100) => 2
+// 2 < 3
+=> p = pbg->buckets + 2
+
+// increment again...
+offset = p - pbg->buckets // => 2
+testing_mask = reset_first_bits(offset + 1) // reset_first_bits(3) => 0b000
+
+bitmask & testing_mask // 0b101 & 0b000 => 0b000
+ctz(0b000) => 3
+// 3 < 3 is false now
+pbg = pbg->next
+initial_offset = ctz(pbg->bitmask)
+p = pbg->buckets + initial_offset
+```
+
+For `size_` number of buckets, there are `1 + (size_ / N)` bucket groups where
+`N` is the width of a bucket group, determined at compile-time.
+
+We allocate space for `size_ + 1` buckets, using the last one as a dummy bucket
+which is kept permanently empty so it can act as a sentinel value in the
+implementation of `iterator end();`. We set the last bucket group to act as a
+sentinel.
+
+```
+num_groups = size_ / N + 1
+groups = allocate(num_groups)
+pbg = groups + (num_groups - 1)
+
+// not guaranteed to point to exactly N buckets
+pbg->buckets = buckets + N * (size_ / N)
+
+// this marks the true end of the bucket array
+buckets pbg->bitmask = set_bit(size_ % N)
+
+// links in on itself
+pbg->next = pbg->prev = pbg
+```
+
+To this end, we can devise a safe iteration scheme while also creating a useful
+sentinel to use as the end iterator.
+
+Otherwise, usage of the data structure is relatively straight-forward compared
+to normal separate chaining implementations.
+
+*/
 #include <boost/config.hpp>
 #if defined(BOOST_HAS_PRAGMA_ONCE)
 #pragma once
