@@ -865,28 +865,38 @@ namespace boost {
           size_ = 0;
         }
 
-        void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
+        void append_bucket_group(iterator itb) BOOST_NOEXCEPT
         {
           std::size_t const N = group::N;
 
-          if (!itb->next) { // empty bucket
-            typename iterator::bucket_pointer pb = itb.p;
-            typename iterator::bucket_group_pointer pbg = itb.pbg;
+          bool const is_empty_bucket = (!itb->next);
+          if (is_empty_bucket) {
+            bucket_pointer pb = itb.p;
+            group_pointer pbg = itb.pbg;
 
             std::size_t n =
               static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
 
-            if (!pbg->bitmask) { // empty group
+            bool const is_empty_group = (!pbg->bitmask);
+            if (is_empty_group) {
               size_type const num_groups = this->groups_len();
+              group_pointer last_group = groups + (num_groups - 1);
 
               pbg->buckets = buckets + (N * (n / N));
-              pbg->next = (groups + (num_groups - 1))->next;
+              pbg->next = last_group->next;
               pbg->next->prev = pbg;
-              pbg->prev = groups + (num_groups - 1);
+              pbg->prev = last_group;
               pbg->prev->next = pbg;
             }
+
             pbg->bitmask |= set_bit(n % N);
           }
+        }
+
+        void insert_node(iterator itb, node_pointer p) BOOST_NOEXCEPT
+        {
+          this->append_bucket_group(itb);
+
           p->next = itb->next;
           itb->next = p;
         }
@@ -894,25 +904,7 @@ namespace boost {
         void insert_node_hint(
           iterator itb, node_pointer p, node_pointer hint) BOOST_NOEXCEPT
         {
-          std::size_t const N = group::N;
-
-          if (!itb->next) { // empty bucket
-            typename iterator::bucket_pointer pb = itb.p;
-            typename iterator::bucket_group_pointer pbg = itb.pbg;
-
-            std::size_t n =
-              static_cast<std::size_t>(boost::to_address(pb) - &buckets[0]);
-            if (!pbg->bitmask) { // empty group
-              size_type const num_groups = this->groups_len();
-
-              pbg->buckets = buckets + (N * (n / N));
-              pbg->next = (groups + (num_groups - 1))->next;
-              pbg->next->prev = pbg;
-              pbg->prev = groups + (num_groups - 1);
-              pbg->prev->next = pbg;
-            }
-            pbg->bitmask |= set_bit(n % N);
-          }
+          this->append_bucket_group(itb);
 
           if (hint) {
             p->next = hint->next;
