@@ -3290,7 +3290,7 @@ namespace boost {
         std::size_t bc = (std::max)(num_buckets,
           static_cast<std::size_t>(1.0f + static_cast<float>(size_) / mlf_));
 
-        if (bc != 0 && bc <= buckets_.bucket_count()) {
+        if (bc <= buckets_.bucket_count()) {
           return;
         }
 
