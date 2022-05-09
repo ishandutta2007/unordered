@@ -2158,11 +2158,7 @@ namespace boost {
             mlf_ = x.mlf_;
             recalculate_max_load();
 
-            if (x.size_ > max_load_)
-            {
-              reserve(x.size_);
-            }
-
+            this->reserve_for_insert(x.size_);
             this->clear_impl();
           }
           BOOST_CATCH(...)
@@ -2268,10 +2264,7 @@ namespace boost {
           {
             mlf_ = x.mlf_;
             recalculate_max_load();
-            if (x.size_ > max_load_) {
-              reserve(x.size_);
-            }
-
+            this->reserve_for_insert(x.size_);
             this->clear_impl();
           }
           BOOST_CATCH(...)
@@ -2387,6 +2380,7 @@ namespace boost {
 
         void rehash(std::size_t);
         void reserve(std::size_t);
+        void reserve_for_insert(std::size_t);
         void rehash_impl(std::size_t);
 
         ////////////////////////////////////////////////////////////////////////
@@ -2657,9 +2651,7 @@ namespace boost {
             return;
           }
 
-          if (size_ + 1 > max_load_) {
-            this->reserve(size_ + 1);
-          }
+          this->reserve_for_insert(size_ + 1);
 
           p = np.ptr_;
           itb = buckets_.at(buckets_.position(key_hash));
@@ -2718,9 +2710,7 @@ namespace boost {
             return;
           }
 
-          if (size_ + other.size_ > max_load_) {
-            this->reserve(size_ + other.size_);
-          }
+          this->reserve_for_insert(size_ + other.size_);
 
           iterator last = other.end();
           for (iterator pos = other.begin(); pos != last;) {
@@ -2860,9 +2850,7 @@ namespace boost {
         {
           BOOST_ASSERT(size_ == 0);
 
-          if (src.size_ > max_load_) {
-            this->reserve(src.size_);
-          }
+          this->reserve_for_insert(src.size_);
 
           for (iterator pos = src.begin(); pos != src.end(); ++pos) {
             value_type const& value = *pos;
@@ -3072,9 +3060,7 @@ namespace boost {
           iterator result;
 
           if (np) {
-            if (size_ + 1 > max_load_) {
-              this->reserve(size_ + 1);
-            }
+            this->reserve_for_insert(size_ + 1);
 
             const_key_type& k = this->get_key(np.ptr_);
             std::size_t key_hash = this->hash(k);
@@ -3141,9 +3127,7 @@ namespace boost {
               this->node_alloc(), *i));
           } else {
             // Only require basic exception safety here
-            if (size_ + distance > max_load_) {
-              this->reserve(size_ + distance);
-            }
+            this->reserve_for_insert(size_ + distance);
 
             for (; i != j; ++i) {
               emplace_no_rehash_equiv(
@@ -3215,9 +3199,7 @@ namespace boost {
         {
           BOOST_ASSERT(size_ == 0);
 
-          if (src.size_ > max_load_) {
-            this->reserve(src.size_);
-          }
+          this->reserve_for_insert(src.size_);
 
           iterator last = src.end();
           for (iterator pos = src.begin(); pos != last; ++pos) {
@@ -3304,6 +3286,17 @@ namespace boost {
           std::ceil(static_cast<float>(num_elements) / mlf_));
 
         this->rehash(num_buckets);
+      }
+
+      template <class Types>
+      inline void table<Types>::reserve_for_insert(std::size_t num_elements)
+      {
+        if (num_elements > max_load_) {
+          std::size_t const num_buckets = static_cast<std::size_t>(
+            1.0f + std::ceil(static_cast<float>(num_elements) / mlf_));
+
+          this->rehash_impl(num_buckets);
+        }
       }
 
       template <class Types>
