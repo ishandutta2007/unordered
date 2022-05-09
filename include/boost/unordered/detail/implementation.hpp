@@ -3301,7 +3301,7 @@ namespace boost {
       inline void table<Types>::reserve(std::size_t num_elements)
       {
         std::size_t const num_buckets = static_cast<std::size_t>(
-          1.0f + static_cast<float>(num_elements) / mlf_);
+          std::ceil(static_cast<float>(num_elements) / mlf_));
 
         this->rehash(num_buckets);
       }
