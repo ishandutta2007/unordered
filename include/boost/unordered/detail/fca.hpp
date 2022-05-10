@@ -421,11 +421,13 @@ namespace boost {
         }
       };
 
-      template <class Node> struct bucket
+      template <class Node, class VoidPtr> struct bucket
       {
-        typedef typename Node::node_pointer node_pointer;
-        typedef typename boost::pointer_traits<
-          node_pointer>::template rebind_to<bucket>::type bucket_pointer;
+        typedef typename boost::pointer_traits<VoidPtr>::template rebind_to<
+          Node>::type node_pointer;
+
+        typedef typename boost::pointer_traits<VoidPtr>::template rebind_to<
+          bucket>::type bucket_pointer;
 
         node_pointer next;
 

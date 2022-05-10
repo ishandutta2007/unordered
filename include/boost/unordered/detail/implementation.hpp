@@ -1814,7 +1814,7 @@ namespace boost {
         typedef node<value_type, void_pointer> node_type;
 
         typedef boost::unordered::detail::grouped_bucket_array<
-          bucket<node_type>, value_allocator, prime_fmod_size<> >
+          bucket<node_type, void_pointer>, value_allocator, prime_fmod_size<> >
           bucket_array_type;
 
         typedef typename bucket_array_type::node_allocator_type
@@ -1834,10 +1834,8 @@ namespace boost {
 
         typedef std::size_t size_type;
 
-        typedef iterator_detail::iterator<node_type, bucket<node_type> >
-          iterator;
-        typedef iterator_detail::c_iterator<node_type, bucket<node_type> >
-          c_iterator;
+        typedef iterator_detail::iterator<node_type, bucket_type> iterator;
+        typedef iterator_detail::c_iterator<node_type, bucket_type> c_iterator;
 
         typedef std::pair<iterator, bool> emplace_return;
 

@@ -28,12 +28,11 @@ namespace boost {
         typedef boost::unordered::detail::table<types> table;
         typedef boost::unordered::detail::set_extractor<value_type> extractor;
 
-        typedef boost::unordered::detail::grouped_bucket_array<
-          bucket<value_allocator>, value_allocator, prime_fmod_size<> >
-          bucket_array_type;
+        typedef typename boost::allocator_void_pointer<value_allocator>::type
+          void_pointer;
 
         typedef boost::unordered::node_handle_set<
-          typename bucket_array_type::node_type, T, A>
+          node<value_type, void_pointer>, T, A>
           node_type;
 
         typedef typename table::c_iterator iterator;
