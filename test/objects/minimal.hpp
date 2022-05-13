@@ -312,14 +312,10 @@ namespace test {
         return tmp;
       }
       ptr operator+(std::ptrdiff_t s) const { return ptr<T>(ptr_ + s); }
-      ptr operator+(std::size_t s) const { return ptr<T>(ptr_ + s); }
       friend ptr operator+(std::ptrdiff_t s, ptr p) { return ptr<T>(s + p.ptr_); }
-      friend ptr operator+(std::size_t s, ptr p) { return ptr<T>(s + p.ptr_); }
 
       std::ptrdiff_t operator-(ptr p) const { return ptr_ - p.ptr_; }
       ptr operator-(std::ptrdiff_t s) const { return ptr(ptr_ - s); }
-      ptr operator-(std::size_t s) const { return ptr(ptr_ - s); }
-
       T& operator[](std::ptrdiff_t s) const { return ptr_[s]; }
       bool operator!() const { return !ptr_; }
 
