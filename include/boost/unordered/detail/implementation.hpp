@@ -2319,19 +2319,20 @@ namespace boost {
           return find_node_impl(k, itb);
         }
 
-        template <class Key> BOOST_FORCEINLINE iterator find(Key const& k) const
+        template <class Key> iterator find(Key const& k) const
         {
-          return this->transparent_find(k, this->hash_function(), this->key_eq());
+          return this->transparent_find(
+            k, this->hash_function(), this->key_eq());
         }
 
         template <class Key, class Hash, class Pred>
-        iterator transparent_find(Key const& k, Hash const& h, Pred const& pred) const
+        BOOST_FORCEINLINE iterator transparent_find(
+          Key const& k, Hash const& h, Pred const& pred) const
         {
           std::size_t const key_hash = h(k);
-          bucket_iterator itb =
-            buckets_.at(buckets_.position(key_hash));
+          bucket_iterator itb = buckets_.at(buckets_.position(key_hash));
           for (node_pointer p = itb->next; p; p = p->next) {
-            if (pred(k, extractor::extract(p->value()))) {
+            if (BOOST_LIKELY(pred(k, extractor::extract(p->value())))) {
               return iterator(p, itb);
             }
           }
