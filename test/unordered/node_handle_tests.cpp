@@ -309,13 +309,13 @@ void insert_node_handle_unique(Container1& c1, Container2& c2)
 
   while (!c1.empty()) {
     value_type v = *c1.begin();
+    value_type const* v_ptr = boost::to_address(c1.begin());
     std::size_t count = c2.count(test::get_key<Container1>(v));
     insert_return_type2 r = c2.insert(c1.extract(c1.begin()));
     if (!count) {
       BOOST_TEST(r.inserted);
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count + 1);
-      BOOST_TEST(r.position != c2.end());
-      BOOST_TEST(r.position == c2.find(test::get_key<Container1>(v)));
+      BOOST_TEST(boost::to_address(r.position) == v_ptr);
       BOOST_TEST(!r.node);
     } else {
       BOOST_TEST(!r.inserted);
@@ -343,12 +343,13 @@ void insert_node_handle_unique2(Container1& c1, Container2& c2)
 
   while (!c1.empty()) {
     value_type v = *c1.begin();
+    value_type const* v_ptr = boost::to_address(c1.begin());
     std::size_t count = c2.count(test::get_key<Container1>(v));
     insert_return_type2 r = c2.insert(c1.extract(test::get_key<Container1>(v)));
     if (r.inserted) {
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count + 1);
       BOOST_TEST(r.position != c2.end());
-      BOOST_TEST(r.position == c2.find(test::get_key<Container1>(v)));
+      BOOST_TEST(boost::to_address(r.position) == v_ptr);
       BOOST_TEST(!r.node);
     } else {
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count);
