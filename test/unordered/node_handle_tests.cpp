@@ -1,6 +1,5 @@
 
 // Copyright 2016 Daniel James.
-// Copyright 2022 Christian Mazakas
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -314,6 +313,7 @@ void insert_node_handle_unique(Container1& c1, Container2& c2)
     insert_return_type2 r = c2.insert(c1.extract(c1.begin()));
     if (!count) {
       BOOST_TEST(r.inserted);
+      BOOST_TEST(r.position != c2.end());
       BOOST_TEST_EQ(c2.count(test::get_key<Container1>(v)), count + 1);
       BOOST_TEST(boost::to_address(r.position) == v_ptr);
       BOOST_TEST(!r.node);
