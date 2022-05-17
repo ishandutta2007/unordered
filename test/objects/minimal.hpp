@@ -435,16 +435,18 @@ namespace test {
         ::operator delete((void*)p.ptr_);
       }
 
-      void construct(T* p, T const& t) { new ((void*)p) T(t); }
+      template <class U>
+      void construct(U* p, U const& t) { new ((void*)p) U(t); }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-      template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
+      template <class U, class... Args> void construct(U* p, BOOST_FWD_REF(Args)... args)
       {
-        new ((void*)p) T(boost::forward<Args>(args)...);
+        new ((void*)p) U(boost::forward<Args>(args)...);
       }
 #endif
 
-      void destroy(T* p) { p->~T(); }
+      template <class U>
+      void destroy(U* p) { p->~U(); }
 
       size_type max_size() const { return 1000; }
 
@@ -505,17 +507,19 @@ namespace test {
         ::operator delete((void*)p.ptr_);
       }
 
-      void construct(T const* p, T const& t) { new ((void*)p) T(t); }
+      template <class U>
+      void construct(U const* p, U const& t) { new ((void*)p) U(t); }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-      template <class... Args>
-      void construct(T const* p, BOOST_FWD_REF(Args)... args)
+      template <class U, class... Args>
+      void construct(U const* p, BOOST_FWD_REF(Args)... args)
       {
-        new ((void*)p) T(boost::forward<Args>(args)...);
+        new ((void*)p) U(boost::forward<Args>(args)...);
       }
 #endif
 
-      void destroy(T const* p) { p->~T(); }
+      template <class U>
+      void destroy(U const* p) { p->~U(); }
 
       size_type max_size() const { return 1000; }
 
@@ -580,16 +584,19 @@ namespace test {
 
       void deallocate(T* p, std::size_t) { ::operator delete((void*)p); }
 
-      void construct(T* p, T const& t) { new ((void*)p) T(t); }
+      template <class U>
+      void construct(U* p, U const& t) { new ((void*)p) U(t); }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-      template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
+      template <class U, class... Args> 
+      void construct(U* p, BOOST_FWD_REF(Args)... args)
       {
-        new ((void*)p) T(boost::forward<Args>(args)...);
+        new ((void*)p) U(boost::forward<Args>(args)...);
       }
 #endif
 
-      void destroy(T* p) { p->~T(); }
+      template <class U>
+      void destroy(U* p) { p->~U(); }
 
       std::size_t max_size() const { return 1000u; }
     };

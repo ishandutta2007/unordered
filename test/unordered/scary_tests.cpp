@@ -93,12 +93,14 @@ public:
     ::operator delete((void*)p.operator->());
   }
 
-  void construct(T* p, T const& t) { new (p) T(t); }
+  template <class U>
+  void construct(U* p, U const& t) { new (p) U(t); }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-  template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
+  template <class U, class... Args> 
+  void construct(U* p, BOOST_FWD_REF(Args)... args)
   {
-    new (p) T(boost::forward<Args>(args)...);
+    new (p) U(boost::forward<Args>(args)...);
   }
 #endif
 
@@ -106,10 +108,11 @@ public:
   // ever using it with an int with has a trivial destructor so it eliminates
   // the code and generates a warning about an unused variable
   //
-  void destroy(T* p)
+  template <class U>
+  void destroy(U* p)
   {
     (void)p;
-    p->~T();
+    p->~U();
   }
 
   size_type max_size() const { return (std::numeric_limits<size_type>::max)(); }
@@ -176,12 +179,14 @@ public:
 
   void deallocate(pointer p, size_type) { ::operator delete((void*)p.ptr_); }
 
-  void construct(T* p, T const& t) { new (p) T(t); }
+  template <class U>
+  void construct(U* p, U const& t) { new (p) U(t); }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-  template <class... Args> void construct(T* p, BOOST_FWD_REF(Args)... args)
+  template <class U, class... Args>
+  void construct(U* p, BOOST_FWD_REF(Args)... args)
   {
-    new (p) T(boost::forward<Args>(args)...);
+    new (p) U(boost::forward<Args>(args)...);
   }
 #endif
 
@@ -189,10 +194,11 @@ public:
   // ever using it with an int with has a trivial destructor so it eliminates
   // the code and generates a warning about an unused variable
   //
-  void destroy(T* p)
+  template <class U>
+  void destroy(U* p)
   {
     (void)p;
-    p->~T();
+    p->~U();
   }
 
   size_type max_size() const { return (std::numeric_limits<size_type>::max)(); }

@@ -213,24 +213,26 @@ namespace test
       ::operator delete((void*)p);
     }
 
-    void construct(T* p, T const& t)
+    template <class U>
+    void construct(U* p, U const& t)
     {
-      detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      new (p) T(t);
+      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
+      new (p) U(t);
     }
 
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    template <typename... Args>
-    void construct(T* p, BOOST_FWD_REF(Args)... args)
+    template <class U, typename... Args>
+    void construct(U* p, BOOST_FWD_REF(Args)... args)
     {
-      detail::tracker.track_construct((void*)p, sizeof(T), tag_);
-      new (p) T(boost::forward<Args>(args)...);
+      detail::tracker.track_construct((void*)p, sizeof(U), tag_);
+      new (p) U(boost::forward<Args>(args)...);
     }
 #endif
 
-    void destroy(T* p)
+    template <class U>
+    void destroy(U* p)
     {
-      detail::tracker.track_destroy((void*)p, sizeof(T), tag_);
+      detail::tracker.track_destroy((void*)p, sizeof(U), tag_);
       p->~T();
     }
 
