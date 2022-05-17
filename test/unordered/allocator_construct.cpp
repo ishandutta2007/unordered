@@ -11,6 +11,11 @@
 
 #include "../helpers/test.hpp"
 
+#include <boost/config.hpp>
+#include <boost/config/pragma_message.hpp>
+
+#if !defined(BOOST_NO_CXX11_ALLOCATOR)
+
 #include <cassert>
 #include <functional>
 #include <iostream>
@@ -147,3 +152,11 @@ UNORDERED_AUTO_TEST (allocator_construction_correctness) {
 }
 
 RUN_TESTS()
+
+#else
+
+BOOST_PRAGMA_MESSAGE(
+  "allocator_construct tests only work under C++11 and above")
+int main() {}
+
+#endif
