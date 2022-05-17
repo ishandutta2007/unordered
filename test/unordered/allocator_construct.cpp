@@ -21,9 +21,7 @@
 #include <iostream>
 #include <type_traits>
 
-namespace {
-  static int x = 0;
-}
+static int construct_destroy_call_count = 0;
 
 namespace map {
 
@@ -48,14 +46,14 @@ namespace map {
     template <class U, class... Args> void construct(U* p, Args&&... args)
     {
       static_assert(std::is_same<U, std::pair<int const, int> >::value, "");
-      ++x;
+      ++construct_destroy_call_count;
       new (p) U(std::forward<Args>(args)...);
     }
 
     template <class U> void destroy(U* p)
     {
       static_assert(std::is_same<U, std::pair<int const, int> >::value, "");
-      ++x;
+      ++construct_destroy_call_count;
       p->~U();
     }
 
@@ -87,14 +85,14 @@ namespace set {
     template <class U, class... Args> void construct(U* p, Args&&... args)
     {
       static_assert(std::is_same<U, int>::value, "");
-      ++x;
+      ++construct_destroy_call_count;
       new (p) U(std::forward<Args>(args)...);
     }
 
     template <class U> void destroy(U* p)
     {
       static_assert(std::is_same<U, int>::value, "");
-      ++x;
+      ++construct_destroy_call_count;
       p->~U();
     }
 
@@ -112,9 +110,9 @@ UNORDERED_AUTO_TEST (allocator_construction_correctness) {
     map[1] = 2;
   }
 
-  BOOST_TEST_EQ(x, 4);
+  BOOST_TEST_EQ(construct_destroy_call_count, 4);
 
-  x = 0;
+  construct_destroy_call_count = 0;
 
   {
     auto map = boost::unordered_multimap<int, int, std::hash<int>,
@@ -124,9 +122,9 @@ UNORDERED_AUTO_TEST (allocator_construction_correctness) {
     map.insert(std::make_pair(1337, 7331));
   }
 
-  BOOST_TEST_EQ(x, 4);
+  BOOST_TEST_EQ(construct_destroy_call_count, 4);
 
-  x = 0;
+  construct_destroy_call_count = 0;
 
   {
     auto set = boost::unordered_set<int, std::hash<int>, std::equal_to<int>,
@@ -136,9 +134,9 @@ UNORDERED_AUTO_TEST (allocator_construction_correctness) {
     set.insert(7331);
   }
 
-  BOOST_TEST_EQ(x, 4);
+  BOOST_TEST_EQ(construct_destroy_call_count, 4);
 
-  x = 0;
+  construct_destroy_call_count = 0;
 
   {
     auto set = boost::unordered_multiset<int, std::hash<int>,
@@ -148,7 +146,7 @@ UNORDERED_AUTO_TEST (allocator_construction_correctness) {
     set.insert(1337);
   }
 
-  BOOST_TEST_EQ(x, 4);
+  BOOST_TEST_EQ(construct_destroy_call_count, 4);
 }
 
 RUN_TESTS()
