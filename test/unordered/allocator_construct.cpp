@@ -54,6 +54,7 @@ namespace map {
     {
       static_assert(std::is_same<U, std::pair<int const, int> >::value, "");
       ++construct_destroy_call_count;
+      (void)p;
       p->~U();
     }
 
