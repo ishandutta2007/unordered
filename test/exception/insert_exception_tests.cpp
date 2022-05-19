@@ -1,6 +1,5 @@
 
 // Copyright 2006-2009 Daniel James.
-// Copyright 2022 Christian Mazakas
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 #include "./containers.hpp"
@@ -88,21 +87,6 @@ void insert_exception_test(T*, Inserter insert, test::random_generator gen)
   }
 }
 
-template <typename T, typename Inserter>
-void insert_exception_test_no_tracking(T*, Inserter insert, test::random_generator gen)
-{
-  // Emulating piecewise construction with boost::tuple bypasses the
-  // allocator's construct method, but still uses test destroy method.
-  test::detail::disable_construction_tracking _scoped;
-
-  for (int i = 0; i < 5; ++i) {
-    test::random_values<T> v(10, gen);
-    T x;
-
-    EXCEPTION_LOOP(insert_exception_test_impl(x, generate(insert, x), v));
-  }
-}
-
 // Insert into a container which is about to hit its max load, so that it
 // rehashes.
 
@@ -110,23 +94,6 @@ template <typename T, typename Inserter>
 void insert_rehash_exception_test(
   T*, Inserter insert, test::random_generator gen)
 {
-  for (int i = 0; i < 5; ++i) {
-    T x;
-    rehash_prep(x);
-
-    test::random_values<T> v2(5, gen);
-    EXCEPTION_LOOP(insert_exception_test_impl(x, generate(insert, x), v2));
-  }
-}
-
-template <typename T, typename Inserter>
-void insert_rehash_exception_test_no_tracking(
-  T*, Inserter insert, test::random_generator gen)
-{
-  // Emulating piecewise construction with boost::tuple bypasses the
-  // allocator's construct method, but still uses test destroy method.
-  test::detail::disable_construction_tracking _scoped;
-
   for (int i = 0; i < 5; ++i) {
     T x;
     rehash_prep(x);
@@ -311,12 +278,12 @@ test_pair_set* test_pair_set_;
 test_pair_multiset* test_pair_multiset_;
 
 // clang-format off
-UNORDERED_TEST(insert_exception_test_no_tracking,
+UNORDERED_TEST(insert_exception_test,
     ((test_pair_set_)(test_pair_multiset_)(test_map_)(test_multimap_))
     ((pair_emplace)(pair_emplace2))
     ((default_generator)(limited_range)(generate_collisions))
 )
-UNORDERED_TEST(insert_rehash_exception_test_no_tracking,
+UNORDERED_TEST(insert_rehash_exception_test,
     ((test_pair_set_)(test_pair_multiset_)(test_map_)(test_multimap_))
     ((pair_emplace)(pair_emplace2))
     ((default_generator)(limited_range)(generate_collisions))

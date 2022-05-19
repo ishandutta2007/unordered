@@ -22,6 +22,12 @@
 #include <boost/detail/select_type.hpp>
 #include <boost/limits.hpp>
 #include <boost/move/move.hpp>
+
+#if !defined(BOOST_NO_CXX11)
+#include <boost/mp11/mpl_list.hpp>
+#include <boost/mp11/algorithm.hpp>
+#endif
+
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/repetition/enum.hpp>
@@ -1056,6 +1062,54 @@ namespace boost {
 
         // Special case for piecewise_construct
 
+#if !defined(BOOST_NO_CXX11)
+
+        template <class... Args, std::size_t... Is, class... TupleArgs>
+        std::tuple<typename std::add_lvalue_reference<Args>::type...>
+        to_std_tuple_impl(boost::mp11::mp_list<Args...>,
+          boost::tuple<TupleArgs...>& tuple, boost::mp11::index_sequence<Is...>)
+        {
+          return std::tuple<typename std::add_lvalue_reference<Args>::type...>(
+            boost::get<Is>(tuple)...);
+        }
+
+        template <class... Args>
+        boost::mp11::index_sequence_for<Args...> make_index_seq(
+          boost::mp11::mp_list<Args...>)
+        {
+          return boost::mp11::index_sequence_for<Args...>{};
+        }
+
+        template <class T>
+        using add_lvalue_reference_t =
+          typename std::add_lvalue_reference<T>::type;
+
+        template <class... Args>
+        boost::mp11::mp_transform<add_lvalue_reference_t,
+          boost::mp11::mp_remove<std::tuple<Args...>,
+            boost::tuples::null_type> >
+        to_std_tuple(boost::tuple<Args...>& tuple)
+        {
+          using list = boost::mp11::mp_remove<boost::mp11::mp_list<Args...>,
+            boost::tuples::null_type>;
+
+          return to_std_tuple_impl(list{}, tuple, make_index_seq(list{}));
+        }
+
+        template <typename Alloc, typename A, typename B, typename A0,
+          typename A1, typename A2>
+        inline typename boost::enable_if_c<use_piecewise<A0>::value &&
+                                             detect_boost_tuple<A1>::value &&
+                                             detect_boost_tuple<A2>::value,
+          void>::type
+        construct_from_args(Alloc& alloc, std::pair<A, B>* address,
+          BOOST_FWD_REF(A0), BOOST_FWD_REF(A1) a1, BOOST_FWD_REF(A2) a2)
+        {
+          boost::allocator_construct(alloc, address, std::piecewise_construct,
+            to_std_tuple(a1), to_std_tuple(a2));
+        }
+
+#else
         template <typename Alloc, typename A, typename B, typename A0,
           typename A1, typename A2>
         inline typename boost::enable_if_c<use_piecewise<A0>::value &&
@@ -1080,6 +1134,8 @@ namespace boost {
           }
           BOOST_CATCH_END
         }
+#endif
+
 
 #elif !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
