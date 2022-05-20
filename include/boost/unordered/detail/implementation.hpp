@@ -22,12 +22,6 @@
 #include <boost/detail/select_type.hpp>
 #include <boost/limits.hpp>
 #include <boost/move/move.hpp>
-
-#if BOOST_CXX_VERSION >= 201103L
-#include <boost/mp11/mpl_list.hpp>
-#include <boost/mp11/algorithm.hpp>
-#endif
-
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/repetition/enum.hpp>
@@ -150,6 +144,11 @@
 
 #if !defined(BOOST_UNORDERED_CXX11_CONSTRUCTION)
 #define BOOST_UNORDERED_CXX11_CONSTRUCTION 0
+#endif
+
+#if BOOST_UNORDERED_CXX11_CONSTRUCTION
+#include <boost/mp11/mpl_list.hpp>
+#include <boost/mp11/algorithm.hpp>
 #endif
 
 // BOOST_UNORDERED_SUPPRESS_DEPRECATED
@@ -1062,7 +1061,6 @@ namespace boost {
 
         // Special case for piecewise_construct
 
-#if BOOST_CXX_VERSION >= 201103L
         template <class... Args, std::size_t... Is, class... TupleArgs>
         std::tuple<typename std::add_lvalue_reference<Args>::type...>
         to_std_tuple_impl(boost::mp11::mp_list<Args...>,
@@ -1108,34 +1106,6 @@ namespace boost {
           boost::allocator_construct(alloc, address, std::piecewise_construct,
             to_std_tuple(a1), to_std_tuple(a2));
         }
-
-#else
-        template <typename Alloc, typename A, typename B, typename A0,
-          typename A1, typename A2>
-        inline typename boost::enable_if_c<use_piecewise<A0>::value &&
-                                             detect_boost_tuple<A1>::value &&
-                                             detect_boost_tuple<A2>::value,
-          void>::type
-        construct_from_args(Alloc& alloc, std::pair<A, B>* address,
-          BOOST_FWD_REF(A0), BOOST_FWD_REF(A1) a1, BOOST_FWD_REF(A2) a2)
-        {
-          boost::unordered::detail::func::construct_from_tuple(
-            alloc, boost::addressof(address->first), boost::forward<A1>(a1));
-          BOOST_TRY
-          {
-            boost::unordered::detail::func::construct_from_tuple(
-              alloc, boost::addressof(address->second), boost::forward<A2>(a2));
-          }
-          BOOST_CATCH(...)
-          {
-            boost::unordered::detail::func::destroy(
-              boost::addressof(address->first));
-            BOOST_RETHROW
-          }
-          BOOST_CATCH_END
-        }
-#endif
-
 
 #elif !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
 
