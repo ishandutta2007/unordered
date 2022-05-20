@@ -147,7 +147,7 @@
 #endif
 
 #if BOOST_UNORDERED_CXX11_CONSTRUCTION
-#include <boost/mp11/mpl_list.hpp>
+#include <boost/mp11/list.hpp>
 #include <boost/mp11/algorithm.hpp>
 #endif
 
