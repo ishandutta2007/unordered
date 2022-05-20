@@ -23,7 +23,7 @@
 #include <boost/limits.hpp>
 #include <boost/move/move.hpp>
 
-#if !defined(BOOST_NO_CXX11)
+#if BOOST_CXX_VERSION >= 201103L
 #include <boost/mp11/mpl_list.hpp>
 #include <boost/mp11/algorithm.hpp>
 #endif
@@ -1062,13 +1062,13 @@ namespace boost {
 
         // Special case for piecewise_construct
 
-#if !defined(BOOST_NO_CXX11)
-
+#if BOOST_CXX_VERSION >= 201103L
         template <class... Args, std::size_t... Is, class... TupleArgs>
         std::tuple<typename std::add_lvalue_reference<Args>::type...>
         to_std_tuple_impl(boost::mp11::mp_list<Args...>,
           boost::tuple<TupleArgs...>& tuple, boost::mp11::index_sequence<Is...>)
         {
+          (void) tuple;
           return std::tuple<typename std::add_lvalue_reference<Args>::type...>(
             boost::get<Is>(tuple)...);
         }
