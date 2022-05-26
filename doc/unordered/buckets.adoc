@@ -1,5 +1,6 @@
 [#buckets]
 :idprefix: buckets_
+:imagesdir: ../diagrams
 
 = The Data Structure
 
@@ -8,7 +9,7 @@ any number of elements. For example, the following diagram shows an <<unordered_
 `B`, `C`, `D` and `E` (this is just for illustration, containers will typically
 have more buckets).
 
-image::../doc/diagrams/buckets.png[]
+image::buckets.png[]
 
 In order to decide which bucket to place an element in, the container applies
 the hash function, `Hash`, to the element's key (for `unordered_set` and
@@ -158,18 +159,284 @@ Typical implementations will meet these requirements by allocating an array of b
 
 [#img-singly-linked]
 .The canonical standard approach
-image::../diagrams/singly-linked.png[align=center,link=../diagrams/singly-linked.png]
+image::singly-linked.png[align=center,link=../diagrams/singly-linked.png,window=_blank]
 
 When container iteration is not required, one does not have to inter-link the buckets themselves. Instead, each bucket will contain only its own linked list of nodes. This is an efficient data structure in comparison to common standard implementations because it eschews the indirection of using the node before the bucket's start; buckets are allowed to point to the linked list directly. Unfortunately, this typically slows down iteration over the entire container because a naive approach requires traversing the entire bucket array, examining each bucket for occupancy. This can be a slow operation in the case of a container having few elements but space for many buckets. An example diagram of the data structure is below:
 
 [#img-bucket-groups]
 .A simple bucket group approach
-image::../diagrams/bucket-groups.png[align=center]
+image::bucket-groups.png[align=center]
 
 Boost.Unordered opts into this layout but solves the problem of container iteration by introducing a new data structure called a "bucket group". A bucket group represents a fixed-width view into a subsection of the buckets array. It wraps an `std::size_t` which is used as a bitmask to determine which buckets in the group are occupied. This means that a bucket group's width is equal to the number of bits in a `std::size_t`. Bucket groups are also put into a doubly-linked list so that insertion and deletion can be implemented efficiently. Because the number of bucket groups is small in comparison to the total number of buckets, memory overhead is relatively affordable. An example diagram is below:
 
 [#img-fca-layout]
 .The new layout used by Boost
-image::../diagrams/fca.png[align=center]
+image::fca.png[align=center]
 
 Because of this, Boost.Unordered's implementation of the unordered containers is faster, in some cases significantly so, when compared to its STL counterparts.
+
+= Benchmarks
+
+All benchmarks were created using `unordered_set<unsigned int>` (non-duplicate) and `unordered_multiset<unsigned int>` (duplicate). The source code can be https://github.com/joaquintides/boost_unordered_benchmark[found here].
+
+== GCC 11 + libstdc++-v3
+
+=== Insertion
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/gcc/running insertion.xlsx.practice.png[width=250,link=../diagrams/benchmarks/gcc/running insertion.xlsx.practice.png,window=_blank]
+|image::benchmarks/gcc/running%20insertion.xlsx.practice non-unique.png[width=250,link=../diagrams/benchmarks/gcc/running%20insertion.xlsx.practice non-unique.png,window=_blank]
+|image::benchmarks/gcc/running%20insertion.xlsx.practice non-unique 5.png[width=250,link=../diagrams/benchmarks/gcc/running%20insertion.xlsx.practice non-unique 5.png,window=_blank]
+
+h|non-duplicate elements 
+h|duplicate elements 
+h|duplicate elements +
+max load factor 5
+|===
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/gcc/running%20insertion.xlsx.practice norehash.png[width=250,link=../diagrams/benchmarks/gcc/running%20insertion.xlsx.practice norehash.png,window=_blank]
+|image::benchmarks/gcc/running%20insertion.xlsx.practice norehash non-unique.png[width=250,link=../diagrams/benchmarks/gcc/running%20insertion.xlsx.practice norehash non-unique.png,window=_blank]
+|image::benchmarks/gcc/running%20insertion.xlsx.practice norehash non-unique 5.png[width=250,link=../diagrams/benchmarks/gcc/running%20insertion.xlsx.practice norehash non-unique 5.png,window=_blank]
+
+h|non-duplicate elements, +
+prior `reserve`
+h|duplicate elements, +
+prior `reserve` 
+h|duplicate elements, +
+max load factor 5, +
+prior `reserve`
+
+|===
+
+=== Erasure
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/gcc/scattered%20erasure.xlsx.practice.png[width=250,link=../diagrams/benchmarks/gcc/scattered%20erasure.xlsx.practice.png,window=_blank]
+|image::benchmarks/gcc/scattered%20erasure.xlsx.practice non-unique.png[width=250,link=../diagrams/benchmarks/gcc/scattered%20erasure.xlsx.practice non-unique.png,window=_blank]
+|image::benchmarks/gcc/scattered%20erasure.xlsx.practice non-unique 5.png[width=250,link=../diagrams/benchmarks/gcc/scattered%20erasure.xlsx.practice non-unique 5.png,window=_blank]
+
+h|non-duplicate elements 
+h|duplicate elements 
+h|duplicate elements +
+max load factor 5
+|===
+
+=== Successful Lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice.png]
+|image::benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20successful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+=== Unsuccessful lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice.png]
+|image::benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/gcc/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+== Clang 12 + libc++
+
+=== Insertion
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice.png[width=250, window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice.png]
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice non-unique.png[width=250, window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice non-unique.png]
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice non-unique 5.png[width=250, window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash.png]
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash non-unique.png]
+|image::benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/running%20insertion.xlsx.practice norehash non-unique 5.png]
+
+h|non-duplicate elements, +
+prior `reserve`
+h|duplicate elements, +
+prior `reserve`
+h|duplicate elements, +
+max load factor 5, +
+prior `reserve`
+
+|===
+
+=== Erasure
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice.png]
+|image::benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice non-unique.png]
+|image::benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20erasure.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+=== Successful lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice.png]
+|image::benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20successful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+=== Unsuccessful lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice.png]
+|image::benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/clang_libcpp/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+== Visual Studio 2019 + Dinkumware
+
+=== Insertion
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/vs/running%20insertion.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice.png]
+|image::benchmarks/vs/running%20insertion.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice non-unique.png]
+|image::benchmarks/vs/running%20insertion.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/vs/running%20insertion.xlsx.practice norehash.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice norehash.png]
+|image::benchmarks/vs/running%20insertion.xlsx.practice norehash non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice norehash non-unique.png]
+|image::benchmarks/vs/running%20insertion.xlsx.practice norehash non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/running%20insertion.xlsx.practice norehash non-unique 5.png]
+
+h|non-duplicate elements, +
+prior `reserve`
+h|duplicate elements, +
+prior `reserve`
+h|duplicate elements, +
+max load factor 5, +
+prior `reserve`
+
+|===
+
+=== Erasure
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/vs/scattered%20erasure.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20erasure.xlsx.practice.png]
+|image::benchmarks/vs/scattered%20erasure.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20erasure.xlsx.practice non-unique.png]
+|image::benchmarks/vs/scattered%20erasure.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20erasure.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+=== Successful lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/vs/scattered%20successful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/benchmarks/vs/scattered%20successful%20looukp.xlsx.practice.png]
+|image::benchmarks/vs/scattered%20successful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/benchmarks/vs/scattered%20successful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/vs/scattered%20successful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/benchmarks/vs/scattered%20successful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
+
+=== Unsuccessful lookup
+
+[caption=]
+[cols="3*^.^a", frame=all, grid=all]
+|===
+
+|image::benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice.png]
+|image::benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice non-unique.png]
+|image::benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png[width=250,window=_blank,link=../diagrams/benchmarks/vs/scattered%20unsuccessful%20looukp.xlsx.practice non-unique 5.png]
+
+h|non-duplicate elements
+h|duplicate elements
+h|duplicate elements, +
+max load factor 5
+
+|===
