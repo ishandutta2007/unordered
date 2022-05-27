@@ -157,7 +157,15 @@ The unordered associative containers in the C++ standard library are required to
 
 Typical implementations will meet these requirements by allocating an array of buckets, a simple data structure that contains a pointer to a node. The nodes of the bucket are then inter-linked with each other to form a singly-linked list which enables bucket iteration. To enable `O(size())` iteration over the entirety of the container, implementations will also link buckets themselves by linking the node at the end of one bucket to the node at the start of another bucket. This essentially transforms the container into a simple singly-linked list of nodes with a corresponding array of buckets whose elements point to the node before the start of the actual bucket the key belongs in. Prior to version 1.80, Boost used this implementation as well and an example figure is presented below:
 
-[#img-singly-linked]
+++++
+<style>
+  .imageblock > .title {
+    text-align: inherit;
+  }
+</style>
+++++
+
+[.text-center]
 .The canonical standard approach
 image::singly-linked.png[align=center,link=../diagrams/singly-linked.png,window=_blank]
 
@@ -169,7 +177,7 @@ When the time complexity requirement for iteration is relaxed, one does not have
 .A simple bucket group approach
 image::bucket-groups.png[align=center]
 
-Boost.Unordered opts into this layout but solves the problem of container iteration by introducing a new data structure called a "bucket group". A bucket group represents a fixed-width view into a subsection of the buckets array. It wraps an `std::size_t` which is used as a bitmask to determine which buckets in the group are occupied. This means that a bucket group's width is equal to the number of bits in a `std::size_t`. Bucket groups are also put into a doubly-linked list so that insertion and deletion can be implemented efficiently. On a 64 bit system, the space overhead of bucket groups is 4 bits per bucket. An example diagram is below:
+Boost.Unordered opts into this layout but solves the problem of container iteration by introducing a new data structure called a "bucket group". A bucket group represents a fixed-width view into a subsection of the buckets array. It wraps an `std::size_t` which is used as a bitmask to determine which buckets in the group are occupied. This means that a bucket group's width is equal to the number of bits in a `std::size_t`. Bucket groups are also put into a doubly-linked list so that insertion and deletion can be implemented efficiently. Overall, the space overhead of bucket groups comes out to 4 bits per bucket. An example diagram is below:
 
 [#img-fca-layout]
 .The new layout used by Boost
@@ -180,6 +188,14 @@ Because of this, Boost.Unordered's implementation of the unordered containers is
 = Benchmarks
 
 All benchmarks were created using `unordered_set<unsigned int>` (non-duplicate) and `unordered_multiset<unsigned int>` (duplicate). The source code can be https://github.com/joaquintides/boost_unordered_benchmark[found here].
+
+The insertion benchmarks insert `n` random values, where `n` is between 10,000 and 3 million. For the duplicated benchmarks, the same random values are repeated an average of 5 times.
+
+The erasure benchmarks erase all `n` elements randomly until the container is empty.
+
+The successful lookup benchmarks are done by looking up all `n` values, in the their original insertion order.
+
+The unsuccessful lookup benchmarks use `n` randomly generated integers but using a different seed value.
 
 == GCC 11 + libstdc++-v3
 
