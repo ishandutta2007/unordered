@@ -509,20 +509,20 @@ namespace test {
         ::operator delete((void*)p.ptr_);
       }
 
-      template <class U> void construct(U const* p, U const& t)
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+      template <class U> void construct(U* p, U const& t)
       {
-        new ((void*)p) U(t);
+        new (p) U(t);
       }
-
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+#else
       template <class U, class... Args>
-      void construct(U const* p, BOOST_FWD_REF(Args)... args)
+      void construct(U* p, BOOST_FWD_REF(Args)... args)
       {
-        new ((void*)p) U(boost::forward<Args>(args)...);
+        new (p) U(boost::forward<Args>(args)...);
       }
 #endif
 
-      template <class U> void destroy(U const* p) { p->~U(); }
+      template <class U> void destroy(U* p) { p->~U(); }
 
       size_type max_size() const { return 1000; }
 
