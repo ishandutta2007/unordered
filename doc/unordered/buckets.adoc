@@ -153,10 +153,6 @@ See the <<unordered_map_rehash,reference for more details>> on the `rehash` func
 
 == Fast Closed Addressing Implementation
 
-The unordered associative containers in the C++ standard library are required to group keys with the same hash value into the same buckets and to also permit iteration over those buckets. In addition to this, the containers must be node-based which means that the key, or key-value pair as for maps, is required to live on the heap. This enables the containers to provide support for all possible user types and gives elements address stability.
-
-Typical implementations will meet these requirements by allocating an array of buckets, a simple data structure that contains a pointer to a node. The nodes of the bucket are then inter-linked with each other to form a singly-linked list which enables bucket iteration. To enable `O(size())` iteration over the entirety of the container, implementations will also link buckets themselves by linking the node at the end of one bucket to the node at the start of another bucket. This essentially transforms the container into a simple singly-linked list of nodes with a corresponding array of buckets whose elements point to the node before the start of the actual bucket the key belongs in. Prior to version 1.80, Boost used this implementation as well and an example figure is presented below:
-
 ++++
 <style>
   .imageblock > .title {
@@ -165,25 +161,53 @@ Typical implementations will meet these requirements by allocating an array of b
 </style>
 ++++
 
+Boost.Unordered boasts one of the fastest implementations of closed addressing. Unordered uses one of the more classical approaches to implementing a closed addressing hash table by using https://en.wikipedia.org/wiki/Hash_table#Separate_chaining[separate chaining]. An example figure representing the data structure is below:
+
+[#img-bucket-groups,.text-center]
+.A simple bucket group approach
+image::bucket-groups.png[align=center]
+
+An array of "buckets" is allocated and each bucket in turn points to its own individual linked list. This makes meeting the standard requirements of bucket iteration straight-forward. Unfortunately, iteration of the entire container is often times slow using this layout as each bucket must be examined for occupancy, yielding a time complexity of `O(bucket_count() + size())`.
+
+Canonical standard implementations will wind up looking like the diagram below:
+
 [.text-center]
 .The canonical standard approach
 image::singly-linked.png[align=center,link=../diagrams/singly-linked.png,window=_blank]
 
-It's worth noting that this approach is only used by pass:[libc++] and pass:[libstdc++]; the MSVC Dinkumware implementation uses a different approach. A more detailed analysis of the standard containers can be found http://bannalia.blogspot.com/2013/10/implementation-of-c-unordered.html[here].
+It's worth noting that this approach is only used by pass:[libc++] and pass:[libstdc++]; the MSVC Dinkumware implementation uses a different one. A more detailed analysis of the standard containers can be found http://bannalia.blogspot.com/2013/10/implementation-of-c-unordered.html[here].
 
-When the time complexity requirement for iteration is relaxed, one does not have to inter-link the buckets themselves. Instead, each bucket can contain only its own linked list of nodes. This is an efficient data structure in comparison to common standard implementations because it eschews the indirection of using the node before the bucket's start; buckets are allowed to point to the linked list directly. Unfortunately, this typically slows down iteration over the entire container because a naive approach requires traversing the entire bucket array, examining each bucket for occupancy. This can be a slow operation in the case of a container having few elements but space for many buckets. An example diagram of the data structure is below:
+This unusually laid out data structure is chosen to make iteration of the entire container efficient by inter-connecting all of the nodes into a singly-linked list. One might also notice that buckets point to the node _before_ the start of the bucket's elements. This is done so that removing elements from the list can be done efficiently without introducing the need for a doubly-linked list. Unfortunately, this data structure introduces a guaranteed extra indirection. For example, to access the first element of a bucket, something like this must be done:
 
-[#img-bucket-groups]
-.A simple bucket group approach
-image::bucket-groups.png[align=center]
+```c++
+auto const idx = get_bucket_idx(hash_function(key));
+node* p = buckets[idx]; // first load
+node* n = p->next; // second load
+if (n && is_in_bucket(n, idx)) {
+  value_type const& v = *n; // third load
+  // ...
+}
+```
 
-Boost.Unordered opts into this layout but solves the problem of container iteration by introducing a new data structure called a "bucket group". A bucket group represents a fixed-width view into a subsection of the buckets array. It wraps an `std::size_t` which is used as a bitmask to determine which buckets in the group are occupied. This means that a bucket group's width is equal to the number of bits in a `std::size_t`. Bucket groups are also put into a doubly-linked list so that insertion and deletion can be implemented efficiently. Overall, the space overhead of bucket groups comes out to 4 bits per bucket. An example diagram is below:
+With a simple bucket group layout, this is all that must be done:
+```c++
+auto const idx = get_bucket_idx(hash_function(key));
+node* n = buckets[idx]; // first load
+if (n) {
+  value_type const& v = *n; // second load
+  // ...
+}
+```
+
+In practice, the extra indirection can have a dramatic performance impact to common operations such as `insert`, `find` and `erase`. But to keep iteration of the container fast, Boost.Unordered introduces a novel data structure, a "bucket group". A bucket group is a fixed-width view of a subsection of the buckets array. It contains a bitmask (a `std::size_t`) which it uses to track occupancy of buckets and contains two pointers so that it can form a doubly-linked list. An example diagram is below:
 
 [#img-fca-layout]
 .The new layout used by Boost
 image::fca.png[align=center]
 
-Because of this, Boost.Unordered's implementation of the unordered containers is faster, in some cases significantly so, when compared to its STL counterparts.
+Thus container-wider iteration is turned into traversing the bucket groups which turns the time complexity to `O(bucket_count() / (CHAR_BIT * sizeof(std::size_t)) + size())`. In total, a bucket group is only 4 words in size and it views `sizeof(std::size_t) * CHAR_BIT` buckets meaning that for all common implementations, there's only 4 bits of space overhead per bucket introduced by the bucket groups.
+
+For more information on implementation rationale, read the <<Implementation Rationale, corresponding section>>.
 
 = Benchmarks
 
