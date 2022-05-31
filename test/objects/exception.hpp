@@ -478,7 +478,7 @@ namespace test {
       template <class U, class Arg>
       void construct(U* p, Arg const& t)
       {
-        UNORDERED_SCOPE(allocator::construct(T*, Arg))
+        UNORDERED_SCOPE(allocator::construct(U*, Arg))
         {
           UNORDERED_EPOINT("Mock allocator construct function.");
           new (p) U(t);
@@ -489,7 +489,7 @@ namespace test {
 #if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
       template <class U, class... Args> void construct(U* p, BOOST_FWD_REF(Args)... args)
       {
-        UNORDERED_SCOPE(allocator::construct(pointer, BOOST_FWD_REF(Args)...))
+        UNORDERED_SCOPE(allocator::construct(U*, BOOST_FWD_REF(Args)...))
         {
           UNORDERED_EPOINT("Mock allocator construct function.");
           new (p) U(boost::forward<Args>(args)...);
@@ -671,7 +671,7 @@ namespace test {
       template <class U, class... Args> 
       void construct(U* p, BOOST_FWD_REF(Args)... args)
       {
-        UNORDERED_SCOPE(allocator2::construct(pointer, BOOST_FWD_REF(Args)...))
+        UNORDERED_SCOPE(allocator2::construct(U*, BOOST_FWD_REF(Args)...))
         {
           UNORDERED_EPOINT("Mock allocator2 construct function.");
           new (p) U(boost::forward<Args>(args)...);

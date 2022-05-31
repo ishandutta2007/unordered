@@ -49,7 +49,7 @@ if (n < N) {
 ```
 
 `reset_first_bits` yields an unsigned integral with the first n bits set to 0
-and then by counting the number of traling zeroes when AND'd against the bucket
+and then by counting the number of trailing zeroes when AND'd against the bucket
 group's bitmask, we can derive the offset into the buckets array. When the
 calculated offset is equal to N, we know we've reached the end of a bucket group
 and we can advance to the next one.
