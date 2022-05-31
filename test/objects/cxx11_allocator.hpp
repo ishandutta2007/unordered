@@ -1,5 +1,6 @@
 
 // Copyright 2006-2011 Daniel James.
+// Copyright 2022 Christian Mazakas
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -213,14 +214,14 @@ namespace test
       ::operator delete((void*)p);
     }
 
-    template <class U>
-    void construct(U* p, U const& t)
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+    template <class U, class V>
+    void construct(U* p, V const& v)
     {
       detail::tracker.track_construct((void*)p, sizeof(U), tag_);
-      new (p) U(t);
+      new (p) U(v);
     }
-
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+#else
     template <class U, typename... Args>
     void construct(U* p, BOOST_FWD_REF(Args)... args)
     {
@@ -233,7 +234,7 @@ namespace test
     void destroy(U* p)
     {
       detail::tracker.track_destroy((void*)p, sizeof(U), tag_);
-      p->~T();
+      p->~U();
     }
 
     size_type max_size() const

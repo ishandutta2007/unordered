@@ -1,4 +1,4 @@
-// Copyright 2021 Christian Mazakas.
+// Copyright 2022 Christian Mazakas.
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 
@@ -93,11 +93,10 @@ public:
     ::operator delete((void*)p.operator->());
   }
 
-  template <class U>
-  void construct(U* p, U const& t) { new (p) U(t); }
-
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-  template <class U, class... Args> 
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+  template <class U, class V> void construct(U* p, V const& v) { new (p) U(v); }
+#else
+  template <class U, class... Args>
   void construct(U* p, BOOST_FWD_REF(Args)... args)
   {
     new (p) U(boost::forward<Args>(args)...);
@@ -179,10 +178,9 @@ public:
 
   void deallocate(pointer p, size_type) { ::operator delete((void*)p.ptr_); }
 
-  template <class U>
-  void construct(U* p, U const& t) { new (p) U(t); }
-
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+  template <class U, class V> void construct(U* p, V const& v) { new (p) U(v); }
+#else
   template <class U, class... Args>
   void construct(U* p, BOOST_FWD_REF(Args)... args)
   {

@@ -656,15 +656,14 @@ namespace test {
       ::operator delete((void*)p.ptr_);
     }
 
-    template <class U>
-    void construct(U* p, U const& t)
+#if defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
+    template <class U, class V> void construct(U* p, V const& v)
     {
       detail::tracker.track_construct((void*)p, sizeof(U), tag_);
-      new (p) U(t);
+      new (p) U(v);
     }
-
-#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES)
-    template <class U, class... Args> 
+#else
+    template <class U, class... Args>
     void construct(U* p, BOOST_FWD_REF(Args)... args)
     {
       detail::tracker.track_construct((void*)p, sizeof(U), tag_);
@@ -672,8 +671,7 @@ namespace test {
     }
 #endif
 
-    template <class U>
-    void destroy(U* p)
+    template <class U> void destroy(U* p)
     {
       detail::tracker.track_destroy((void*)p, sizeof(U), tag_);
       p->~U();
