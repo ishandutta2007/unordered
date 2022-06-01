@@ -161,7 +161,7 @@ See the <<unordered_map_rehash,reference for more details>> on the `rehash` func
 </style>
 ++++
 
-Boost.Unordered boasts one of the fastest implementations of closed addressing. Unordered uses one of the more classical approaches to implementing a closed addressing hash table by using https://en.wikipedia.org/wiki/Hash_table#Separate_chaining[separate chaining]. An example figure representing the data structure is below:
+Boost.Unordered sports one of the fastest implementations of closed addressing, also commonly known as https://en.wikipedia.org/wiki/Hash_table#Separate_chaining[separate chaining]. An example figure representing the data structure is below:
 
 [#img-bucket-groups,.text-center]
 .A simple bucket group approach
